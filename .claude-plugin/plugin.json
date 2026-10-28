@@ -1,6 +1,6 @@
 {
   "name": "team-skills",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Agent-team skills for Claude Code: a multi-role council that debates decisions, a review panel whose findings are refuted before they are raised, a panel of refactoring masters with a KISS/YAGNI gate, and a browser-based CEO gate where the human makes the final call.",
   "author": {
     "name": "Thomas Boffy",

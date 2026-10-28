@@ -88,6 +88,8 @@ Use one method or the other, not both, or every skill will show up twice.
 
 **Sandbox and `.bare/` worktrees:** add the whole git directory to the sandbox's write paths. With only `worktrees/`, `objects/`, `refs/` and `logs/`, executors can commit, but rebase and cherry-pick fail on `packed-refs.lock`.
 
+**Launching the next phase:** with `Next step: launch` in the profile's *Run preferences*, a handoff starts the next session itself (`setsid -f claude -p …`, detached). `claude` writes under `~/.claude`, so the command runs outside the sandbox and asks for permission each time unless your settings allow it. The new session runs until it needs you, then waits in the session history (VS Code) or `/resume`.
+
 ## Usage
 
 Ask in plain language; the skills trigger on intent:

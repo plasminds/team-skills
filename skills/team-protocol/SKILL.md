@@ -49,7 +49,7 @@ Append this block to every dispatch prompt, with the budget, run folder and agen
 - Tool rules: <the user's standing tool rules from CLAUDE.md, e.g. "absolute paths, never `cd`">
 - Only a command's output counts, never IDE diagnostics (they can come from stale buffers). Run each gate command exactly as your brief writes it, with no pipe, redirect or prefix added.
 - Write your full output to <run folder>/<agent id>.md.
-- A question the code answers is yours: answer it with `file:line`. A claim that something does not exist names the terms and paths you searched, else mark it `unverified`.
+- A question the code, the ticket or the MR/PR answers is yours: answer it with `file:line` or the link. Before asking how a new variant behaves, say how its sibling behaves today. A claim that something does not exist names the terms and paths you searched, else mark it `unverified`.
 - Reply with: the file path, one line per position, card, verdict or defect (id + title), the questions for the CEO, and what you settled alone (`question → answer — source`). Nothing else.
 ```
 
@@ -76,9 +76,13 @@ A structural choice is any of: a new package or module, a new layer, a dependenc
 ## Settled without the CEO
 
 The CEO sees every question, and every answer nobody asked them for.
-- **A question the code answers is not a CEO question.** The agent that raises it answers it, or an evidence pass does before the pause.
+- **A question the code, the ticket or the MR/PR answers is not a CEO question.** The agent that raises it answers it, or an evidence pass does before the pause.
 - **Everything settled without the CEO goes on the gate's *Settled without you* list** (`contract.md`, `settled`): a question answered from code, an `assumed` premise or constraint taken as true, a default you or a writer took, an author-intent question sent to a merge request's comment. The CEO can reopen each one.
 - **Before the question pause, grep the role files for `assumed`.** Each one is in a question or on the list.
+
+## Project profile
+
+A git worktree with no `.council/project-profile.md` takes a sibling worktree's first (`team-scan` § *Sibling worktrees*), before the caller's rule for a missing profile applies.
 
 ## Code scope
 
@@ -90,11 +94,26 @@ For team-refactor and team-review, which hand what they stumble on in the other 
 
 ## Handoff
 
-Each CEO gate ends a session. **An open answer.** An UNDECIDED, or a note that asks a question: one check (an evidence agent if it needs code), then one question in chat that states only what the run's files hold and flags the rest as unchecked. The record says "gate pick X, changed in chat to Y" and quotes the CEO; a card made moot is recorded `moot`. Write the record the next phase needs. Before deleting the run folder, grep the deliverables for `runs/` and for ids that exist only in the run (reviewer defects); rewrite those as plain sentences. Evidence, settled notes and sketches worth keeping go to `.council/decisions/<name>-sources/`. Then delete the run folder (anything worth keeping is in the record by then). Then ask once: *"Commit `<the files the next phase reads>` now, as one docs commit?"* Ask it with AskUserQuestion, and name each gitignored file the next phase reads (`git check-ignore`): a worktree executor cannot see it. Worktree executors only see committed files, and a commit made after the handoff line costs turns at the session's largest context. Then tell the user:
+Each CEO gate ends a session. **An open answer.** An UNDECIDED, or a note that asks a question: one check (an evidence agent if it needs code), then one question in chat that states only what the run's files hold and flags the rest as unchecked. The record says "gate pick X, changed in chat to Y" and quotes the CEO; a card made moot is recorded `moot`. Write the record the next phase needs. Before deleting the run folder, grep the deliverables for `runs/` and for ids that exist only in the run (reviewer defects); rewrite those as plain sentences. Evidence, settled notes and sketches worth keeping go to `.council/decisions/<name>-sources/`. Then delete the run folder (anything worth keeping is in the record by then). **Commit** as the profile's *Run preferences* say (`team-scan`). With no `Commit records` line, ask once with AskUserQuestion: *"Commit `<the files the next phase reads>` now, as one docs commit?"*, naming each gitignored one (`git check-ignore`), and record the answer as that line. Worktree executors only see committed files, and a commit after the handoff costs turns at the session's largest context.
 
-*"`/clear`, then: `<next command>` `<path>`."*
+**The handoff** ends your last message: `/clear`, then the next prompt alone in a fenced code block, whole and ready to paste (paths filled in, nothing else inside):
+
+````markdown
+`/clear`, then:
+```
+execute the review fixes in .council/reviews/2026-10-28-checkout.exec.md
+```
+````
 
 The next phase starts from that file, not from a context that holds the whole debate.
+
+**Launch.** The next phase can start itself in a new session, per the profile's `Next step` line (`launch` | `paste`); with none, ask in the commit question's AskUserQuestion call and record the answer. On `launch`, run outside the sandbox, detached:
+
+```bash
+setsid -f claude -p --name "<topic>" --append-system-prompt "Headless team-* handoff: no AskUserQuestion. At the first point needing the human (a question, a gate page to serve), write it as text and end your turn; they resume this session." "<the prompt>" > /dev/null 2>&1
+```
+
+Say it runs alone, to open from the session history or `/resume`. The handoff block still ends the message.
 
 ## Execution
 
@@ -117,18 +136,11 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 | Excuse | Reality |
 |--------|---------|
 | "I'll play the roles myself, it's faster" | One context gives one opinion wearing several costumes, and no tension. Dispatch them. |
-| "Four roles back it, that's a clear majority" | Count only positions with checkable evidence. Four uncited agents on one model are one prior counted four times. |
-| "I'll skim the transcripts to check the synthesis is fair" | Every file you read is re-read on every later turn. The synthesizer read them; you read its file. |
 | "It's close, I'll pick a side and call it a decision" | No majority makes it a tension. The synthesizer suggests a side; the CEO takes it. |
 | "We're on a roll, I'll keep going in this session" | The next phase would pay for this whole context on every turn. Write the record, then `/clear`. |
-| "The user won't mind the brief going to codex" | Sending their code to another vendor needs their yes, from the profile or from them. |
-| "It's a few edits, I'll patch the file myself" | Every edit lands in the most expensive context of the run. Send the fix lines to a fresh writer. |
 | "The code answers it, no need to mention it" | Answer it, and put it on *Settled without you*: nothing is decided in the dark. |
-| "The placement is a detail, I'll pick" | A choice the user sees is the CEO's. |
 | "A new package is an implementation detail; the writer will shape it" | Its boundaries, dependencies and folders are expensive to undo, and an `approve` on one step line among forty is not a choice the human made (§ *Structural choices*). |
 | "The fence says format only the changed lines; the executor will comply" | It didn't, seven times in one sweep. The *Diff guard* runs before every commit; words alone don't. |
-| "The hand-off list is in the record; someone will pick it up" | Nobody reads it unless a run takes it in. Run the intake (§ *Lane hand-offs*), or the sweep's step for it. |
-| "A writer should log the commits in the record" | You already hold the reply lines. One `cat >>` costs less than an agent that reloads everything to write ten lines. |
 
 ## Red Flags
 
@@ -136,7 +148,6 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 - A dispatch without `model`, or as `general-purpose` while its `team-*` agent is listed
 - Writing or patching a gate JSON, record, exec brief or plan yourself (a `Status:` line and the *Execution* append aside)
 - Fixing a reviewer's finding, or editing code between batches, yourself
-- A turn spent only on "X is back, waiting for the others"
 - A skill file read from its base directory, by you or an agent
 - A counted position written before a CEO answer that contradicts it
 - Every role agreeing on everything

@@ -96,7 +96,7 @@ A separate synthesizer agent writes the backlog by `templates.md` § *Synthesis*
 ### 5. CEO gate
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. On an auto-accept run no gate writer runs: the synthesis carries every item's options (`team-protocol` § *Auto-accept*). The CEO approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
 
-Then the record writer writes the record and the exec brief, and you hand off (`team-protocol`): *"`/clear`, then: execute the refactor in `<exec brief path>`."*
+Then the record writer writes the record and the exec brief, and you hand off (`team-protocol` § *Handoff*) with the prompt `execute the refactor in <exec brief path>`.
 
 ### 6. Execute
 Execute by `team-protocol` § *Execution*, from the exec brief. The steps are the approved Step Cards, sized S, M or L; each executor gets its batch's Step Cards and the exec brief's header.
@@ -109,6 +109,8 @@ Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh 
 
 ### 7. Record
 Complete the record (`team-protocol` § *Writers*); its *Notes* that suspect a bug are *For team-review* lines, for the next intake. Delete the exec brief and the run folder: anything worth keeping is in the record by now. Every later Recon reads it (`team-protocol` § *Code scope*).
+
+Then name the next step. In a sweep, its next command (`team-protocol` § *Sweep*). Otherwise, when the record's *For team-review* list is not empty, hand off (`team-protocol` § *Handoff*) with the prompt `team-review the For team-review lines of <record path>` (team-review § *Intake*); when it is empty, say so in one line.
 
 ## Intake
 

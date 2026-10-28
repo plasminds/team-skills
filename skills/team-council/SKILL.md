@@ -18,6 +18,8 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
   - **the constraints**: each limit that removes options and passes the test "what happens if we break it?" (`team-protocol` § *Bridge*), with its lens and its source (a file, a record, or the user's words), or marked *unchecked*. Those of an earlier decision on the same question, and the profile's standing ones (its `## Constraints`, `KS<n>`), come in `confirmed`, with their own source;
   - **Variants.** Each mode, type or state the decided object comes in (an enum, a flag set at creation); each is a fact or a question.
   - **Glossary.** The CEO's own terms for the objects in play, written into the decision context; roles and writers use them verbatim. A term that names another object in the project is a question.
+  - **What the request already says.** A ticket or MR/PR given or linked (by the user, the branch or its MR): its description, its comments, and the MRs and plans it links (`glab issue view <n> --comments`, `gh issue view <n> --comments`, the MR's discussion). What they settle is a fact with that link as source, never a question.
+  - **Precedent.** For a new mode or variant of an existing object, how the existing one does it today (`file:line`): the default for the new one, written as such. Each departure from it is a question.
   - the answer you expect from the user to each open sub-question;
   - your confidence in that read (a percentage).
 
@@ -109,7 +111,7 @@ The synthesizer (a separate call from the Round 1 PO) writes the *Council Summar
 ### Decision recording
 The record writer records the CEO's decisions by `templates.md` § *Decision record*, including supersession, corrections and the project's own decision records. `team-council-plan` reads this record next.
 
-Then hand off (`team-protocol`): *"`/clear`, then: run team-council-plan on `<decision path>`."*
+Then hand off (`team-protocol` § *Handoff*) with the prompt `run team-council-plan on <decision path>`.
 
 ## Dispatch mechanics
 

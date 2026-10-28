@@ -5,7 +5,7 @@ description: Use before the first team-council, team-council-plan, team-kickoff,
 
 # team-scan
 
-Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes`, `## Environment limits` and a user-corrected `## Expected load`, which it keeps (see *Procedure*); git tracks history.
+Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes`, `## Environment limits`, `## Run preferences` and a user-corrected `## Expected load`, which it keeps (see *Procedure*); git tracks history.
 
 ## What to detect
 
@@ -23,13 +23,14 @@ Produces the project profile that every council skill reads. Run it once per pro
 6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
 7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
 8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
-9. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
+9. **Run preferences** — `Commit records: no` when `git check-ignore -q .council/decisions/x` succeeds (source: the `.gitignore` line it prints with `-v`). The other lines come from the user's answers during runs, never from a guess.
+10. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
 
 ## Procedure
 
-1. Confirm the target directory (default: cwd).
+1. Confirm the target directory (default: cwd). In a git worktree, look at its siblings first (§ *Sibling worktrees*).
 2. Gather the signals above with read-only tools. Prefer batched, non-interactive commands; do not modify project files other than the profile.
-3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes` and `## Environment limits` lines as they are too, and its `## Expected load` line when its source is `the user`.
+3. Write `.council/project-profile.md` using the output format below. Create `.council/` if absent. If a profile exists, keep its `## Constraints` lines as they are (ids, status, `lifted by` marks) and add the new ones with the next free `KS<n>` id (a rule already listed, `lifted by` ones included, is not new): a standing constraint is never renumbered or deleted. Keep its `## Known flakes`, `## Environment limits` and `## Run preferences` lines as they are too, and its `## Expected load` line when its source is `the user`.
 4. Report a one-line summary and the profile path.
 
 ## Output: `.council/project-profile.md`
@@ -82,11 +83,23 @@ Tests that fail, then pass on a rerun, one line each; an executor counts a red o
 ## Environment limits
 What this machine or sandbox cannot run (sandbox limits, missing tools), one line each; a gate that needs one is `Ungated`:
 - <limit> — <the gate it blocks>
+
+## Run preferences
+Standing answers to questions a run would otherwise ask every time; a run follows the line instead of asking. A missing line means ask, then record the answer here:
+- Commit records: yes | no — <source: .gitignore:<line> | the user, <date>>
+- Oversized scope: all zones | ask — <source>
+- Squash after execution: branch | run | none — <source>
+- Next step: launch | paste — <source>
 ```
+
+## Sibling worktrees
+
+A project checked out as one worktree per branch, with `.council/` gitignored, holds a profile in some worktrees and none in the others. Before scanning a worktree without one, list the others (`git -C <worktree> worktree list --porcelain`) and copy the newest `.council/project-profile.md` among them (`ls -t <each path>/.council/project-profile.md`), with its `.council/role-overrides/` if present, in one Bash call. Say so in one line (`profile copied from <worktree>`). It stands as this worktree's profile: scan only when no sibling has one, or the user asks.
 
 ## Notes
 - Keep the profile to facts, one line each: it is injected into every council agent's context.
 - If a domain has no specialist, write "none"; the council still runs.
 - `## Constraints` also grows at plan approval (`team-council-plan` appends the new `tech` constraints), and is read by every council framing, the plan reviewers and the gate writers. A constraint lifted at a gate is marked `lifted by <record path>`, never deleted.
 - `## Known flakes` grows at each team-review or team-refactor gate: the record writer appends the flakes its Recon saw. Remove a line only when its test is fixed.
+- `## Run preferences` grows when a run asks one of its questions: the orchestrator writes the user's answer as the line, source `the user, <date>`. A line changes only when the user says otherwise.
 - `## Expected load` is corrected at a team-review gate when the human's note corrects it: the record writer replaces the line, source `the user`.
