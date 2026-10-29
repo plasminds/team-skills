@@ -95,9 +95,25 @@ test('execution.md types its executors and reviewers', () => {
   assert.match(text, /a fresh opus re-check \(`judge`\)/);
 });
 
+test('execution.md bounds the fixup loop at two attempts, halts and offers retry, keep, drop', () => {
+  const text = read(SKILLS, 'team-protocol', 'execution.md');
+  assert.match(text, /A fixup and its re-check are one attempt/);
+  assert.match(text, /second failed re-check of the same finding/);
+  assert.match(text, /`Status:` line to `stopped — fixup re-check failed twice` at once/);
+  assert.match(text, /halt the whole execution, every parallel run included/);
+  assert.match(text, /stopped — fixup re-check failed twice: <the finding, one line>/);
+  assert.match(text, /- retry: .*\n.*- keep: .*\n.*- drop: .*under \*Reverted or blocked\*/);
+});
+
 test('Recon is dispatched as team-analyst; team-scan leaves the agents out', () => {
   assert.match(read(SKILLS, 'team-protocol', 'scope.md'), /Dispatch it as `team-analyst`/);
   assert.match(read(SKILLS, 'team-scan', 'SKILL.md'), /The `team-\*` skills and agents are not specialists\./);
+});
+
+test('team-scan detects a launch command and writes it in Conventions', () => {
+  const text = read(SKILLS, 'team-scan', 'SKILL.md');
+  assert.match(text, /^- Launch: <command/m);
+  assert.match(text, /nothing runs it/);
 });
 
 module.exports = { read, frontmatter, cells, dispatchTables, ROOT, SKILLS, TYPES, CALLERS };
