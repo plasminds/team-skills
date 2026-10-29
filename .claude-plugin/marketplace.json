@@ -13,7 +13,7 @@
       "name": "team-skills",
       "source": "./",
       "description": "A multi-role council, a review panel that refutes its findings before raising them, a refactoring panel with a KISS/YAGNI gate, and a browser-based CEO gate for human decisions.",
-      "version": "0.18.0",
+      "version": "0.18.1",
       "author": { "name": "Thomas Boffy" },
       "category": "development",
       "tags": ["skills", "agents", "council", "refactoring", "decision-making"]

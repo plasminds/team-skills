@@ -45,9 +45,9 @@ Everything a run produces is plain Markdown in your project, under `.council/` e
 ├── reviews/YYYY-MM-DD-*.md     # team-review: the record
 │   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution
 ├── runs/<run>/                 # agent outputs during a run, deleted at its gate; execution gets a fresh one
+├── plans/YYYY-MM-DD-*.md       # team-council-plan: the plan (or the profile's Plan location)
 ├── gates/                      # team-ceo-view: each gate's JSON, page and what it leaves beside them (list: its SKILL.md, Gate artifacts)
 └── role-overrides/role-*.md    # optional: override any role per project
-docs/plans/YYYY-MM-DD-*.md      # team-council-plan: the plan (or your project's plan location)
 ```
 
 ## Design principles

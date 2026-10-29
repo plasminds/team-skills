@@ -19,11 +19,11 @@ Produces the project profile that every council skill reads. Run it once per pro
 
    Leave out what fits no domain (document formats, config helpers). The `team-*` skills and agents are not specialists.
 4. **Other models** — `codex` and `gemini` on PATH (`command -v`), with `--version`. Detect only: never send them a prompt here. The council's off-model seat (`team-protocol`) uses what you find.
-5. **Project phase** — git history depth, existing plans under `docs/plans/`, maturity signals.
+5. **Project phase** — git history depth, existing plans (signal 9), maturity signals.
 6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
 7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
 8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
-9. **Run preferences** — `Commit records: no` when `git check-ignore -q .council/decisions/x` succeeds (source: the `.gitignore` line it prints with `-v`). The other lines come from the user's answers during runs, never from a guess.
+9. **Run preferences** — `Commit records: no` when `git check-ignore -q .council/decisions/x` succeeds (source: the `.gitignore` line it prints with `-v`). `Plan location`: a folder that already holds plans (`docs/plans/`, `docs/superpowers/plans/`, or one `CLAUDE.md` names; source: that folder), else `.council/plans/` (source: `default`), so a plan never opens a new folder beside a gitignored `.council/`. The other lines come from the user's answers during runs, never from a guess.
 10. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
 
 ## Procedure
@@ -87,6 +87,7 @@ What this machine or sandbox cannot run (sandbox limits, missing tools), one lin
 ## Run preferences
 Standing answers to questions a run would otherwise ask every time; a run follows the line instead of asking. A missing line means ask, then record the answer here:
 - Commit records: yes | no — <source: .gitignore:<line> | the user, <date>>
+- Plan location: <folder> — <source: the folder found | default | the user, <date>>
 - Oversized scope: all zones | ask — <source>
 - Squash after execution: branch | run | none — <source>
 - Next step: launch | paste — <source>

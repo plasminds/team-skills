@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.18.1 — 2026-10-29
+
+- **Plans go where the project keeps them.** team-council-plan wrote its first plan in this repo to a new `docs/plans/`, untracked, beside a gitignored `.council/`, and copied the gate's sketches next to it. The profile's *Run preferences* gain `Plan location`: team-scan records a folder that already holds plans (`docs/plans/`, `docs/superpowers/plans/`, or one `CLAUDE.md` names), else `.council/plans/`, and the user can change the line. The sketches are copied next to the plan only when the plan's folder is tracked and `.council/gates/` is not; otherwise the plan links them where they are.
+- **References are checked.** A new test, `test/skills/refs.test.js`, fails when a `` `file` § *Section* `` reference in a skill names no heading of that file, when a relative link in the README does not resolve (anchors included), or when the README's skills table misses a skill.
+
 ## 0.18.0 — 2026-10-28
 
 From the runs of 19–28 October (46 sessions, 29 gates, 201 questions).

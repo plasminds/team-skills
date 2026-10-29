@@ -30,7 +30,7 @@ Role review (parallel): CTO (technical soundness, sequencing, risk) + system ske
         ↓
 Reconcile review feedback → revised plan
         ↓
-Write draft to docs/plans/YYYY-MM-DD-<topic>.md (or project's plan location)
+Write draft to <Plan location>/YYYY-MM-DD-<topic>.md (profile's Run preferences)
         ↓
 Present plan to CEO → approved: remove Status: draft, hand off
 ```
@@ -49,7 +49,7 @@ Writers type in a settled design. Before any draft, list:
 ### 2. Draft the plan
 Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan implements the council's chosen direction; it does not relitigate it.
 
-Writers and fixers write the plan files at the project's plan location (`docs/plans/YYYY-MM-DD-<topic>.md` by default, sub-plans beside it), not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
+Writers and fixers write the plan files in the profile's *Run preferences* `Plan location` folder (`.council/plans/` when the line is missing), as `YYYY-MM-DD-<topic>.md`, sub-plans beside it, not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
 
 A plan that fits one file is drafted by one writer. A plan large enough to split into sub-plans splits along interfaces, in this order:
 1. **The index** (one writer): the sub-plans, their order, and the **cross-plan contract**: every name, signature, id and type one sub-plan exports and another uses.

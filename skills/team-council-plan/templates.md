@@ -71,4 +71,4 @@ Build the page (`kind: "plan"`, `source` = the draft plan) by `team-ceo-view`'s 
 - `tensions`: only risks the reviewers split on with no majority, by `counting.md`.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.
 
-If `.council/gates/` is gitignored, also copy the approved sketches next to the plan (e.g. `docs/plans/YYYY-MM-DD-<topic>/`) and link those copies from its `## Outcome`: executors in a worktree see only committed files.
+If `.council/gates/` is gitignored and the plan location is not, also copy the approved sketches next to the plan (`<plan location>/YYYY-MM-DD-<topic>/`) and link those copies from its `## Outcome`: executors in a worktree see only committed files. Otherwise link the sketches where they are.
