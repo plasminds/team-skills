@@ -26,7 +26,7 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 
 ```markdown
 ### <PREFIX>-<n>: <defect> in <file:line>
-- Lens: <correctness | error-handling | security | intent | tests | types | performance | conventions> (<the source from your Sources it comes from>)
+- Lens: <correctness | error-handling | security | intent | tests | types | performance | conventions>
 - In diff: <yes | reach (<the changed file:line that breaks it>) | no (audit)>
 - Scenario: <the concrete input, state or call where it breaks, and what happens. A race, concurrency or cost card names the load it assumes>
 - Evidence: <cited lines, opened in source, not only quoted from the Review Brief>
@@ -46,7 +46,7 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 
 For `team-review <refactor record>…`, after the Review Brief: one Finding Card per *For team-review* line of the records, and per *Execution* → *Notes* line that suspects a bug, by § *Finding Card*, into `<run folder>/seat-handoff.md` under `### Finding Cards`, prefix `HO`, then a `### Not raised` list.
 - Re-check each line against the code at HEAD: open the cited lines, trace the scenario, look for the guard or test that would refute it (*Evidence*, *Refutation*). A line whose code is gone, whose scenario no longer holds, with no scenario at all, or that the brief lists as *Settled*, goes under *Not raised* with why: never a card.
-- `In diff: no (audit)`. *Lens*: the one the defect falls under, with the refactor record as its source.
+- `In diff: no (audit)`. *Lens*: the one the defect falls under.
 - A line that names a pinning test: the *Fix* says that test's expected value changes to the fixed behavior, and names the test.
 - No cap of 5: one card per surviving line. *Confidence* by `counting.md` § *Confidence*, as for any card.
 

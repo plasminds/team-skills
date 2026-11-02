@@ -39,15 +39,15 @@ Laws 3 and 4 are the master text of the diff-scope and structure lines every sea
 
 ## The Panel
 
-Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens on a body of work*, not an impersonation.
+Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens*, not an impersonation.
 
-| Role | Sources (a sample; all in the role file) | Signature question | Owns |
-|------|-------|--------------------|------|
-| **Correctness** (`role-correctness.md`) | Hoare, Dijkstra, Nygard, Armstrong | "Does it work, and when it fails, does it show?" | Correctness, error handling |
-| **Security** (`role-security.md`) | OWASP, Saltzer & Schroeder, Shostack, CWE Top 25 | "Is it exploitable?" | Security, when the brief lists a trust boundary |
-| **Intent** (`role-intent.md`) | Adzic, North, Beck, DeMillo et al. | "Is it what was asked, and is it pinned?" | Intent conformance, tests |
-| **Craft** (`role-craft.md`) | Minsky, King, Gregg, Knuth, Kernighan & Pike | "Does it fit this code?" | Types, performance, conventions |
-| **Verifier** (`role-verifier.md`) | Popper, Feynman | "What would prove this card wrong?" | **The refutation** |
+| Role | Signature question | Owns |
+|------|--------------------|------|
+| **Correctness** (`role-correctness.md`) | "Does it work, and when it fails, does it show?" | Correctness, error handling |
+| **Security** (`role-security.md`) | "Is it exploitable?" | Security, when the brief lists a trust boundary |
+| **Intent** (`role-intent.md`) | "Is it what was asked, and is it pinned?" | Intent conformance, tests |
+| **Craft** (`role-craft.md`) | "Does it fit this code?" | Types, performance, conventions |
+| **Verifier** (`role-verifier.md`) | "What would prove this card wrong?" | **The refutation** |
 
 Card IDs carry the seat's prefix: CR, SE, IN, CF, and HO for an intake card (§ *Intake*); the verifier's verdicts are keyed by card id.
 

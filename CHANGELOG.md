@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.19.0 — 2026-11-02
+
+- **Tests instead of sources.** Each role's `## Sources` is now `## Tests`: the questions stay, the author and title go. Card lines, council Positions and plan verdicts no longer name a source.
+- **Role overrides.** An override that copies a role file whole keeps its old `## Sources`, the intro asking to name a source and `— via <sources>` on the Position line. Rename the section `## Tests`, drop the names, delete those two lines.
+
 ## 0.18.2 — 2026-10-29
 
 - **A bound on the fix loop.** `team-protocol` § *Execution* counts a fixup and its re-check as one attempt per finding, and allows two. After a second failed re-check, the record's `Status:` becomes `stopped — fixup re-check failed twice`, every run halts, and the human answers retry, keep or drop.

@@ -24,16 +24,16 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 
 ## The Panel
 
-Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens on a body of work*, not an impersonation.
+Templates in `roles/` (overridable per project, see `team-protocol`). Each role is a *lens*, not an impersonation.
 
-| Role | Sources (a sample; all in the role file) | Signature question | Owns |
-|------|-------|--------------------|------|
-| **Responsibilities** (`role-responsibilities.md`) | Martin, Liskov, Meyer, Wirfs-Brock | "How many reasons does this have to change?" | Responsibilities, naming, contracts, dependency direction |
-| **Mechanics** (`role-mechanics.md`) | Fowler, Opdyke, Metz & Owen, Lawall | "Which smell, and which named refactoring removes it?" | Vocabulary, mechanics |
-| **Sequencing** (`role-sequencing.md`) | Beck, Descartes, Ohno, the Mikado Method | "What change is coming, and what tidying makes it easy?" | Sequencing, step size |
-| **Safety Net** (`role-safety-net.md`) | Feathers, Bache, mutation testing, Claude Bernard | "How do we get this under test before we touch it?" | Safety net, seams |
-| **Depth** (`role-depth.md`) | Ousterhout, Parnas, Hermans, Simondon | "Is the interface simpler than what it hides?" | Depth; counterweight to over-splitting |
-| **Minimalist** (`role-minimalist.md`) | Jeffries, Metz, Saint-Exupéry, Wirth, Ockham | "What breaks if we don't do this?" | **The gate** |
+| Role | Signature question | Owns |
+|------|--------------------|------|
+| **Responsibilities** (`role-responsibilities.md`) | "How many reasons does this have to change?" | Responsibilities, naming, contracts, dependency direction |
+| **Mechanics** (`role-mechanics.md`) | "Which smell, and which named refactoring removes it?" | Vocabulary, mechanics |
+| **Sequencing** (`role-sequencing.md`) | "What change is coming, and what tidying makes it easy?" | Sequencing, step size |
+| **Safety Net** (`role-safety-net.md`) | "How do we get this under test before we touch it?" | Safety net, seams |
+| **Depth** (`role-depth.md`) | "Is the interface simpler than what it hides?" | Depth; counterweight to over-splitting |
+| **Minimalist** (`role-minimalist.md`) | "What breaks if we don't do this?" | **The gate** |
 
 Card IDs carry the panelist's prefix: RS, MC, SQ, SN, DP, and MN for the Minimalist.
 

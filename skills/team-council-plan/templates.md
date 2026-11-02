@@ -54,7 +54,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
 
-Pick 2–3 of your role's `## Sources` and end your verdict with `— via <sources>`. Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
+Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
 
 **Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following *Outcome* in `team-ceo-view`'s `contract.md` and `figures.md` (copies in the run folder). A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 

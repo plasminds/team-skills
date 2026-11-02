@@ -25,7 +25,7 @@ At most 5 cards: the cap forces prioritization. Then a *Leave alone* list and a 
 
 ```markdown
 ### <ROLE>-<n>: <Smell name> in <file:lines>
-- Principle: <SRP | OCP | DIP | Simple Design rule | Depth | KISS | YAGNI | ...> (<the source from your Sources it comes from>)
+- Principle: <SRP | OCP | DIP | reveals intent | no duplication | fewest elements | Depth | KISS | YAGNI | ...>
 - Evidence: <cited lines, at least one opened in source, not only quoted from the Code Brief; what in the code shows it>
 - Refutation: <what you checked that could have proved this wrong — the guard, the caller, the test — and what you found>
 - Refactoring: <exactly one, named: Extract Function, Replace Conditional with Polymorphism, Guard Clause, Inline Class, Remove Dead Code, Sprout Method...>

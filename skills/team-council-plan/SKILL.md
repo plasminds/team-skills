@@ -7,7 +7,7 @@ description: Use when a council decision is recorded under `.council/decisions/`
 
 The second half of the council workflow. `team-council` decides **what**; `team-council-plan` produces the **how** — a reviewed implementation plan grounded in that decision.
 
-**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, the bridge, structural choices, the handoff, execution and weakened checks.
+**REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, the bridge, structural choices, the handoff, execution and weakened checks. Its run-folder copy (`team-protocol` § *Dispatch*) leaves out the `roles/` glob: this skill has no roles.
 
 ## Preconditions
 
@@ -59,7 +59,7 @@ A plan that fits one file is drafted by one writer. A plan large enough to split
 A writer that needs to change the contract stops and reports. A fresh `fix-index` writer amends the contract and the keystone before any consumer adapts.
 
 ### 3. Role review (parallel)
-Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write its `## Sources` with 3–5 entries, `team-protocol`). Each gets its council role's `## Sources` (`../team-council/roles/role-<role>.md` from this skill's base directory, copied into the run folder) and the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches.
+Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX whenever the plan changes something a user sees, and an ad-hoc specialist when the decision implicates another domain (write it 3–5 tests, no names, `team-protocol`). Each gets the copy of `bridge.md`, and the CTO and UX also the copies of `contract.md` and `figures.md` for their sketches.
 
 | Agent | Type | Model | Tool budget |
 |-------|------|-------|-------------|

@@ -7,14 +7,7 @@ const ROOT = path.join(__dirname, '..', '..');
 const SKILLS = path.join(ROOT, 'skills');
 const read = f => fs.readFileSync(f, 'utf8');
 
-function listMd(dir, out = []) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) listMd(p, out);
-    else if (p.endsWith('.md')) out.push(p);
-  }
-  return out;
-}
+const { listMd } = require('./helpers');
 const FILES = listMd(SKILLS);
 
 // A heading's name: `## Gate page (gate writer)` → `Gate page`, `### 5. Approve & write` → `Approve & write`.

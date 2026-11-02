@@ -20,7 +20,7 @@ function run(files) {
 function card(id, { conf = 'high', fix = true } = {}) {
   return [
     `### ${id}: Defect in src/a.js:3`,
-    '- Lens: correctness (Hoare)',
+    '- Lens: correctness',
     '- In diff: yes',
     `- Scenario: ${id} input breaks`,
     `- Evidence: ${id} evidence`,

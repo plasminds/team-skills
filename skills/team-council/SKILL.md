@@ -28,17 +28,17 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
 
 ## Roles
 
-Templates live in `roles/` next to this file. Each role is a lens with its own `## Sources`, like the panel in `team-refactor`.
+Templates live in `roles/` next to this file. Each role is a lens with its own `## Tests`, like the panel in `team-refactor`.
 
-| Role | Sources (a sample; all in the role file) | Signature question | Specialists (from the profile) |
-|------|-------|--------------------|--------------------------------|
-| **PO** (`role-po.md`) | Cagan, Torres, Perri, Adžić, Osterwalder & Pigneur | "Which outcome does this move, and what is the cheapest way to learn if it will?" | Process domain, project docs, git history |
-| **CTO** (`role-cto.md`) | Brooks, Nygard, Kruchten & Ozkaya, Majors, Hamilton | "What is expensive to undo, and what will this cost to run and change?" | Technical domain, lint/typecheck/test commands |
-| **UX** (`role-ux.md`) | Norman, Nielsen, Holmes, Suchman, Bertin | "Where does the user get stuck, and how do they know what happened?" | UX domain (e.g. `impeccable`) |
-| **Philosopher** (`role-philosopher.md`) | Ibn al-Haytham, Popper, Bachelard, Longino, Gigerenzer | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
-| **Wildcard** (`role-wildcard.md`) | Munger, Klein, Altshuller, Meadows, Queneau | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
+| Role | Signature question | Specialists (from the profile) |
+|------|--------------------|--------------------------------|
+| **PO** (`role-po.md`) | "Which outcome does this move, and what is the cheapest way to learn if it will?" | Process domain, project docs, git history |
+| **CTO** (`role-cto.md`) | "What is expensive to undo, and what will this cost to run and change?" | Technical domain, lint/typecheck/test commands |
+| **UX** (`role-ux.md`) | "Where does the user get stuck, and how do they know what happened?" | UX domain (e.g. `impeccable`) |
+| **Philosopher** (`role-philosopher.md`) | "What would prove this wrong, and has anyone looked?" | Read-only tools only |
+| **Wildcard** (`role-wildcard.md`) | "If this failed a year from now, why, and which option would have avoided it?" | Any specialist, read-only |
 
-**Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 sources (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
+**Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 tests, no names (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
 **Evidence pass**: when the question rests on facts nobody has observed, one agent gathers them (agent id `evidence`). It runs before Round 1, and before the restate when a constraint rests on code behaviour. Every claim carries `file:line`; it ends with any two of its own claims that conflict. Its file goes to every role; its open questions join the pause. It leaves the project tree as found (`team-protocol` agent contract).
 
@@ -100,7 +100,7 @@ Identify tensions from the Round 1 one-line positions:
 - **Every seat a CEO answer contradicts** sits again, with the answers file. So does a seat whose agreement you can't confirm from its one-line replies.
 - **The other seats skip Round 2.**
 
-Round 2 prompts repeat the role file's *Output Format*, its *Position* line's sources included. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
+Round 2 prompts repeat the role file's *Output Format*. Questions Round 2 raises for the CEO go on the gate page as decisions or minor items, not into a second pause.
 
 ### Synthesis
 The synthesizer (a separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
