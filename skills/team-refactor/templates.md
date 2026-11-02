@@ -16,7 +16,7 @@ The *only* shared context for the panel, so panelists don't each re-read the sam
 - *Settled*, *Ungated*, *Unformatted*, *Known flakes* and the *Diff guard*, by `team-protocol` § *Code scope*
 - Upcoming change, if the user named one (Sequencing orders toward it)
 - For a diff scope: the changed line ranges per file (`git diff --unified=0`), so panelists can tell new code from old.
-- Static-analysis leads: if the profile lists dead-code or import-cycle tools, run them on the scope and list their hits as leads. A lead is not a finding: static analysis misses dynamic imports, config references and codegen, so a panelist verifies each by hand before citing it.
+- Static-analysis leads: if the profile lists dead-code or import-cycle tools, run them on the scope and list their hits as leads. A lead is not a finding: static analysis misses dynamic imports, config references and codegen, so a panelist verifies each by hand before citing it. The profile's `(machine)` tools (crapper, dryer, ast-grep) run by `machine-tools.md` § *Run recipes*, each lead list opening with the mode line of `machine-tools.md` § *Mode line*; their hits are leads too (`machine-tools.md` § *Leads, not findings*).
 - **Excerpts**: the hotspot code itself, with `file:line` headers
 
 ## Finding Card (panelists)

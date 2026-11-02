@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.20.0 — 2026-11-02
+
+- **Machine tools.** team-scan detects crapper, dryer, ast-grep, gitleaks and osv-scanner and names the ones it did not find and, apart, the ones that fail. The recon seats run them read-only, by the recipes in `machine-tools.md`, and treat every hit as a lead to verify.
+- **Dependency scan preference.** osv-scanner runs only where the project's Run preferences say yes.
+
 ## 0.19.0 — 2026-11-02
 
 - **Tests instead of sources.** Each role's `## Sources` is now `## Tests`: the questions stay, the author and title go. Card lines, council Positions and plan verdicts no longer name a source.

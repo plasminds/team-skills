@@ -105,7 +105,7 @@ The verifier receives each card's title, location, scenario and fix — never it
 - **Red tests do not block.** Recon records them; they become a finding.
 
 ### 1. Recon → Review Brief
-One agent writes the brief by `templates.md` § *Review Brief*, following the Recon rules of `team-protocol` § *Code scope*. Long gates (integration, E2E) go to their own sonnet agent; only the verifier and synthesizer read its result. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1.
+One agent writes the brief by `templates.md` § *Review Brief*, following the Recon rules of `team-protocol` § *Code scope*. Long gates (integration, E2E) go to their own sonnet agent; only the verifier and synthesizer read its result. If the brief says *Intent: none found*, ask the user what the change is for and append the answer to the brief before Round 1. Before dispatching Recon, when the profile's Machine tools line names osv-scanner and Run preferences has no `Dependency scan` line, ask by `machine-tools.md` § *Run recipes*, record the answer as that line, and pass yes or no in Recon's prompt.
 
 ### 2. Round 1 — blind seats (parallel)
 Dispatch the seats in one message, agent ids `seat-correctness`, `seat-intent`, `seat-craft`, and `seat-security` unless Recon's reply gives *Trust boundaries: none* (§ *Proportionality*). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{REVIEW_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
