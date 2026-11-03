@@ -25,7 +25,12 @@ Produces the project profile that every council skill reads. Run it once per pro
 8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
 9. **Run preferences** — `Commit records: no` when `git check-ignore -q .council/decisions/x` succeeds (source: the `.gitignore` line it prints with `-v`). `Plan location`: a folder that already holds plans (`docs/plans/`, `docs/superpowers/plans/`, or one `CLAUDE.md` names; source: that folder), else `.council/plans/` (source: `default`), so a plan never opens a new folder beside a gitignored `.council/`. The other lines come from the user's answers during runs, never from a guess.
 10. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
-11. **Machine tools** — `crapper`, `dryer`, `ast-grep`, `gitleaks` and `osv-scanner`, each by `command -v` and a probe that must succeed: `ast-grep`, `gitleaks` and `osv-scanner` by `--version`; `crapper` and `dryer` have no version command, so by `--help` exiting 0, and are named without a version. Nothing else runs; team-scan records only. A tool that is not on PATH is `not found`; one on PATH whose probe fails is `failing`. A failing tool still counts as absent for use, and is named apart from one never installed only in the summary line, never in the profile. The profile line lists found tools only, as a hint; each seat re-checks. The run recipes sit in `machine-tools.md`, not here.
+11. **Machine tools** — `crapper`, `dryer`, `ast-grep`, `gitleaks` and `osv-scanner`, each by `command -v` and a probe that must succeed: `ast-grep`, `gitleaks` and `osv-scanner` by `--version`; `crapper` and `dryer` have no version command, so by `--help` exiting 0, and are named without a version. Nothing else runs; team-scan records only. A tool that is not on PATH is `not found`; one on PATH whose probe fails is `failing`. A failing tool still counts as absent for use, and is named apart from one never installed only in the summary line, never in the profile. The profile line lists found tools only, as a hint; each seat re-checks. The run recipes sit in `machine-tools.md`, not here. Sources, cited in the summary for a tool not found or failing:
+    - crapper — github.com/unclebob/crapper (Uncle Bob's; no release, its README says how to install)
+    - dryer — github.com/unclebob/dryer (Uncle Bob's; no release, its README says how to install)
+    - ast-grep — github.com/ast-grep/ast-grep
+    - gitleaks — github.com/gitleaks/gitleaks
+    - osv-scanner — github.com/google/osv-scanner
 
 ## Procedure
 
@@ -40,6 +45,8 @@ Produces the project profile that every council skill reads. Run it once per pro
    - none found, none failing: `machine tools: none found; not found: all five`
    - none found, all failing: `machine tools: none found; failing: all five`
    - none found, some failing: `machine tools: none found; not found: dryer, osv-scanner; failing: crapper`
+
+   When the clause names a tool not found or failing, a second line cites the source of each, from step 11, in the clause's order: `sources: dryer — github.com/unclebob/dryer (Uncle Bob's); osv-scanner — github.com/google/osv-scanner; crapper — github.com/unclebob/crapper (Uncle Bob's)`. Never an install command.
 
 ## Output: `.council/project-profile.md`
 

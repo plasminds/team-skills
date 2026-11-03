@@ -21,6 +21,16 @@ test("machine-tools.md is in team-protocol's copy list", () => {
   assert.ok(braces.some(b => b.split(',').includes('machine-tools.md')), 'named in the cp brace group');
 });
 
+test('machine-tools.md and team-scan cite the same source for each tool', () => {
+  const SOURCE = /^\s*- (crapper|dryer|ast-grep|gitleaks|osv-scanner) — (github\.com\/\S+)/;
+  const sources = file => Object.fromEntries(read(file).split('\n')
+    .map(l => l.match(SOURCE)).filter(Boolean).map(m => [m[1], m[2]]));
+  const protocol = sources(path.join(PROTOCOL, 'machine-tools.md'));
+  const scan = sources(path.join(ROOT, 'skills', 'team-scan', 'SKILL.md'));
+  assert.deepEqual(Object.keys(protocol).sort(), ['ast-grep', 'crapper', 'dryer', 'gitleaks', 'osv-scanner']);
+  assert.deepEqual(scan, protocol);
+});
+
 test('machine-tools.md: five headings, --redact, no installer', () => {
   const lines = read(path.join(PROTOCOL, 'machine-tools.md')).split('\n');
   for (const h of HEADINGS) assert.ok(lines.includes(`## ${h}`), `heading: ${h}`);

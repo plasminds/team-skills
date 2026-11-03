@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.20.1 — 2026-11-03
+
+- **Machine tool sources.** Each machine tool names where it comes from (crapper and dryer: Uncle Bob's repos). team-scan cites the source of every tool it did not find or that fails, and a seat's not-found line carries it too.
+
 ## 0.20.0 — 2026-11-02
 
 - **Machine tools.** team-scan detects crapper, dryer, ast-grep, gitleaks and osv-scanner and names the ones it did not find and, apart, the ones that fail. The recon seats run them read-only, by the recipes in `machine-tools.md`, and treat every hit as a lead to verify.

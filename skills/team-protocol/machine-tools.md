@@ -2,13 +2,21 @@
 
 For a caller that runs machine tools (team-review, team-refactor Recon): crapper, dryer, ast-grep, gitleaks, osv-scanner. A tool is a lead source, not a gate.
 
+Where each comes from, cited wherever a tool is named not found:
+
+- crapper — github.com/unclebob/crapper (Uncle Bob's; no release, its README says how to install)
+- dryer — github.com/unclebob/dryer (Uncle Bob's; no release, its README says how to install)
+- ast-grep — github.com/ast-grep/ast-grep
+- gitleaks — github.com/gitleaks/gitleaks
+- osv-scanner — github.com/google/osv-scanner
+
 ## Run-time re-check
 
 Whatever the profile says, before using a tool run `command -v <tool>` and its version command: `--version` for ast-grep, gitleaks and osv-scanner; `--help` (exit 0) for crapper and dryer, which have no version and are named `<tool> (no version)`. A miss, a probe that fails, or a `command -v` that resolves inside the project tree or the run folder counts as absent (a shell without `command -v` is a miss). An absent tool is skipped, never a finding or an error, and never retried. Its lead list says `<tool> — not run (<reason>); see Environment limits`, and the seat's summary line names it.
 
 One exact line per state, in the brief's Environment limits:
 
-- `- crapper — not found; complexity leads skipped`
+- `- crapper — not found (github.com/unclebob/crapper); complexity leads skipped` (any tool: its source from the list above)
 - `- crapper — --help failed; complexity leads skipped` (ast-grep, gitleaks, osv-scanner: `version check failed`)
 - `- crapper — dirtied the tree; complexity leads labelled`
 - `- osv-scanner — dependency scan declined (Run preferences: no); nothing sent`
