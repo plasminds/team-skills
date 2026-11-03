@@ -54,13 +54,13 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
 
-Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
+Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case first names the path that reaches it in today's code (`team-protocol` § *Agent contract*); a case the code excludes is no defect. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
 
 **Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following *Outcome* in `team-ceo-view`'s `contract.md` and `figures.md` (copies in the run folder). A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 
 ## Gate page (gate writer)
 
-Build the page (`kind: "plan"`, `source` = the draft plan) by `team-ceo-view`'s `contract.md`:
+Build the page (`kind: "plan"`, `source` = the draft plan) by `team-ceo-view`'s `contract.md`, with the reachability file (`reach.md`): a risk it found unreachable goes to `settled` as `moot`, with its guard.
 - `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
 - `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`.
 - No page `constraints`: the plan's *Constraints* go onto each card they bind (`contract.md` § *Bridge fields*).

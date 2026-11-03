@@ -30,6 +30,8 @@ Role review (parallel): CTO (technical soundness, sequencing, risk) + system ske
         ↓
 Reconcile review feedback → revised plan
         ↓
+Reachability: every `unverified` premise checked; unreachable risks → Settled
+        ↓
 Write draft to <Plan location>/YYYY-MM-DD-<topic>.md (profile's Run preferences)
         ↓
 Present plan to CEO → approved: remove Status: draft, hand off
@@ -43,13 +45,13 @@ Writers type in a settled design. Before any draft, list:
 - **Open design questions**: what the decision leaves open that would change the plan's shape (which path a call takes, where a type lives, whether two entry points share one route). Settle each with the user (AskUserQuestion, a recommendation first), or with a spike agent that writes its numbers into the brief. A spike answers a fact; a choice it opens that the user will see goes to the CEO (`team-protocol` § *Structural choices*).
 - **Structural choices** (`team-protocol` § *Structural choices*) the plan would make and the decision does not: each is settled as above and recorded in the plan's *Structure*. One whose rule later work could break is also a constraint (`bridge.md` § *Structural choices and constraints*): it gets the next `K<n>` id, on its *Structure* line and in the plan's *Constraints*, source `<plan path>, Structure`.
 - **Human-only inputs**: captures, probes, credentials, measurements on the user's machine. Human-only inputs include what the profile's `## Environment limits` says the sandbox cannot run. Collect them now. A writer that needs one waits for it, never guesses it.
-- **Unobserved facts**: when the plan rests on what the code does today, one evidence-pass agent gathers them first (agent id `evidence`).
+- **Unobserved facts**: when the plan rests on what the code does today, one evidence-pass agent gathers them first (agent id `evidence`), with the lifecycle map of each entity whose states the plan touches (`reachability.md` § *Lifecycle map*); the council's map in the decision's sources, when there is one, is its start.
 - **A constraint found while planning** (by a spike, the evidence pass or a reviewer): never folded silently into the plan. It goes on the plan gate as a decision (`templates.md` § *Gate page*), like a `reverses council D<n>` option.
 
 ### 2. Draft the plan
 Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan implements the council's chosen direction; it does not relitigate it.
 
-Writers and fixers write the plan files in the profile's *Run preferences* `Plan location` folder (`.council/plans/` when the line is missing), as `YYYY-MM-DD-<topic>.md`, sub-plans beside it, not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `gate`, `record`.
+Writers and fixers write the plan files in the profile's *Run preferences* `Plan location` folder (`.council/plans/` when the line is missing), as `YYYY-MM-DD-<topic>.md`, sub-plans beside it, not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `reach`, `gate`, `record`.
 
 A plan that fits one file is drafted by one writer. A plan large enough to split into sub-plans splits along interfaces, in this order:
 1. **The index** (one writer): the sub-plans, their order, and the **cross-plan contract**: every name, signature, id and type one sub-plan exports and another uses.
@@ -64,6 +66,7 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 | Agent | Type | Model | Tool budget |
 |-------|------|-------|-------------|
 | Evidence pass, spike | analyst | sonnet (opus for a design spike) | ~20 |
+| Reachability check | analyst | sonnet | ~10 |
 | Keystone writer | maker | opus | ~30 |
 | Other writers | maker | sonnet | ~25 |
 | Fixers (review defects, CEO rulings) | maker | sonnet | ~20 |
@@ -73,6 +76,8 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 
 ### 4. Reconcile
 Fold review feedback into a revised plan. One fixer per round takes every defect at once and writes the amendment's line under `## Plan gate` in the decision record. Its brief adds: "Add nothing unasked; list your own additions first." Before the approval pass, one consolidation pass deletes superseded rules and their references. Where a reviewer's concern conflicts with the council's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*).
+
+Before the gate writer, check every `unverified` premise in the review files by `reachability.md` § *Reachability check* (agent id `reach`); the gate writer gets its file.
 
 ### 5. Approve & write
 The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top.

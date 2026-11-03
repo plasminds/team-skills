@@ -40,7 +40,7 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 
 **Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 tests, no names (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
-**Evidence pass**: when the question rests on facts nobody has observed, one agent gathers them (agent id `evidence`). It runs before Round 1, and before the restate when a constraint rests on code behaviour. Every claim carries `file:line`; it ends with any two of its own claims that conflict. Its file goes to every role; its open questions join the pause. It leaves the project tree as found (`team-protocol` agent contract).
+**Evidence pass**: when the question rests on facts nobody has observed, one agent gathers them (agent id `evidence`). It runs before Round 1, and before the restate when a constraint rests on code behaviour. Every claim carries `file:line`; it writes the lifecycle map of each entity whose states the decision touches (`reachability.md` § *Lifecycle map*); it ends with any two of its own claims that conflict. Its file goes to every role; its open questions join the pause. It leaves the project tree as found (`team-protocol` agent contract).
 
 **Scope control**: a role invokes only its allowed specialists, never a tool that modifies state.
 
@@ -71,6 +71,7 @@ Question pause      → orchestrator groups agents' flagged questions, attribute
 Round 2 (parallel)  → two-round depth only: Philosopher (sees all R1) + conflicting pairs
                       + every seat a CEO answer contradicts
 Synthesis           → PO synthesis agent → consensus / majority calls / tensions / recommendation
+Reachability        → evidence agent checks every `unverified` premise; unreachable cards → Settled
 Gate page           → gate writer builds and renders it from the synthesis
 CEO decides         → record to .council/decisions/YYYY-MM-DD-<topic>.md
 ```
@@ -105,6 +106,9 @@ Round 2 prompts repeat the role file's *Output Format*. Questions Round 2 raises
 ### Synthesis
 The synthesizer (a separate call from the Round 1 PO) writes the *Council Summary* by `templates.md` § *Synthesis*.
 
+### Reachability
+Before the gate writer, check every `unverified` premise in the synthesis by `reachability.md` § *Reachability check* (agent id `reach`). The gate writer reads the synthesis and that agent's file.
+
 ### CEO gate
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block. The Round 1 question pause stays in chat; those answers are free text.
 
@@ -120,13 +124,14 @@ Then hand off (`team-protocol` § *Handoff*) with the prompt `run team-council-p
 | Evidence pass | analyst | sonnet | ~15 |
 | Round 1 roles, ad-hoc specialists | analyst | sonnet | ~12 |
 | Round 2: Philosopher, conflicting pairs, contradicted seats | analyst | sonnet | ~5 |
+| Reachability check | analyst | sonnet | ~10 |
 | Synthesis, two-round depth | judge | opus | ~10 |
 | Synthesis, one-round depth | analyst | sonnet | ~10 |
 | Gate writer (JSON, sketches, render) | maker | sonnet | ~15 |
 | Record writer | maker | sonnet | ~8 |
 
 - Keep each agent's context lean: profile + decision + role template + `bridge.md` + (Round 2) the specific counterpart positions. Writers get their `templates.md` section and `bridge.md`, and the gate writer also `team-ceo-view`'s `contract.md` and `figures.md`.
-- Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `gate`, `record`.
+- Agent ids for the run folder: `evidence`, `r1-<role>`, `r2-<role>`, `synthesis`, `reach`, `gate`, `record`.
 
 ## Rationalizations
 

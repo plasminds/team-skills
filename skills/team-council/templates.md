@@ -6,7 +6,7 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 ## Synthesis (synthesizer)
 
-Read every role's file and the CEO's answers. Each open question goes in exactly one section, settled by `counting.md`. Every item carries a recommendation or `none — ask`; the gate writer never invents one. Ids are stable from here to the record. Lenses, constraints and trade-offs follow `bridge.md`. Length and readers: `team-protocol` § *Writers*.
+Read every role's file and the CEO's answers. Each open question goes in exactly one section, settled by `counting.md`. Every item carries a recommendation or `none — ask`; the gate writer never invents one. An item built on a premise a role marked `unverified` keeps the marker on that premise, however many roles repeated it (`reachability.md` § *Reachability check*). Ids are stable from here to the record. Lenses, constraints and trade-offs follow `bridge.md`. Length and readers: `team-protocol` § *Writers*.
 
 ```markdown
 ## Council Summary
@@ -51,7 +51,7 @@ lack of evidence. A minority on a Majority Call belongs in that call]
 
 ## Gate page (gate writer)
 
-Build the page (`kind: "council"`) by `team-ceo-view`'s `contract.md`, from the synthesis:
+Build the page (`kind: "council"`) by `team-ceo-view`'s `contract.md`, from the synthesis and the reachability file (`reach.md`): an item it found unreachable goes to `settled` as `moot`, with its guard, and a reachable one carries its path in `detail`.
 - `summary` (labelled bullets): *Decision* (what is being decided, and who sat), *Consensus*, *Recommendation* (the PO's pick and its `Accepts:` line).
 - `outcome` (when the PO's pick changes a screen or the system's shape): sketch where the pick lands, `ui` and/or `system`, today beside the target, into `.council/gates/YYYY-MM-DD-<topic>/`, drawn by `figures.md`. When another option would land somewhere visibly different, add its `after` sketch to `D1`'s `figures`, captioned with the option's label, so the human compares destinations.
 - **`D1`**: the decision itself. Its `options` are the approaches on the table, with `recommended` on the PO's pick. Its `title` is the question, and its `detail` the facts every option shares (≤ 3 bullets); the consensus points go there too when they fit. Put the roles' strongest arguments in `for` (for the pick) and `against` (dissent, risks), each credited to its role.

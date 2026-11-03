@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.21.0 — 2026-11-03
+
+- **Reachability.** A card whose scenario today's code cannot reach no longer reaches the CEO. Every scenario names the path that reaches it, else it is `unverified`; before the gate, one agent checks every `unverified` premise and sends the unreachable ones to *Settled* as `moot`. A position on a scenario counts only if its premise has its own evidence.
+- **Lifecycle map.** The evidence pass of team-council and team-council-plan maps each stateful entity the decision touches: states, transitions, guards across modules, and the invariants they hold. Questions about today's behaviour are answered from it, not asked of the CEO.
+- **Whole classes.** A rule about what code allows reads the whole class that decides it, never a line window, and greps guards by their effect.
+
 ## 0.20.1 — 2026-11-03
 
 - **Machine tool sources.** Each machine tool names where it comes from (crapper and dryer: Uncle Bob's repos). team-scan cites the source of every tool it did not find or that fails, and a seat's not-found line carries it too.
