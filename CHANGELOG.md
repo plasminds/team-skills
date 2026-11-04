@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.23.0 — 2026-11-04
+
+- **Plans run on team-protocol.** An approved plan executes by `team-protocol` § *Execution*, as reviews and refactors do. A plugin's execution skill (superpowers' subagent-driven-development) runs only when the human names it; the project's own workflow still comes first. The handoff prompt names team-council-plan, and a plan format's own execution line is replaced.
+- **Fresh executor on a red batch.** A red *Verification* goes to a new executor as a `fixup!`, never back to the batch's executor.
+
 ## 0.22.0 — 2026-11-04
 
 - **Questions for the author.** A review on someone else's branch asks the author's questions as questions: their own page section (ask or drop), right after the verdict in the shared prompt and in the posted review. They no longer sit under *Settled*.

@@ -1,6 +1,6 @@
 ---
 name: team-council-plan
-description: Use when a council decision is recorded under `.council/decisions/` and the next step is planning how to carry it out, or when the user asks to plan the council's decision. Not for planning work the council never decided.
+description: Use when a council decision is recorded under `.council/decisions/` and the next step is planning how to carry it out, or when the user asks to plan the council's decision. Also when executing a plan this skill wrote (its top names a `.council/decisions/` file). Not for planning work the council never decided.
 ---
 
 # team-council-plan
@@ -92,16 +92,16 @@ Declines or notes → revise by § 4 and re-render.
 3. One CTO reviewer (sonnet, ~10) checks the changed steps.
 4. Re-gate only those steps. An amendment merges into the gate while it is unanswered; `-r<N>` only for a gate already answered (`<topic>-plan-r<N>.ceo.json`; the earlier `.decisions.txt` stays on record).
 
-On full approval, a record writer adds the constraints born in § 1b to the decision record's `## Constraints` (source `<plan path>, Structure`); records each `(lifts K<n>)` of the plan gate's decisions as `K<n> lifted by the CEO, <their words>` and marks a lifted `KS<n>` line of the profile `lifted by <record path>`; adds each constraint found while planning that the CEO kept (`confirmed`, source `<plan path>`, the next free `K<n>` id); and appends every new `tech` constraint, from the council gate or § 1b or kept at the plan gate, to the profile's `## Constraints` with the next free `KS<n>` id (`team-scan`), unless the rule is already listed there, `lifted by` ones included. Then remove `Status: draft` and hand off (`team-protocol` § *Handoff*) with the prompt `execute <plan path> with <plan-execution skill>`. Name the skill the profile lists (see *Execution*); if it lists none, drop the "with" part. Execution starts from the plan file, not from a context holding the planning.
+On full approval, a record writer adds the constraints born in § 1b to the decision record's `## Constraints` (source `<plan path>, Structure`); records each `(lifts K<n>)` of the plan gate's decisions as `K<n> lifted by the CEO, <their words>` and marks a lifted `KS<n>` line of the profile `lifted by <record path>`; adds each constraint found while planning that the CEO kept (`confirmed`, source `<plan path>`, the next free `K<n>` id); and appends every new `tech` constraint, from the council gate or § 1b or kept at the plan gate, to the profile's `## Constraints` with the next free `KS<n>` id (`team-scan`), unless the rule is already listed there, `lifted by` ones included. Then remove `Status: draft` and hand off (`team-protocol` § *Handoff*) with the prompt `execute <plan path> with team-council-plan`, or `with <the project's own workflow>` when *Execution* says so. Execution starts from the plan file, not from a context holding the planning.
 
 ## Execution
 
-This skill plans; it does not implement. The executing session uses the plan-execution skill from the profile's Process domain (e.g. `superpowers:subagent-driven-development`), or the project's own execution workflow, and follows the plan's *Execution economy*: models, batches, re-review.
+Planning sessions never implement. The executing session, opened by the handoff, executes from the plan file by `team-protocol` § *Execution*. A plan-execution skill from a plugin (e.g. `superpowers:subagent-driven-development`) runs only when the human asks for it by name, even if the profile's Process domain lists it: it sends review findings back to the same implementer and reviews every task twice, so each round re-reads a growing context. The project's own execution workflow (its CLAUDE.md, or a skill in its `.claude/skills/`) takes precedence over both; it follows the plan's *Execution economy*.
 
-When the profile lists none, execute from the plan file by `team-protocol` § *Execution*, with these rules of its own:
+Rules of this skill's own, on top of `team-protocol` § *Execution*:
 1. Batch as the plan's *Execution economy* says; a plan without one batches by `team-protocol` § *Execution*. Executors run on sonnet, opus for a design-heavy step. Each gets its batch's steps and the plan's *Goal* and *Outcome*, never the decision record.
 2. The executor writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
-3. After each batch, run the *Verification* commands yourself. Red → send the failure back to that batch's executor once, then stop and ask the human.
+3. After each batch, run the *Verification* commands yourself. Red → one fresh executor gets the failure output, the batch's steps and their commits, and fixes it as a `fixup!` of the step at fault. Still red → stop and ask the human. Never resume the batch's executor.
 4. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
@@ -118,6 +118,8 @@ The shared ones are in `team-protocol`. These are the planner's own.
 | "I'll leave that design question to the writer" | A writer who meets an open question guesses, and the gate undoes the guess. Settle it before drafting. |
 | "This extra step is small and useful" | Nothing smuggled in, nothing dropped: that is what the PO reviewer checks. Raise it at the gate instead. |
 | "It's approved, I'll start executing here" | Execution starts from the plan file, in a fresh session. |
+| "The profile lists superpowers' execution skill, I'll use it" | Only when the human names it. Otherwise `team-protocol` § *Execution*: a fresh agent per batch and per fix, never a resumed one. |
+| "The plan's header says REQUIRED SUB-SKILL: subagent-driven-development" | That line comes from the planning skill's format, not from the human. Execute by *Execution*. |
 
 ## Red Flags
 

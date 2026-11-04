@@ -6,7 +6,7 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 ## Plan (writers)
 
-Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the CEO sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Use the project's plan format if one exists; otherwise:
+Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. A format's line that names its own execution skill (superpowers' "REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development …") becomes `Execute with: team-council-plan § Execution`. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the CEO sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Use the project's plan format if one exists; otherwise:
 
 ```markdown
 # Plan — {topic}
@@ -35,7 +35,7 @@ _From council decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Execution economy
 - Executors: sonnet; opus only for a step marked design-heavy, with the reason
 - Batches: [the batch rule of `team-protocol` § *Execution*, written out in full, or the project's own], one commit per step
-- Reviews: sonnet for spec compliance, opus for the final whole-branch review; fixups re-checked by `team-protocol` § *Execution*
+- Reviews: the *Verification* commands after each batch, opus for the final whole-branch review; a red batch or a `fix` finding goes to a fresh executor, never a resumed one; fixups re-checked by `team-protocol` § *Execution*
 - Diff guard: [the commands of `team-protocol` § *Code scope*, filled in for this project; each executor runs them on its staged change before each commit]
 
 ## Risks & Mitigations
