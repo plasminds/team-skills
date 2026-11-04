@@ -86,6 +86,28 @@ test('a negative choice on an item with a brief does not leak the brief', () => 
   assert.doesNotMatch(prompt, /Do S1\./);
 });
 
+test('a left item carries its stakes and the note as its reason, once', () => {
+  const gate = shareGate(); gate.decisions[1].why = 'Changes invoices customers already received.';
+  const prompt = load(gate)({ F1: { choice: 'ask', note: ' finance  said no ' } });
+  assert.match(section(prompt, 'Left as is'),
+    /## Left as is\nReviewed and left on purpose: don't change them in passing\.\n- F1 — Rounding rule \(Ask finance\)\n  What's at stake: Changes invoices customers already received\.\n  Reason: finance said no/);
+  assert.strictEqual(section(prompt, 'My notes'), null);
+});
+
+test('settled items are listed as already checked, a reopened one is not', () => {
+  const gate = shareGate({ lang: 'fr' });
+  gate.settled = [
+    { id: 'A1', title: 'Is the tier read per invoice?', answer: 'Per invoice', source: 'src/invoice.js:12', who: 'Mechanics' },
+    { id: 'A2', title: 'Is the rate cached?', answer: 'No', source: 'src/rate.js:3', who: 'Recon' }
+  ];
+  const prompt = load(gate)({ A1: { choice: 'ok' }, A2: { choice: 'reopen' } });
+  const checked = section(prompt, 'Déjà vérifié');
+  assert.match(checked, /Vérifiés pendant la revue : ne les refais pas et ne les rouvre pas, sauf si le code les contredit\.\n- A1 — Is the tier read per invoice\? → Per invoice \(Mechanics\)/);
+  assert.doesNotMatch(checked, /A2/);
+  assert.match(section(prompt, 'Non tranché — demande-moi d\'abord'), /- A2 — Is the rate cached\? \(No\)/);
+  assert.ok(prompt.indexOf('## Déjà vérifié') < prompt.indexOf('## Pour finir'));
+});
+
 test('a stale choice counts as undecided', () => {
   const prompt = load(shareGate())({ F1: { choice: 'gone' } });
   assert.match(section(prompt, 'Undecided — ask me first'), /- F1 — Rounding rule/);

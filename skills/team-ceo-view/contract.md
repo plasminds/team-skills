@@ -116,7 +116,7 @@ The renderer rejects a `detail` or `why` over its limit, a `detail` that opens w
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give a weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Use only arguments the panel made.
 - `after`: ids of the items this one builds on (old name `needs`, still read). Not a hard requirement: the page shows the link both ways and flags a chosen item whose `after` ids are not chosen (a dashed rail, "needs … first"), and Claude asks about it before acting. Unknown ids are rejected. It orders and links; it does not group.
 - `on`: `{ "id", "when"? }`, one relation: the card only makes sense within the target's choice; `when`: option values of the target. If the target's answer removes or forces some of its options, it is not a child: merge them into one card of the coherent combinations; on a decision or tension (minor ones too), not on a rejected or settled item. The card renders in its root's block (follow `on` to a card without one), under the root behind a rail, with its relation in words ("refines D3") and a solid elbow rail in the list. Moot: once the root is answered, the card is moot when its choice is negative, outside `when`, or the root is moot; it greys out, shows "not needed: D1 = …", writes `M3 = moot (D1 = hand)`, and is skipped by *Accept recommended*. The root must be a weighty decision or a tension. The renderer orders by `after` and `on`, and rejects: a loop through `after`/`on`; a weighty card that comes `after` a minor one; a decision that comes `after` a tension (use `on`); an `after` card in Tensions, Minor or Settled below it; one in another decision group only when the dependent's group is already placed above (else the groups reorder).
-- `settled`: page array of `{ "id", "title", "answer", "source", "who" }`, with the usual item fields. `title` is the question; `answer` ≤ 160 characters. They become rows of *Settled without you*, marked "Defaults applied, open to change.", with options OK (pre-applied) or Reopen. The decisions block says `A1 = ok` or `A1 = reopen | note: …`. A shared review lists them under "Settled without a question", never as threads; a reopened one is an open question.
+- `settled`: page array of `{ "id", "title", "answer", "source", "who" }`, with the usual item fields. `title` is the question; `answer` ≤ 160 characters. They become rows of *Settled without you*, marked "Defaults applied, open to change.", with options OK (pre-applied) or Reopen. The decisions block says `A1 = ok` or `A1 = reopen | note: …`. A shared review lists them under "Settled without a question", never as threads; the shared prompt, under "Already checked", so the reader's agent neither redoes nor reopens them; a reopened one is an open question in both.
 - `at`: `{ "path", "line" }`, where the card's code is (repo-relative path, line at the reviewed commit), on decisions and tensions. It anchors the card in a shared review on the merge/pull request; a card without it goes in the body.
 - **File names** in any text: write them repo-relative in backticks, `` `src/a.js` `` or `` `src/a.js:42` ``. When the file exists in the repo, the renderer links it, as it links `at` and the record: on the served page a click opens it in the human's editor; any page links it on the remote repo, at the pushed commit, else the pushed branch, when git tracks it.
 - **Web links** in any text: put the URL behind the words it stands for, `[ticket #1892](https://…)`, never bare. Only `http(s)` links. A bare URL still links, but it reads as noise.
@@ -170,6 +170,7 @@ The reader is someone else, typically the owner of the branch the review looked 
 - The review record: it holds the mechanics (files, lines, verify commands) that the cards leave out.
 - `git -C <checkout> rev-parse --abbrev-ref HEAD` and `git -C <checkout> rev-parse HEAD`.
 - The checkout's agent instructions (`AGENTS.md`, `CLAUDE.md` or similar) and contributing docs, for the commit convention and the test commands. Don't assume the reader's agent is Claude.
+- The CI config (`.gitlab-ci.yml`, `.github/workflows/`, or similar): lint and type-check commands are the CI's, flags included, never a laxer local variant.
 
 **`lang`**: `"fr"` or `"en"`, the conversation's language. Write `preamble` and every brief in it.
 
@@ -189,13 +190,14 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **Verify**: the exact command, and what green looks like.
 - **Commit**: the message, in the repo's convention.
 
-**`why`**: by *Field rules*. What sharing adds: the prompt carries it under each finding's title, so it tells the reader's agent what the fix protects.
+**`why`**: by *Field rules*. What sharing adds: the prompt carries it under each finding's title, so it tells the reader's agent what the fix protects; under a finding left as is, with the note as its reason, so the agent does not "fix" it in passing.
 
 **`after`, `at`, `suggestion`**: by *Field rules*. What sharing adds: when the reader keeps a finding but not what it comes `after`, the prompt tells their agent to ask first.
 
 **Rules**
 - **Only what the review found.** Where the review left the *how* open (a fix whose mechanics nobody settled), the brief says so and ends: "Ask me before doing this, with the options you see."
 - **No paths the reader lacks.** No absolute paths (`/home/…`, `/Users/…`, `/tmp/…`, `C:\…`), no `<REPO>`-style placeholders, nothing under `.council/`. Name files relative to the repo root.
+- **Every command run once.** Before rendering, run each command the preamble and the briefs give, in the review worktree at the reviewed commit, from the directory the text names; a command the *Baseline* already ran counts. On unchanged code a *Verify* runs and is green, or fails as its brief predicts (the new test). A command that errors on its own (a wrong path, an unknown flag, a missing script) is fixed before sharing, never shipped for the reader to discover.
 - **Same outcome, one option.** If two options of a finding lead to the same change, write one.
 - **No customer data.** No names, emails, phone numbers, amounts tied to a person or tokens in any brief, code pane, figure or screenshot. When the review touched such data, describe it ("a customer's email") instead.
 

@@ -53,7 +53,9 @@ test('a reopened settled item is an open question in the prompt', () => {
   const its = [{ kind: 'settled', id: 'A1', title: 'Gate per call?', answer: 'Per call', source: 'x.ts:4', who: 'Evidence', options: [{ value: 'ok', label: 'OK' }, { value: 'reopen', label: 'Reopen' }] }];
   const out = prompt.buildPrompt({ lang: 'en', preamble: '' }, its, { A1: { choice: 'reopen' } });
   assert.match(out, /- A1 — Gate per call\? \(Per call\)/);
-  assert.doesNotMatch(prompt.buildPrompt({ lang: 'en', preamble: '' }, its, { A1: { choice: 'ok' } }), /A1/);
+  const ok = prompt.buildPrompt({ lang: 'en', preamble: '' }, its, { A1: { choice: 'ok' } });
+  assert.match(ok, /## Already checked\n.*\n- A1 — Gate per call\? → Per call \(Evidence\)/);
+  assert.doesNotMatch(ok, /## Undecided/);
 });
 
 test('the template renders blocks, the reliance line and the settled section; no page constraints', () => {

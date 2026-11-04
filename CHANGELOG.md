@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.21.1 — 2026-11-04
+
+- **A fuller shared prompt.** A finding left as is carries its stakes and the reviewer's note as its reason. Settled items are listed under *Already checked*. `--share` no longer asks settled items for a brief.
+- **Review first.** The Share dialog picks a review on the merge/pull request when one can be posted.
+- **Commands run before sharing.** Every command in the preamble and the briefs is run once in the review worktree; lint and type-check commands come from the CI config.
+
 ## 0.21.0 — 2026-11-03
 
 - **Reachability.** A card whose scenario today's code cannot reach no longer reaches the CEO. Every scenario names the path that reaches it, else it is `unverified`; before the gate, one agent checks every `unverified` premise and sends the unreachable ones to *Settled* as `moot`. A position on a scenario counts only if its premise has its own evidence.

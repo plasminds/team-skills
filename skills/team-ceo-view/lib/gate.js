@@ -387,7 +387,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       if (it.brief != null) texts.push([`${it.id}.brief`, it.brief]);
       it.options.forEach(o => {
         if (o.brief != null) texts.push([`${it.id}.options[${o.value}].brief`, o.brief]);
-        if (!o.negative && !o.brief && !it.brief) {
+        // A settled item leads to no work: OK lists it as checked, Reopen as an open question.
+        if (!o.negative && !o.brief && !it.brief && it.kind !== 'settled') {
           errors.push(`"${it.id}" option "${o.value}" leads to work but has no brief — set "brief" on the item or the option, or mark the option "negative": true`);
         }
       });

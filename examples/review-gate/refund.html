@@ -1873,6 +1873,8 @@ dialog.zoom p:empty { display: none; }
   // Share mode: the prompt the reader pastes into their coding agent on their checkout. Self-contained, so tests load it with node:vm.
   var PROMPT_TEXT = {
     en: { todo: 'To do', stake: 'What\'s at stake:', choice: 'Choice: ', left: 'Left as is', none: 'Nothing.',
+      leftRule: 'Reviewed and left on purpose: don\'t change them in passing.', reason: 'Reason: ',
+      checked: 'Already checked', checkedRule: 'Checked during the review: don\'t redo or reopen them unless the code contradicts them.',
       after1: 'Comes after %s, which you did not choose: ask me before doing it without it.', afterN: 'Comes after %s, which you did not choose: ask me before doing it without them.',
       revived: 'Revived — propose first', revivedRule: 'Do not do these yet: propose each one to me first (scope, size, risk) and wait for my answer.',
       open: 'Undecided — ask me first', openRule: 'Ask me before touching any of these.',
@@ -1886,6 +1888,8 @@ dialog.zoom p:empty { display: none; }
       notAnchored: 'Not anchored in the diff', minor: 'Minor', rejected: 'Considered and rejected',
       endText: "Read the repo's agent instructions (AGENTS.md, CLAUDE.md or similar), check the baseline is green, then work through «To do» in order. Stop and ask if a step needs a behavior change it does not list." },
     fr: { todo: 'À faire', stake: 'Enjeu :', choice: 'Choix : ', left: 'Laissé tel quel', none: 'Rien.',
+      leftRule: 'Relus et laissés exprès : ne les « corrige » pas au passage.', reason: 'Raison : ',
+      checked: 'Déjà vérifié', checkedRule: 'Vérifiés pendant la revue : ne les refais pas et ne les rouvre pas, sauf si le code les contredit.',
       after1: 'Vient après %s, que tu n\'as pas retenu : demande-moi avant de le faire sans.', afterN: 'Vient après %s, que tu n\'as pas retenus : demande-moi avant de le faire sans.',
       revived: 'Idées rejetées relancées — propose d\'abord', revivedRule: 'Ne les fais pas encore : propose-les-moi d\'abord (périmètre, taille, risque) et attends ma réponse.',
       open: 'Non tranché — demande-moi d\'abord', openRule: 'Demande-moi avant de toucher à l\'un de ces points.',
@@ -1953,21 +1957,38 @@ dialog.zoom p:empty { display: none; }
   }
   function buildPrompt(data, items, state) {
     var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
-    var todo = [], left = [], revived = [], open = [], notes = [];
+    var todo = [], left = [], checked = [], revived = [], open = [], notes = [];
     function line(it, extra) { return '- ' + it.id + ' — ' + it.title + (extra ? ' (' + extra + ')' : ''); }
     function custom(it) { var o = it.options || []; return !(o.length === 2 && o[0].value === 'approve' && o[1].value === 'decline'); }
+    // A "why" on one line: bullets and lines joined with "; ".
+    function oneLine(w) {
+      var parts = Array.isArray(w) ? w : String(w).split('\n').map(function (l) { return l.replace(/^\s*[-•]\s+/, ''); });
+      return parts.map(function (p) { return String(p).trim(); }).filter(Boolean).join('; ');
+    }
     items.forEach(function (it) {
       var s = state[it.id] || {};
       var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
       if (mootBy(it, items, state)) return;
-      if (s.note && s.note.trim()) notes.push('- ' + it.id + ': ' + s.note.trim().replace(/\s+/g, ' '));
-      if (it.kind === 'settled') { if (s.choice === 'reopen') open.push(line(it, it.answer)); return; }
+      var note = s.note && s.note.trim() ? s.note.trim().replace(/\s+/g, ' ') : '';
+      // A left item carries its note as its reason; every other note goes under "My notes".
+      if (opt && opt.negative && it.kind !== 'settled' && it.kind !== 'rejected') {
+        var l = [line(it, opt.label)], why = it.why == null ? '' : oneLine(it.why);
+        if (why) l.push('  ' + t.stake + ' ' + why);
+        if (note) l.push('  ' + t.reason + note);
+        left.push(l.join('\n'));
+        return;
+      }
+      if (note) notes.push('- ' + it.id + ': ' + note);
+      if (it.kind === 'settled') {
+        if (s.choice === 'reopen') open.push(line(it, it.answer));
+        else checked.push('- ' + it.id + ' — ' + it.title + ' → ' + it.answer + (it.who ? ' (' + it.who + ')' : ''));
+        return;
+      }
       if (it.kind === 'rejected') {
         if (s.choice === 'revive') revived.push(line(it, Array.isArray(it.why) ? it.why.join('; ') : it.why));
         return;
       }
       if (!opt) { open.push(line(it)); return; }
-      if (opt.negative) { left.push(line(it, opt.label)); return; }
       var block = headLines(it, t);
       if (custom(it)) block.push(t.choice + opt.label);
       var missing = missingAfter(it, items, state);
@@ -1976,9 +1997,10 @@ dialog.zoom p:empty { display: none; }
       todo.push(block.join('\n'));
     });
     var out = [data.preamble || '', '', '## ' + t.todo, '', todo.length ? todo.join('\n\n') : t.none];
-    if (left.length) out.push('', '## ' + t.left, left.join('\n'));
+    if (left.length) out.push('', '## ' + t.left, t.leftRule, left.join('\n'));
     if (revived.length) out.push('', '## ' + t.revived, t.revivedRule, revived.join('\n'));
     if (open.length) out.push('', '## ' + t.open, t.openRule, open.join('\n'));
+    if (checked.length) out.push('', '## ' + t.checked, t.checkedRule, checked.join('\n'));
     if (notes.length) out.push('', '## ' + t.notes, notes.join('\n'));
     out.push('', '## ' + t.end, t.endText);
     return out.join('\n');
@@ -2131,6 +2153,12 @@ dialog.zoom p:empty { display: none; }
     }
     return { what: SHARE_WHAT.map(one), where: SHARE_WHERE.map(one) };
   }
+  // The dialog's first answer: a review on the merge/pull request when one can be posted (its owner can answer
+  // each thread there), else the file sent by hand.
+  function shareDefault(choices) {
+    var review = choices.what.filter(function (c) { return c.id === 'review'; })[0];
+    return review && review.available ? { as: 'review', via: 'review' } : { as: 'file', via: 'self' };
+  }
   // The block Share posts: the decisions block, retitled, with the answers after the title.
   function shareBlock(decisions, as, via, to) {
     var lines = decisions.split('\n'), head = ['as: ' + as, 'via: ' + via];
@@ -2198,7 +2226,7 @@ dialog.zoom p:empty { display: none; }
     share.addEventListener('click', function () {
       picker = el('dialog', 'help share-picker');
       picker.appendChild(el('h3', null, 'Share this page'));
-      var choices = shareChoices(data.channels), sel = { as: 'file', via: 'self' }, whereById = {};
+      var choices = shareChoices(data.channels), sel = shareDefault(choices), whereById = {};
       var toRow = el('label', 'chan-to'), toInput = el('input'), shareBtn = el('button', 'btn primary', 'Share'), cancel = el('button', 'btn', 'Cancel');
       toInput.type = 'text';
       toRow.appendChild(document.createTextNode('To (optional)'));

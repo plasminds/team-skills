@@ -7,7 +7,7 @@ const { RENDER } = require('./helpers');
 
 const html = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
 const src = html.slice(html.indexOf('/*SHARE-START*/'), html.indexOf('/*SHARE-END*/'));
-const { shareChoices, shareBlock } = vm.runInNewContext(src + '\n({ shareChoices: shareChoices, shareBlock: shareBlock })');
+const { shareChoices, shareBlock, shareDefault } = vm.runInNewContext(src + '\n({ shareChoices: shareChoices, shareBlock: shareBlock, shareDefault: shareDefault })');
 const all = g => { const c = shareChoices(g); return Object.fromEntries(c.what.concat(c.where).map(x => [x.id, x])); };
 
 test('shareChoices: link and review are unavailable until detected', () => {
@@ -38,6 +38,12 @@ test('shareBlock retitles the block and adds as, via and to after the title', ()
   assert.strictEqual(shareBlock(d, 'file', 'mail', '  marc@example.com \n '), 'CEO SHARE — T\nas: file\nvia: mail\nto: marc@example.com\nrecord: x\nS1 = approve');
   assert.strictEqual(shareBlock(d, 'link', 'slack', ''), 'CEO SHARE — T\nas: link\nvia: slack\nrecord: x\nS1 = approve');
   assert.strictEqual(shareBlock(d, 'file', 'self', 'marc'), 'CEO SHARE — T\nas: file\nvia: self\nrecord: x\nS1 = approve');
+});
+
+test('shareDefault: a review on the merge/pull request when it is available, else the file sent by hand', () => {
+  assert.deepStrictEqual({ ...shareDefault(shareChoices({ review: { label: 'MR !12 (GitLab)' } })) }, { as: 'review', via: 'review' });
+  assert.deepStrictEqual({ ...shareDefault(shareChoices({ review: 'gh is not logged in' })) }, { as: 'file', via: 'self' });
+  assert.deepStrictEqual({ ...shareDefault(shareChoices({})) }, { as: 'file', via: 'self' });
 });
 
 test('shareChoices: the review share form follows the review route', () => {
