@@ -69,7 +69,7 @@ killed as a behavior change. No decision, no fix: team-review owns behavior.]
 ### Leave alone
 [The panelists' Leave alone lines and low cards, merged, one line each with why. Kept so the next Recon lists them as Settled]
 
-### Tensions for the CEO — at most 3
+### Tensions for the human — at most 3
 [Only conflicts with no majority that change what gets executed. Strongest
 version of each side, each side's step as a Step Card, and a suggested default]
 
@@ -79,27 +79,27 @@ version of each side, each side's step as a Step Card, and a suggested default]
 
 - **Gate verdicts.** `SHRINK` replaces the card with its smaller version. `KILL — behavior change` sends it to *For team-review*, as a lane hand-off line, whoever found it. Any other `KILL` sends it to *Considered and rejected*, unless the gate listed it as found by two or more independent panelists: then it is a tension, Minimalist against its authors.
 - **Low cards.** A `low` card never becomes a step; it goes to *Leave alone*.
-- **Conflicts.** A card the gate kept but two panelists conflict on is settled by `counting.md`; a card's `Evidence` line is the evidence `counting.md` counts. A majority's move is a step, with the dissent in its `against`. With no majority, it is a tension, neither side's step is in *Steps*, and the tension names the slot where the winning side's step goes. The record writer puts the chosen side's step in that slot once the CEO picks a side.
-- **Caps are yours, not the CEO's.** At most 8 steps after Step 0; the rest go in *Next run*. A long backlog gets rubber-stamped.
-- **Structural choices** (`team-protocol` § *Structural choices*). A step that makes one (a new package or module, a dependency rule, a folder convention) is a major decision, its options including leaving the structure as it is. A new layer or a changed public contract is beyond a refactor: recommend `team-council` instead of deciding here.
+- **Conflicts.** A card the gate kept but two panelists conflict on is settled by `counting.md`; a card's `Evidence` line is the evidence `counting.md` counts. A majority's move is a step, with the dissent in its `against`. With no majority, it is a tension, neither side's step is in *Steps*, and the tension names the slot where the winning side's step goes. The record writer puts the chosen side's step in that slot once the human picks a side.
+- **Caps are yours, not the human's.** At most 8 steps after Step 0; the rest go in *Next run*. A long backlog gets rubber-stamped.
+- **Structural choices** (`team-protocol` § *Structural choices*). A step that makes one (a new package or module, a dependency rule, a folder convention) is a major decision, its options including leaving the structure as it is. A new layer or a changed public contract is beyond a refactor: recommend `team-debate` instead of deciding here.
 - **Options**, for the gate writer and, on an auto-accept run, the record writer (`team-protocol` § *Auto-accept*). Each step is `approve`, recommended, unless you recommend `decline` (say why). An optional step, or one that makes a structural choice, lists its options with one recommended, or none and why. Each tension lists its sides with your suggested one; each rejected card is `keep-rejected` by default. A step that contradicts something the human stated also gets `Tags: corrects <premise>`.
 
 ## Gate page (gate writer)
 
-Build the page by `team-ceo-view`'s `contract.md`, from the synthesis:
+Build the page by `team-view`'s `contract.md`, from the synthesis:
 - `summary`: labelled bullets *Verdict*, *Weak spots*, *For team-review*, *Recommendation*. `source` is the refactor record. When a *For team-review* line touches money, data or a public contract, *Recommendation* says to run team-review on the scope before executing.
-- **Steps**: routine decisions. Each takes its before/after `code` and credited `for`/`against` from its Step Card's gate material, and its Step Card as `brief`, as written, without its `## Step` heading: the CEO reads how the step gets done before approving it. Step 0's brief is Safety Net's spec. A step with several options that lead to work gives each its own brief.
+- **Steps**: routine decisions. Each takes its before/after `code` and credited `for`/`against` from its Step Card's gate material, and its Step Card as `brief`, as written, without its `## Step` heading: the human reads how the step gets done before approving it. Step 0's brief is Safety Net's spec. A step with several options that lead to work gives each its own brief.
 - `after` from the *Steps* table's *Needs* column (Step 0 when its characterization tests are that step's safety net, or the earlier step it builds on).
 - Optional steps, steps that make a structural choice, and tensions are major decisions.
-- `settled`: what the run decided without the CEO (`contract.md` § *Field rules*). Unanimous zero-cost structural choices: one *Confirm the structure* card.
-- `tensions` and `rejected`: the synthesis's tensions and gate-rejected cards, so the CEO can side or revive. A tension's steps have no card of their own: put their `code` on the tension, and each side's Step Card on that side as `brief`. A side that leaves the code as it is is `"negative": true`, with no brief.
+- `settled`: what the run decided without the human (`contract.md` § *Field rules*). Unanimous zero-cost structural choices: one *Confirm the structure* card.
+- `tensions` and `rejected`: the synthesis's tensions and gate-rejected cards, so the human can side or revive. A tension's steps have no card of their own: put their `code` on the tension, and each side's Step Card on that side as `brief`. A side that leaves the code as it is is `"negative": true`, with no brief.
 - `outcome` when module boundaries move: the `system` view, the module map today and after the approved steps.
 - Each metric on the step it measures, each screenshot on the finding it shows.
 
 ## Record and exec brief (record writer)
 
 From the synthesis, the Code Brief and the decisions block (on an auto-accept run with no page: the human's chat answer where one was given, else each item's default, else its recommended option, from the synthesis's *Options*), write two files:
-- **The record**, `.council/refactors/YYYY-MM-DD-<topic>.md`, for humans and future refactors: `Status: approved, not executed`, the synthesis, the Code Brief's quality-gate commands with their results (*Quality gates*), the CEO decisions with their notes, rejected cards, tensions and the *Next run* list. An auto-accept run adds *"Auto-accepted: every recommendation taken without opening the page"*.
+- **The record**, `.council/refactors/YYYY-MM-DD-<topic>.md`, for humans and future refactors: `Status: approved, not executed`, the synthesis, the Code Brief's quality-gate commands with their results (*Quality gates*), the human's decisions with their notes, rejected cards, tensions and the *Next run* list. An auto-accept run adds *"Auto-accepted: every recommendation taken without opening the page"*.
 - **New known flakes**: append each test the Code Brief lists under *Known flakes* that the profile's `## Known flakes` lacks, one line each in that section's format.
 - **The exec brief**, `.council/refactors/YYYY-MM-DD-<topic>.exec.md`, by `team-protocol` § *Writers*: the header takes its quality-gate commands, known flakes and *Diff guard* from the Code Brief; then Safety Net's Step 0 spec, then the approved Step Cards in order.
 

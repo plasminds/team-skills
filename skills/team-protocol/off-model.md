@@ -11,4 +11,4 @@ The roles share one model, so their agreement can be a shared prior (see *Counti
   ```
   Flags change between versions: on an error, check `--help`. If it still fails, say so and run the seat on-model.
 - **Read only its Summary.** The orchestrator reads that section, not the whole reply.
-- **Counted like any other position**, by the same evidence rule. Credit it with its model, e.g. `Philosopher (codex)`, so the CEO can see where on-model and off-model positions part.
+- **Counted like any other position**, by the same evidence rule. Credit it with its model, e.g. `Philosopher (codex)`, so the human can see where on-model and off-model positions part.

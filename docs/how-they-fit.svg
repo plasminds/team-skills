@@ -28,19 +28,19 @@
   <rect class="mask" x="220" y="20" width="354" height="16"/>
   <text x="228" y="32" class="sub"><tspan class="mono">team-protocol</tspan> · shared rules: dispatch, counting, handoff</text>
 
-  <!-- arrows: kickoff → scan, scan → council, scan → refactor -->
+  <!-- arrows: kickoff → scan, scan → debate, scan → refactor -->
   <path class="wire" d="M244 82 H107 Q99 82 99 90 V128"/>
   <path class="head" d="M94 128 L99 136 L104 128 Z"/>
   <path class="wire" d="M174 162 H236"/>
   <path class="head" d="M236 157 L244 162 L236 167 Z"/>
   <path class="wire" d="M99 188 V242 Q99 250 107 250 H236"/>
   <path class="head" d="M236 245 L244 250 L236 255 Z"/>
-  <!-- kickoff → council, council → plan -->
+  <!-- kickoff → debate, debate → plan -->
   <path class="wire" d="M324 108 V128"/>
   <path class="head" d="M319 128 L324 136 L329 128 Z"/>
   <path class="wire" d="M404 162 H436"/>
   <path class="head" d="M436 157 L444 162 L436 167 Z"/>
-  <!-- every gate → team-ceo-view -->
+  <!-- every gate → team-view -->
   <path class="wire" d="M404 82 H672"/>
   <path class="head" d="M672 77 L680 82 L672 87 Z"/>
   <path class="wire" d="M384 136 V130 Q384 122 392 122 H672"/>
@@ -55,7 +55,7 @@
   <path class="head" d="M236 333 L244 338 L236 343 Z"/>
   <path class="wire" d="M404 350 H672"/>
   <path class="head" d="M672 345 L680 350 L672 355 Z"/>
-  <!-- dashed: refactor <-> review hand-off, council-plan -> review -->
+  <!-- dashed: refactor <-> review hand-off, plan -> review -->
   <path class="dash" d="M364 276 V304"/>
   <path class="head" d="M359 304 L364 312 L369 304 Z"/>
   <path class="dash" d="M284 312 V284"/>
@@ -81,11 +81,11 @@
   <text class="sub" x="324" y="96" text-anchor="middle">new project</text>
 
   <rect class="box" x="244" y="136" width="160" height="52" rx="6"/>
-  <text class="name" x="324" y="158" text-anchor="middle">team-council</text>
+  <text class="name" x="324" y="158" text-anchor="middle">team-debate</text>
   <text class="sub" x="324" y="176" text-anchor="middle">debate → decision</text>
 
   <rect class="box" x="444" y="136" width="160" height="52" rx="6"/>
-  <text class="name" x="524" y="158" text-anchor="middle">team-council-plan</text>
+  <text class="name" x="524" y="158" text-anchor="middle">team-plan</text>
   <text class="sub" x="524" y="176" text-anchor="middle">decision → plan</text>
 
   <rect class="box" x="244" y="224" width="160" height="52" rx="6"/>
@@ -97,7 +97,7 @@
   <text class="sub" x="324" y="352" text-anchor="middle">panel → verified findings</text>
 
   <rect class="accent" x="680" y="56" width="156" height="308" rx="6"/>
-  <text class="name" x="758" y="196" text-anchor="middle">team-ceo-view</text>
-  <text class="sub" x="758" y="216" text-anchor="middle">CEO gate:</text>
+  <text class="name" x="758" y="196" text-anchor="middle">team-view</text>
+  <text class="sub" x="758" y="216" text-anchor="middle">Gate:</text>
   <text class="sub" x="758" y="232" text-anchor="middle">you decide</text>
 </svg>

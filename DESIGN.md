@@ -1,7 +1,8 @@
 ---
-name: CEO Gate
-description: A calm decision console. Three panes and one cursor, dark only.
+name: Gate
+description: A calm decision console. Three panes and one cursor, dark by default, light on request.
 colors:
+  # light values: `skills/team-view/tokens.css`
   ground: "#161514"
   panel: "#201e1c"
   raised: "#2a2825"
@@ -198,7 +199,7 @@ components:
     rounded: "11px"
 ---
 
-# Design System: CEO Gate
+# Design System: Gate
 
 ## Overview
 
@@ -206,9 +207,9 @@ components:
 
 The gate is an instrument, not a page to read. Three panes share one cursor: the list of every card with its dependency rails on the left, the card being decided in the centre with its choice pinned at the bottom, its evidence by lens on the right. The lineage is the keyboard console (lazygit, tig) translated into plain language: every action has a key, every key is shown on a real keycap, and the screen never scrolls as a whole; only panes scroll inside a fixed frame.
 
-The world is a warm lifted dark. The ground is near-black with a brown cast, and soft-edged panels sit one step above it, so the three working areas read as objects on a desk rather than regions of one sheet. Colour is almost absent. What colour there is carries meaning, one meaning per hue: amber for the recommendation, green for what has been chosen or improved, red for blockers and lifted constraints, and a violet and a blue for the Business and Tech lenses. Density is that of a tool used for minutes at a time: 15px body, compact rows, no ornament between the eye and the decision.
+The default world is a warm lifted dark. The ground is near-black with a brown cast, and soft-edged panels sit one step above it, so the three working areas read as objects on a desk rather than regions of one sheet. Colour is almost absent. What colour there is carries meaning, one meaning per hue: amber for the recommendation, green for what has been chosen or improved, red for blockers and lifted constraints, and a violet and a blue for the Business and Tech lenses. Density is that of a tool used for minutes at a time: 15px body, compact rows, no ornament between the eye and the decision.
 
-Dark only. A light theme was built and rejected as glaring; shared pages use the same world.
+Two themes, dark by default. The light world is off-white paper, not white: the ground is a sand grey, the panels are the lightest surface, the wells (raised, cur, foot) sit darker than the panel, and the pane shadow is a warm brown. The page follows the system or the viewer's theme until the reader picks one with the top-bar toggle (a sun or moon icon at every width, its name in the tooltip) or `d`; the choice is remembered for every gate. Shared pages use the same worlds and the same toggle. `d` is listed in the keys help only, not in the always-on legend: it decides nothing. Print is always light.
 
 **Key Characteristics:**
 - Fixed full-viewport frame; panes scroll, the page does not.
@@ -219,7 +220,7 @@ Dark only. A light theme was built and rejected as glaring; shared pages use the
 
 ## Colors
 
-A warm brown-grey neutral ladder with five small semantic hues, each lifted to pastel brightness on the dark and given a matching deep tint for fills.
+A warm brown-grey neutral ladder with five small semantic hues, each lifted to pastel brightness on the dark and given a matching deep tint for fills. The light theme inverts both: the hues deepen to ink strength and the tints pale; the values below are the dark ones, the light ones live in `skills/team-view/tokens.css`.
 
 ### Primary
 - **Recommendation Amber** (amber, with amber-bg fill): marks the recommended option and nothing else: the border of the recommended choice and its "Recommended" tag. It is the rarest colour on screen.
@@ -298,15 +299,15 @@ Spacing rhythm is small and even: 4–14px inside components, 26px between block
 
 ## Elevation & Depth
 
-Depth is tonal first. Hierarchy comes from the neutral ladder (ground, panel, foot, raised, cur), each step a few points lighter, plus hairline edges. A single soft shadow lifts the panes off the ground; everything else is flat, and rings are inset strokes, not shadows.
+Depth is tonal first. Hierarchy comes from the neutral ladder (ground, panel, foot, raised, cur), each step a few points lighter in dark; in light the ladder inverts, the panel lightest and the wells a few points darker; plus hairline edges. A single soft shadow lifts the panes off the ground; everything else is flat, and rings are inset strokes, not shadows.
 
 ### Shadow Vocabulary
-- **Pane lift** (`box-shadow: 0 1px 0 rgba(255,255,255,.025) inset, 0 10px 28px -16px rgba(0,0,0,.7)`): the three panes only. A top highlight and a low diffuse fall.
+- **Pane lift** (`--pane-lift`; dark `0 1px 0 rgba(255,255,255,.025) inset, 0 10px 28px -16px rgba(0,0,0,.7)`, light `0 1px 0 rgba(255,252,246,.7) inset, 0 10px 28px -16px rgba(74,52,28,.32)`): the three panes only. A top highlight and a low diffuse fall, warm brown in light.
 - **Inset ring** (`box-shadow: inset 0 0 0 1px <colour>`): the current row and selected lens (line), the chosen option (green), a gap row (red at 60%), the progress track (edge).
-- **Dialog scrim** (`background: rgba(10,9,8,.72)`): behind keys, share and zoom dialogs.
+- **Dialog scrim** (`--scrim`; dark `rgba(10,9,8,.72)`, light `rgba(58,48,38,.38)`): behind keys, share and zoom dialogs.
 
 ### Named Rules
-**The One Lift Rule.** Only panes cast a shadow. Buttons, menus, dialogs and cards inside panes are separated by tone and a 1px border.
+**The One Lift Rule.** Only panes cast a shadow. Buttons, menus, dialogs and cards inside panes are separated by tone and a 1px border. The light pane lift's 70% near-white inset highlight is part of that one lift, not a second one.
 
 ## Shapes
 
@@ -373,7 +374,7 @@ Inline-grid, 20px, ground fill, line border with a 2px bottom edge, 5px corners,
 - **Do** keep evidence beside the choice: arguments in the centre, evidence in the right pane, nothing behind a click.
 
 ### Don't:
-- **Don't** ship a light theme or a light shared page; the world is dark only.
+- **Don't** ship a white one: no `#fff`, no fully opaque white, no black shadow on light. The brightest light surface is `--panel` (`#eee9df`, off-white); white glares.
 - **Don't** use amber for anything but the recommended option.
 - **Don't** use a semantic hue for decoration, emphasis or brand.
 - **Don't** fetch fonts, icons or libraries; the file is self-contained and works offline.

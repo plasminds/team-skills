@@ -1,6 +1,6 @@
 ---
 name: team-protocol
-description: Use when running any team-* skill (team-council, team-council-plan, team-kickoff, team-refactor, team-review) — dispatching its role agents, settling what they disagree on, or handing off at a CEO gate.
+description: Use when running any team-* skill (team-debate, team-plan, team-kickoff, team-refactor, team-review) — dispatching its role agents, settling what they disagree on, or handing off at a gate.
 ---
 
 # team-protocol
@@ -14,7 +14,7 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 - **Agents return async.** Send every agent of a round in one message. Each completion wakes you for a turn that re-reads the whole run: until the round's last agent is back, answer a notice in one line under 10 words — no tool call, no Read, no summary of the reply. Then read the replies once and take the next step.
 - **Pass the model and budget** from the caller's table to every dispatch.
 - **Seat agent.** Dispatch each agent as its type: the caller's `Type` column, or outside a table `maker` if it writes a project file or code, `judge` if it weighs other agents' output on opus, else `analyst`. Use `team-skills:team-<type>` if the session lists it, else `team-<type>`, else `general-purpose`, said once in one line before the first dispatch. Pass the model either way.
-- **Skill files go into the run folder first.** The skill's base directory (`~/.claude/skills/…` or the plugin cache) is outside the project: a Read there waits on a permission prompt. Once the caller's preconditions pass, create the run folder; the run's first action copies, in one Bash call, every skill file an agent will Read: the caller's `templates.md` and role files; this skill's `counting.md`, `bridge.md`, `scope.md`, `execution.md`, `auto-accept.md`, `lane-handoffs.md`, `machine-tools.md` and `reachability.md`, and its `SKILL.md` as `team-protocol.md` when `templates.md` points to a `team-protocol` section; `team-ceo-view`'s `contract.md` and `figures.md` for an agent that builds a page or draws a sketch. E.g. `cp <base directory>/{templates.md,roles/role-*.md} <base directory>/../team-protocol/{counting.md,bridge.md,scope.md,execution.md,auto-accept.md,lane-handoffs.md,machine-tools.md,reachability.md} <base directory>/../team-ceo-view/{contract.md,figures.md} <run folder>/ && cp <base directory>/../team-protocol/SKILL.md <run folder>/team-protocol.md`. Check overrides with `[ -d .council/role-overrides ] && ls .council/role-overrides` (a bare `ls` fails on a missing folder). team-kickoff has neither templates.md nor roles/ (its council run copies team-council's). Point each agent to its copy; a pointer to a `team-protocol` section means that section of `team-protocol.md`. Scripts run through Bash (`render.js`, `cards.sh`) and project overrides need no copy. **You read the copies too:** until the copy, no skill file but the SKILL.md the Skill tool loaded; then sections from the copy (`grep -n '^## ' <run folder>/templates.md` first), never from the base directory.
+- **Skill files go into the run folder first.** The skill's base directory (`~/.claude/skills/…` or the plugin cache) is outside the project: a Read there waits on a permission prompt. Once the caller's preconditions pass, create the run folder; the run's first action copies, in one Bash call, every skill file an agent will Read: the caller's `templates.md` and role files; this skill's `counting.md`, `bridge.md`, `scope.md`, `execution.md`, `auto-accept.md`, `lane-handoffs.md`, `machine-tools.md` and `reachability.md`, and its `SKILL.md` as `team-protocol.md` when `templates.md` points to a `team-protocol` section; `team-view`'s `contract.md` and `figures.md` for an agent that builds a page or draws a sketch. E.g. `cp <base directory>/{templates.md,roles/role-*.md} <base directory>/../team-protocol/{counting.md,bridge.md,scope.md,execution.md,auto-accept.md,lane-handoffs.md,machine-tools.md,reachability.md} <base directory>/../team-view/{contract.md,figures.md} <run folder>/ && cp <base directory>/../team-protocol/SKILL.md <run folder>/team-protocol.md`. Check overrides with `[ -d .council/role-overrides ] && ls .council/role-overrides` (a bare `ls` fails on a missing folder). team-kickoff has neither templates.md nor roles/ (its debate run copies team-debate's). Point each agent to its copy; a pointer to a `team-protocol` section means that section of `team-protocol.md`. Scripts run through Bash (`render.js`, `cards.sh`) and project overrides need no copy. **You read the copies too:** until the copy, no skill file but the SKILL.md the Skill tool loaded; then sections from the copy (`grep -n '^## ' <run folder>/templates.md` first), never from the base directory.
 - **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins. `<name>` is the role's file name.
 - **Roles are lenses.** A role is named after what it looks at, never after a person. This holds for built-in roles, ad-hoc specialists and project overrides.
 - **Ad-hoc specialists.** When you summon one, write it 3–5 tests, no names.
@@ -22,7 +22,7 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 
 ## Writers
 
-Writers keep the orchestrator short. Gate JSON, decision, refactor and review records, exec briefs and plans are written by agents (from the synthesis file, the decisions block or a reviewer's lines). The orchestrator writes prompts and small run-folder notes, flips a `Status:` line, appends a record's *Execution* section, serves the page, and passes the decisions block on. A CEO follow-up that needs more than one grep goes to a sonnet evidence agent: your context is the run's most expensive. A record amendment of ≤ 5 lines you append yourself (`cat >>`), no writer. Each caller's table gives these writers a model and a budget.
+Writers keep the orchestrator short. Gate JSON, decision, refactor and review records, exec briefs and plans are written by agents (from the synthesis file, the decisions block or a reviewer's lines). The orchestrator writes prompts and small run-folder notes, flips a `Status:` line, appends a record's *Execution* section, serves the page, and passes the decisions block on. A human follow-up that needs more than one grep goes to a sonnet evidence agent: your context is the run's most expensive. A record amendment of ≤ 5 lines you append yourself (`cat >>`), no writer. Each caller's table gives these writers a model and a budget.
 
 - **The synthesis** stays under ~300 lines and holds everything the gate page and the record need, since it is the only run-folder file the gate writer and the record writer read.
 - **The exec brief** is for the executors and nothing else: a header (scope, the quality-gate commands copied verbatim, fences for the whole run), then the approved cards in order. No debate, no arguments, no declined or rejected items. Aim under ~150 lines.
@@ -50,7 +50,7 @@ Append this block to every dispatch prompt, with the budget, run folder and agen
 - A question the code, the ticket or the MR/PR answers is yours: answer it with `file:line` or the link. Before asking how a new variant behaves, say how its sibling behaves today. A claim that something does not exist names the terms and paths you searched, else mark it `unverified`.
 - A rule about what code allows reads the whole class deciding it, constructor included, never a line window; grep a guard by its effect (its error, its constant list).
 - A scenario you raise names the path reaching it in today's code (`file:line`), else the guards you searched, marked `unverified`.
-- Reply with: the file path, one line per position, card, verdict or defect (id + title), the questions for the CEO, and what you settled alone (`question → answer — source`). Nothing else.
+- Reply with: the file path, one line per position, card, verdict or defect (id + title), the questions for the human, and what you settled alone (`question → answer — source`). Nothing else.
 ```
 
 Drop the *Tool rules* line when the user has none. A caller may add lines above the budget (team-refactor adds "Start from the Code Brief").
@@ -71,18 +71,18 @@ How business and tech meet on one decision is set by `bridge.md` in this skill's
 
 ## Structural choices
 
-A structural choice is any of: a new package or module, a new layer, a dependency direction or import rule, a public contract other code builds on, a folder convention. Each is expensive to undo, so the CEO makes it as a choice between options, with a recommendation. A writer never settles one, and an `approve` on a routine step that happens to create one is not that choice. The caller says where its structural choices reach the CEO. A settled one that later work could break also becomes a constraint (`bridge.md` § *Structural choices and constraints*). A choice the user sees (a screen's layout or placement, wording, a flow) is the CEO's in the same way. A spike answers a fact; it never settles one of these.
+A structural choice is any of: a new package or module, a new layer, a dependency direction or import rule, a public contract other code builds on, a folder convention. Each is expensive to undo, so the human makes it as a choice between options, with a recommendation. A writer never settles one, and an `approve` on a routine step that happens to create one is not that choice. The caller says where its structural choices reach the human. A settled one that later work could break also becomes a constraint (`bridge.md` § *Structural choices and constraints*). A choice the user sees (a screen's layout or placement, wording, a flow) is the human's in the same way. A spike answers a fact; it never settles one of these.
 
-## Settled without the CEO
+## Settled without the human
 
-The CEO sees every question, and every answer nobody asked them for.
-- **A question the code, the ticket or the MR/PR answers is not a CEO question.** The agent that raises it answers it, or an evidence pass does before the pause.
-- **Everything settled without the CEO goes on the gate's *Settled without you* list** (`contract.md`, `settled`): a question answered from code, an `assumed` premise or constraint taken as true, a default you or a writer took, an author-intent question sent to a merge request's comment. The CEO can reopen each one.
+You see every question, and every answer nobody asked you for.
+- **A question the code, the ticket or the MR/PR answers is not a question for the human.** The agent that raises it answers it, or an evidence pass does before the pause.
+- **Everything settled without the human goes on the gate's *Settled without you* list** (`contract.md`, `settled`): a question answered from code, an `assumed` premise or constraint taken as true, a default you or a writer took, an author-intent question sent to a merge request's comment. You can reopen each one.
 - **Before the question pause, grep the role files for `assumed`.** Each one is in a question or on the list.
 
 ## Reachability
 
-Today's rules are in the code; a case it can't reach never reaches the CEO. team-council and team-council-plan read `reachability.md` (in the run folder).
+Today's rules are in the code; a case it can't reach never reaches the human. team-debate and team-plan read `reachability.md` (in the run folder).
 
 ## Project profile
 
@@ -98,7 +98,7 @@ For team-refactor and team-review, which hand what they stumble on in the other 
 
 ## Handoff
 
-Each CEO gate ends a session. **An open answer.** An UNDECIDED, or a note that asks a question: one check (an evidence agent if it needs code), then one question in chat that states only what the run's files hold and flags the rest as unchecked. The record says "gate pick X, changed in chat to Y" and quotes the CEO; a card made moot is recorded `moot`. Write the record the next phase needs. Before deleting the run folder, grep the deliverables for `runs/` and for ids that exist only in the run (reviewer defects); rewrite those as plain sentences. Evidence, settled notes and sketches worth keeping go to `.council/decisions/<name>-sources/`. Then delete the run folder (anything worth keeping is in the record by then). **Commit** as the profile's *Run preferences* say (`team-scan`). With no `Commit records` line, ask once with AskUserQuestion: *"Commit `<the files the next phase reads>` now, as one docs commit?"*, naming each gitignored one (`git check-ignore`), and record the answer as that line. Worktree executors only see committed files, and a commit after the handoff costs turns at the session's largest context.
+Each gate ends a session. **An open answer.** An UNDECIDED, or a note that asks a question: one check (an evidence agent if it needs code), then one question in chat that states only what the run's files hold and flags the rest as unchecked. The record says "gate pick X, changed in chat to Y" and quotes the human; a card made moot is recorded `moot`. Write the record the next phase needs. Before deleting the run folder, grep the deliverables for `runs/` and for ids that exist only in the run (reviewer defects); rewrite those as plain sentences. Evidence, settled notes and sketches worth keeping go to `.council/decisions/<name>-sources/`. Then delete the run folder (anything worth keeping is in the record by then). **Commit** as the profile's *Run preferences* say (`team-scan`). With no `Commit records` line, ask once with AskUserQuestion: *"Commit `<the files the next phase reads>` now, as one docs commit?"*, naming each gitignored one (`git check-ignore`), and record the answer as that line. Worktree executors only see committed files, and a commit after the handoff costs turns at the session's largest context.
 
 **The handoff** ends your last message: `/clear`, then the next prompt alone in a fenced code block, whole and ready to paste (paths filled in, nothing else inside):
 
@@ -140,7 +140,7 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 | Excuse | Reality |
 |--------|---------|
 | "I'll play the roles myself, it's faster" | One context gives one opinion wearing several costumes, and no tension. Dispatch them. |
-| "It's close, I'll pick a side and call it a decision" | No majority makes it a tension. The synthesizer suggests a side; the CEO takes it. |
+| "It's close, I'll pick a side and call it a decision" | No majority makes it a tension. The synthesizer suggests a side; the human takes it. |
 | "We're on a roll, I'll keep going in this session" | The next phase would pay for this whole context on every turn. Write the record, then `/clear`. |
 | "The code answers it, no need to mention it" | Answer it, and put it on *Settled without you*: nothing is decided in the dark. |
 | "A new package is an implementation detail; the writer will shape it" | Its boundaries, dependencies and folders are expensive to undo, and an `approve` on one step line among forty is not a choice the human made (§ *Structural choices*). |
@@ -153,7 +153,7 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 - Writing or patching a gate JSON, record, exec brief or plan yourself (a `Status:` line and the *Execution* append aside)
 - Fixing a reviewer's finding, or editing code between batches, yourself
 - A skill file read from its base directory, by you or an agent
-- A counted position written before a CEO answer that contradicts it
+- A counted position written before the human's answer that contradicts it
 - Every role agreeing on everything
 - A count in `tags` that includes a position with no `file:line`, doc, output or measurement
 - Opening a run-folder file other than the synthesis or a skill-file copy
@@ -161,7 +161,7 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 - An external model CLI called without a yes on record
 - A gate auto-accepted in a run the human did not invoke with `auto-accept`
 - A template pointing an agent to a `team-protocol` section, with no `team-protocol.md` in its run folder
-- A structural choice that reached the CEO only as a routine step, or not at all
+- A structural choice that reached the human only as a routine step, or not at all
 - A commit made without its brief's *Diff guard* run
 - A hand-off line with no scenario
 - A card that restates a *Settled* line with no new evidence

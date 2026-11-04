@@ -120,7 +120,7 @@ the seats' other *Not raised* lines (defects the diff did not cause)]
 
 ## Gate page (gate writer)
 
-Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "review"`:
+Build the page by `team-view`'s `contract.md`, from the synthesis, `kind: "review"`:
 - `summary`: labelled bullets *Verdict*, *Blockers*, *Not raised*, *For team-refactor*, *Recommendation*; no card counts (the renderer adds them). `source` is the review record, `.council/reviews/YYYY-MM-DD-<topic>.md`.
 - **Each finding is a decision**, `id` its card id, `tags` its lens and severity, `detail` its evidence and scenario, `why` its stakes. Its options are its *Options* line: **fix** (`recommended: true`, with its `brief`), or **fix-a** and **fix-b**, each with its own `brief` and `recommended: true` only on the one the line recommends; and **leave** (`negative: true`, no brief: the human's note gives the reason). A `corrects <premise>` tag goes in `tags`.
 - Blocker and major: major decisions. Minor: `minor: true`. `default` is the *Options* line's default or recommended fix, and absent when it recommends none.
@@ -138,7 +138,7 @@ Write the share fields by `contract.md` § *Share fields* on every review gate, 
 
 From the synthesis, the gate JSON's fix briefs, and the decisions block or the share block. On an auto-accept run with no page there is no gate JSON: take the human's chat answer where one was given, else each finding's default, else its recommended option, from its *Options* line, and write each Fix card from the finding's *Fix*.
 - **The record**, `.council/reviews/YYYY-MM-DD-<topic>.md`, for humans and future reviews: scope, owner, intent source, status, the synthesis's *Quality gates*, *Known flakes*, *Expected load* and *Security* lines, every finding with its verifier verdict and the human's decision and note, the refuted cards with what refuted them, *Not raised*, *For team-refactor*. For an audit, each finding left is known debt with its reason, so the next audit does not reopen it. It lists the *Questions for the author* with each one's choice (asked or dropped, and the note), and the *Settled* lines as the synthesis wrote them.
-  - Someone else's branch, or any shared gate: from the synthesis and the share block, the human's curation (declined findings with their notes) and the share line from `team-ceo-view`'s *Share*. `Status: shared`. No exec brief.
+  - Someone else's branch, or any shared gate: from the synthesis and the share block, the human's curation (declined findings with their notes) and the share line from `team-view`'s *Share*. `Status: shared`. No exec brief.
   - Own branch, audit: `Status: approved, not executed`. An auto-accept run adds *"Auto-accepted: every recommendation taken without opening the page"*.
 - **The exec brief**, `.council/reviews/YYYY-MM-DD-<topic>.exec.md`, by `team-protocol` § *Writers*: its header holds the synthesis's *Quality gates*, *Known flakes* and *Diff guard*; then one Fix card per approved finding, in order: blockers first, and a finding after any finding it `needs`. Each card comes from the finding's brief and the human's note.
 - **New known flakes**: append each test the synthesis lists under *Known flakes* that the profile's `## Known flakes` lacks, one line each in that section's format.

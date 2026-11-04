@@ -33,7 +33,7 @@ function checkRole(text) {
   return problems;
 }
 
-// A council role's ### Evidence placeholder opens with the test it answers.
+// A debate role's ### Evidence placeholder opens with the test it answers.
 function checkEvidence(text, name = 'text') {
   const lines = text.split(/\r?\n/);
   const i = lines.findIndex(l => l.trimEnd() === '### Evidence');
@@ -67,8 +67,8 @@ test('skills prose: no via line, no Sources heading; the protocol clause', () =>
   assert.ok(!protocol.includes('Pick and declare'));
 });
 
-test('team-council-plan copy step: leaves the roles/ glob out', () => {
-  assert.ok(read(SKILLS, 'team-council-plan', 'SKILL.md').includes('leaves out the `roles/` glob'));
+test('team-plan copy step: leaves the roles/ glob out', () => {
+  assert.ok(read(SKILLS, 'team-plan', 'SKILL.md').includes('leaves out the `roles/` glob'));
 });
 
 test('checkRole rejects the old shape', () => {
@@ -92,15 +92,15 @@ test('checkRole tolerates CRLF and a trailing space on the heading', () => {
 });
 
 test('role tables: no Sources column', () => {
-  for (const skill of ['team-council', 'team-refactor', 'team-review']) {
+  for (const skill of ['team-debate', 'team-refactor', 'team-review']) {
     const headers = read(SKILLS, skill, 'SKILL.md').split('\n').filter(l => l.startsWith('| Role |'));
     assert.ok(headers.length > 0, `${skill}: no role table`);
     for (const h of headers) assert.ok(!h.includes('Sources'), `${skill}: ${h}`);
   }
 });
 
-test('council roles: the Evidence placeholder opens with its test', () => {
-  const files = roleFiles.filter(f => f.includes('/team-council/roles/'));
+test('debate roles: the Evidence placeholder opens with its test', () => {
+  const files = roleFiles.filter(f => f.includes('/team-debate/roles/'));
   assert.equal(files.length, 5);
   for (const f of files) checkEvidence(read(f), f);
 });

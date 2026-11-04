@@ -2,7 +2,7 @@
 
 For a caller whose approved work is carried out by executor agents, in the fresh session the handoff opened. The caller keeps its step format, the brief its executors start from, and what a red batch does.
 
-- **Start from the exec brief** (a plan, for team-council-plan) the handoff named. Don't read the record or an earlier run folder. Copy the caller's `templates.md`, and this skill's `SKILL.md` as `team-protocol.md`, into a fresh run folder first (§ *Dispatch*), before you or any agent reads a section of either: you read the copies too.
+- **Start from the exec brief** (a plan, for team-plan) the handoff named. Don't read the record or an earlier run folder. Copy the caller's `templates.md`, and this skill's `SKILL.md` as `team-protocol.md`, into a fresh run folder first (§ *Dispatch*), before you or any agent reads a section of either: you read the copies too.
 - **Batches.** Group the approved steps into batches: consecutive steps, in the brief's order, that touch overlapping files, at most 4 per batch. When the caller sizes its steps, only S steps share a batch; an M or L step is a batch of one.
 - **A fresh executor per batch** (`maker`), given its batch and the header its caller names, never the record. It commits each step on its own.
 - **Diff guard.** Before each commit, the executor runs its exec brief's *Diff guard* (§ *Code scope*) on the staged change. A suppression comment added, a staged file the card's *Fence* rules out or one its card does not name, or the format check failing on a file not listed *Unformatted* → unstage, then revert the step or fix the hit, and reply `stopped — <the hit>`. Never work around it: the guard exists because a fence's words alone get ignored.

@@ -1,0 +1,30 @@
+:root {
+  color-scheme: dark;
+  --ground: #161514; --panel: #201e1c; --raised: #2a2825; --cur: #34312d; --edge: #2f2c29; --line: #77716a; --foot: #24221f;
+  --rail: #6c665f; --rail-lit: #e6e1d9;
+  --ink: #eeeae4; --ink-2: #c6c0b7; --ink-3: #a8a198;
+  --amber: #e8b65c; --amber-bg: #3a2f1c; --green: #93d18c; --green-bg: #1f2b1d; --red: #f09080; --red-bg: #33201c;
+  --biz: #d9a8e8; --biz-bg: #2e2433; --tech: #72cfc0; --tech-bg: #1a2d2a;
+  --pro: #9db6ff; --pro-bg: #1b2440; --con: #e8935a; --con-bg: #36220f;
+  --add-bg: #1f2b1d; --del-bg: #33201c;
+  --sel: #4b4438; --scroll: #4a4641; --primary: #3a3631; --primary-hover: #45403a; --flash: #3f3a33; --del-ink: #f3c2b8; --add-ink: #cdeec8;
+  --pane-lift: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+  --scrim: rgba(10, 9, 8, .72);
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", "Adwaita Sans", Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "Noto Sans Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  --r: 14px;
+}
+/* light values, selected by the page */
+:is(html, body)[data-view-theme="light"] {
+  color-scheme: light;
+  --ground: #e2dccf; --panel: #eee9df; --raised: #e5dfd3; --cur: #d5ccbd; --edge: #d6cfc2; --line: #6a6256; --foot: #e9e4d9;
+  --rail: #766d60; --rail-lit: #3a332c;
+  --ink: #2a251f; --ink-2: #4a433b; --ink-3: #4e463d;
+  --amber: #6c4600; --amber-bg: #f3e2bd; --green: #255922; --green-bg: #dcead3; --red: #8c2b22; --red-bg: #f4dcd5;
+  --biz: #683280; --biz-bg: #ede0f1; --tech: #0f554d; --tech-bg: #d5eae5;
+  --pro: #27459a; --pro-bg: #dfe5f7; --con: #7d390e; --con-bg: #f4dfcc;
+  --add-bg: #dcead3; --del-bg: #f4dcd5;
+  --sel: #d2c6b0; --scroll: #b8afa1; --primary: #e1d7c6; --primary-hover: #d8cdba; --flash: #d0c5b2; --del-ink: #7a2519; --add-ink: #21501d;
+  --pane-lift: 0 1px 0 rgba(255, 252, 246, .7) inset, 0 10px 28px -16px rgba(74, 52, 28, .32);
+  --scrim: rgba(58, 48, 38, .38);
+}

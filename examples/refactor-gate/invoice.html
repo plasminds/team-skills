@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CEO Gate</title>
+<title>Refactoring backlog — src/invoice.js · Gate</title>
 <style>
-/* The CEO gate: a calm decision console. Three panes and one cursor: the list of every card with its rails,
-   the card being decided, and its evidence by lens. Dark only. */
+/* The gate: a calm decision console. Three panes and one cursor: the list of every card with its rails,
+   the card being decided, and its evidence by lens. Dark by default; light when the reader or the system asks
+   (data-view-theme on <html> and <body>, set by the first script in <body>). Print is always light. */
 :root {
   color-scheme: dark;
   --ground: #161514; --panel: #201e1c; --raised: #2a2825; --cur: #34312d; --edge: #2f2c29; --line: #77716a; --foot: #24221f;
@@ -16,17 +17,34 @@
   --biz: #d9a8e8; --biz-bg: #2e2433; --tech: #72cfc0; --tech-bg: #1a2d2a;
   --pro: #9db6ff; --pro-bg: #1b2440; --con: #e8935a; --con-bg: #36220f;
   --add-bg: #1f2b1d; --del-bg: #33201c;
+  --sel: #4b4438; --scroll: #4a4641; --primary: #3a3631; --primary-hover: #45403a; --flash: #3f3a33; --del-ink: #f3c2b8; --add-ink: #cdeec8;
+  --pane-lift: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+  --scrim: rgba(10, 9, 8, .72);
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", "Adwaita Sans", Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", "Noto Sans Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
   --r: 14px;
 }
+/* light values, selected by the page */
+:is(html, body)[data-view-theme="light"] {
+  color-scheme: light;
+  --ground: #e2dccf; --panel: #eee9df; --raised: #e5dfd3; --cur: #d5ccbd; --edge: #d6cfc2; --line: #6a6256; --foot: #e9e4d9;
+  --rail: #766d60; --rail-lit: #3a332c;
+  --ink: #2a251f; --ink-2: #4a433b; --ink-3: #4e463d;
+  --amber: #6c4600; --amber-bg: #f3e2bd; --green: #255922; --green-bg: #dcead3; --red: #8c2b22; --red-bg: #f4dcd5;
+  --biz: #683280; --biz-bg: #ede0f1; --tech: #0f554d; --tech-bg: #d5eae5;
+  --pro: #27459a; --pro-bg: #dfe5f7; --con: #7d390e; --con-bg: #f4dfcc;
+  --add-bg: #dcead3; --del-bg: #f4dcd5;
+  --sel: #d2c6b0; --scroll: #b8afa1; --primary: #e1d7c6; --primary-hover: #d8cdba; --flash: #d0c5b2; --del-ink: #7a2519; --add-ink: #21501d;
+  --pane-lift: 0 1px 0 rgba(255, 252, 246, .7) inset, 0 10px 28px -16px rgba(74, 52, 28, .32);
+  --scrim: rgba(58, 48, 38, .38);
+}
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
-::selection { background: #4b4438; color: var(--ink); }
-* { scrollbar-width: thin; scrollbar-color: #4a4641 transparent; }
+::selection { background: var(--sel); color: var(--ink); }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll) transparent; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #4a4641; border: 3px solid var(--panel); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border: 3px solid var(--panel); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--line); }
 ::-webkit-scrollbar-track { background: transparent; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -68,8 +86,8 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .btn:hover { background: var(--raised); }
 .btn:disabled { color: var(--ink-3); background: none; border-color: var(--edge); cursor: default; }
 .btn:disabled kbd { color: var(--ink-3); border-color: var(--edge); }
-.btn.primary { background: #3a3631; border-color: var(--ink-3); }
-.btn.primary:hover { background: #45403a; }
+.btn.primary { background: var(--primary); border-color: var(--ink-3); }
+.btn.primary:hover { background: var(--primary-hover); }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-2); padding: 6px 10px; }
 .btn.ghost:hover { color: var(--ink); background: var(--panel); }
 .side-open { flex: none; }
@@ -98,7 +116,7 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .narrow-btn .wide-ic, .side-rail .narrow-btn .narrow-ic { display: none; }
 .side-rail .narrow-btn .wide-ic { display: block; }
 .panel { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--r);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
+  box-shadow: var(--pane-lift);
   min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
 .scroll { overflow: auto; min-height: 0; flex: 1; }
 .phead { display: flex; align-items: center; gap: 12px; padding: 14px 12px 8px 18px; flex: none; }
@@ -142,7 +160,7 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
   border-radius: 10px; background: var(--rowbg); transition: background-color .25s cubic-bezier(.16, 1, .3, 1); }
 .row:hover { --rowbg: var(--raised); }
 .row.cur { --rowbg: var(--cur); box-shadow: inset 0 0 0 1px var(--line); }
-.row.flash { --rowbg: #3f3a33; }
+.row.flash { --rowbg: var(--flash); }
 .row .l1 { display: flex; align-items: baseline; gap: 9px; min-width: 0; max-width: 100%; line-height: 22px; }
 .rid { font: 600 12.5px var(--mono); color: var(--ink-3); flex: none; min-width: 2.6em; }
 .rti { font-size: 14.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -346,8 +364,8 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .code .cl span { font-weight: 400; color: var(--ink-3); }
 .code pre { margin: 0; padding: 8px 0; font: 13px/1.6 var(--mono); overflow-x: auto; }
 .code pre div { padding: 0 12px; white-space: pre; min-width: max-content; }
-.code pre .del { background: var(--del-bg); color: #f3c2b8; }
-.code pre .add { background: var(--add-bg); color: #cdeec8; }
+.code pre .del { background: var(--del-bg); color: var(--del-ink); }
+.code pre .add { background: var(--add-bg); color: var(--add-ink); }
 .code pre .ctx { color: var(--ink-2); }
 /* Which option's own evidence the pane shows: the current choice, until another is picked */
 .optpick { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
@@ -426,7 +444,7 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 
 /* Dialogs: keys, share, zoom */
 dialog { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 0; }
-dialog::backdrop { background: rgba(10, 9, 8, .72); }
+dialog::backdrop { background: var(--scrim, rgba(10, 9, 8, .72)); }
 dialog.help { width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow: auto; padding: 22px 24px 18px; }
 dialog.help h3 { margin: 0 0 14px; font-size: 19px; font-weight: 650; }
 dialog.help table { border-collapse: collapse; font-size: 14.5px; width: 100%; }
@@ -485,6 +503,8 @@ dialog.zoom p:empty { display: none; }
   .actions { grid-area: acts; padding: 8px 16px 12px; background: var(--panel); }
   .gt h1 { white-space: normal; font-size: 16.5px; }
   .side-open, #keys { display: none !important; }
+  /* The theme toggle is an icon at every width; on a phone the bottom bar may wrap to two rows at about 400px */
+  .actions #theme { flex: none; }
   .actions { flex-wrap: wrap; gap: 6px; }
   .actions .btn { flex: 1 1 auto; min-height: 36px; padding: 5px 10px; font-size: 13.5px; }
   .meta .srcm { display: none; }
@@ -548,17 +568,60 @@ dialog.zoom p:empty { display: none; }
 </style>
 </head>
 <body>
+<script>
+/*THEME-START*/
+// The theme: a saved choice, else the viewer's stamp (claude.ai sets <html data-theme>), else the system, else dark.
+function pickTheme(saved, stamp, systemLight) {
+  if (saved === 'light' || saved === 'dark') return saved;
+  if (stamp === 'light' || stamp === 'dark') return stamp;
+  return systemLight ? 'light' : 'dark';
+}
+// A toggle flips the theme; landing on the system's own theme forgets the choice (store null), so the page follows it again.
+function nextTheme(current, systemTheme) {
+  var theme = current === 'light' ? 'dark' : 'light';
+  return { theme: theme, store: theme === systemTheme ? null : theme };
+}
+/*THEME-END*/
+// Runs before any content, so the page never flashes the other theme. Under --artifact <html> and <body> are the host's.
+var viewTheme = (function () {
+  var KEY = 'team-view:theme', root = document.documentElement, current = 'dark', listeners = [];
+  function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function mq() { try { return matchMedia('(prefers-color-scheme: light)'); } catch (e) { return null; } }
+  var sysQ = mq();
+  function system() { return pickTheme(null, root.getAttribute('data-theme'), !!(sysQ && sysQ.matches)); }
+  function set(t) { root.setAttribute('data-view-theme', t); document.body.setAttribute('data-view-theme', t); }
+  function apply(t) { current = t; set(t); listeners.forEach(function (f) { f(t); }); }
+  // While no choice is saved, follow the system and the viewer live.
+  function follow() { var s = stored(); if (s !== 'light' && s !== 'dark') apply(system()); }
+  apply(pickTheme(stored(), root.getAttribute('data-theme'), !!(sysQ && sysQ.matches)));
+  try { if (sysQ.addEventListener) sysQ.addEventListener('change', follow); else sysQ.addListener(follow); } catch (e) {}
+  try { new MutationObserver(follow).observe(root, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) {}
+  // Print is always light.
+  addEventListener('beforeprint', function () { set('light'); });
+  addEventListener('afterprint', function () { set(current); });
+  return {
+    get: function () { return current; },
+    on: function (f) { listeners.push(f); },
+    toggle: function () {
+      var n = nextTheme(current, system());
+      try { if (n.store) localStorage.setItem(KEY, n.store); else localStorage.removeItem(KEY); } catch (e) {}
+      apply(n.theme);
+    }
+  };
+})();
+</script>
 <div class="layout" data-tab="card">
   <header id="head" class="top">
     <div class="gt" id="gt"></div>
     <div class="progress" aria-live="polite"><div class="txt" id="ptxt"></div><div class="track"><div class="fill" id="pfill"></div></div></div>
     <div class="actions">
+      <button class="btn ghost" id="theme" type="button" aria-label="Switch to light theme" title="Light theme ( d )"><kbd>D</kbd></button>
       <button class="btn ghost" id="reset" type="button">Reset</button>
-      <button class="btn" id="recAll" type="button">Accept recommended <kbd>A</kbd></button>
+      <button class="btn" id="recAll" type="button"><span id="recAllLabel">Accept recommended</span> <kbd>A</kbd></button>
       <button class="btn wide" id="share" type="button" hidden>Share</button>
       <button class="btn primary" id="copy" type="button"><span id="copyLabel">Copy decisions</span> <kbd>C</kbd></button>
-      <button class="btn primary" id="send" type="button" hidden>Send to Claude <kbd>S</kbd></button>
-      <button class="btn ghost" id="keys" type="button" aria-label="Keyboard keys"><kbd>?</kbd> Keys</button>
+      <button class="btn primary" id="send" type="button" hidden><span id="sendLabel">Send to Claude</span> <kbd>S</kbd></button>
+      <button class="btn ghost" id="keys" type="button" aria-label="Keyboard keys"><kbd>?</kbd> <span id="keysLabel">Keys</span></button>
     </div>
   </header>
   <div class="tabs" id="tabs" role="tablist" aria-label="Panes"></div>
@@ -577,14 +640,503 @@ dialog.zoom p:empty { display: none; }
     <textarea id="out" readonly aria-label="Decisions to paste back"></textarea>
   </footer>
 </div>
-<script type="application/json" id="ceo-data">{"kind":"refactor","title":"Refactoring backlog — src/invoice.js","date":"2026-09-26","source":".council/refactors/2026-09-26-invoice.md","summary":[{"label":"Verdict","text":"invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."},{"label":"Weak spots","points":["The 20% tax rule is written out in three places","exportCsv() has no callers","The name 'grand' hides that it is the total including tax"]},{"label":"For team-review","points":["Gold customers' discount rounds down while every other tier rounds to nearest","Currency symbol printed after a space ('12,00 €'), in the formatter; S0 pins it as-is","'Discount: -0.00' printed when there is no discount, in the totals block; S0 pins it as-is","Run team-review on src/invoice.js before executing: the rounding touches money."]},{"label":"Recommendation","points":["Approve S0–S4","Side with the Minimalist on T1"]}],"outcome":[{"view":"system","title":"invoice.js after the approved steps","caption":"The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.","before":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 196\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">140 lines · tax rule ×3\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">tier switch · format · email\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">exportCsv()\u003c/text>\n\u003c/svg>\n"},"after":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 268\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n  \u003cpath d=\"M494 128 H552\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M552 123 L560 128 L552 133 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">112 lines · one TAX_RATE\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">format · email\u003c/text>\n  \u003ctext x=\"494\" y=\"48\" text-anchor=\"end\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">CHANGED\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke-dasharray=\"5 4\" style=\"fill: var(--surface); stroke: var(--ink-2)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" style=\"fill: var(--ink-2); font-family: var(--mono)\">exportCsv()\u003c/text>\n  \u003ctext x=\"728\" y=\"80\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">REMOVED\u003c/text>\n\n  \u003crect x=\"560\" y=\"108\" width=\"160\" height=\"40\" rx=\"6\" stroke-width=\"1.5\" style=\"fill: var(--surface); stroke: var(--accent)\"/>\n  \u003ctext x=\"640\" y=\"132\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">computeDiscount()\u003c/text>\n  \u003ctext x=\"728\" y=\"132\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">NEW\u003c/text>\n\n  \u003ctext x=\"24\" y=\"214\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">NEW\u003c/tspan>\u003ctspan x=\"96\">computeDiscount(tier, total): the tier switch and its rounding leave invoice()\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"234\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">REMOVED\u003c/tspan>\u003ctspan x=\"96\">exportCsv(): no caller in the repo or its git history\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"254\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">CHANGED\u003c/tspan>\u003ctspan x=\"96\">invoice(): 140 → 112 lines, one TAX_RATE in place of three tax literals\u003c/tspan>\u003c/text>\n\u003c/svg>\n"}}],"figures":[],"items":[{"kind":"decision","id":"S0","group":"Backlog","title":"Characterize invoice totals (safety net)","detail":["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject","Proves they bite by flipping the rounding and the tax constant"],"for":[{"who":"Safety Net","point":"Today's two tests only cover the silver path."}],"metrics":[{"label":"Pinned branches","before":2,"after":11,"better":"higher"}],"brief":"Why: Safety Net: today's two tests only cover the silver path.\nDo:\n- Add `test/invoice.characterization.test.js`: one test per behavior in *Details*, each asserting today's output, quirks included (Gold rounds down, `12,00 €`, `Discount: -0.00`)\n- Make each one bite: flip the rounding, then the tax constant, watch it fail, revert\nFence: `src/invoice.js` and the existing tests. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: test(invoice): characterize invoice totals\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S1","group":"Backlog","title":"Extract Constant: TAX_RATE","detail":"The 20 % rate is written three times: once `0.2`, twice `1.2`.","for":[{"who":"Responsibilities","point":"A tax change today means three edits."},{"who":"Minimalist","point":"KEEP: removes a present, bug-prone duplication."}],"code":{"before":"const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2","after":"const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"},"after":["S0"],"brief":"Why: Responsibilities, Minimalist: one tax rule written three times (DRY).\nDo:\n- Add `const TAX_RATE = 0.2` at the top of `src/invoice.js`\n- Replace `0.2` with `TAX_RATE`, and both `1.2` with `(1 + TAX_RATE)`\nFence: the rest of `src/invoice.js`; no rounding change. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Constant TAX_RATE in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S5","group":"Backlog","title":"Name the rate TAX_RATE_PCT?","on":{"id":"S1"},"detail":"S1 keeps the rate as `0.2`; this one stores `20` and divides at the call site.","why":"Changes the constant S1 introduces, not the invoice.","for":[{"who":"Responsibilities","point":"A percentage reads the way the business says it."}],"against":[{"who":"Minimalist","point":"One more conversion for no new behavior."}],"brief":"Why: Responsibilities: a percentage reads the way the business says it.\nDo:\n- Rename `TAX_RATE` to `TAX_RATE_PCT` and store `20`\n- Divide by `100` at each of its three uses\nFence: the computed amounts: S0's tests stay green unchanged. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Constant TAX_RATE to TAX_RATE_PCT\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[],"block":"S1"},{"kind":"decision","id":"S2","group":"Backlog","title":"Rename Variable: grand → totalWithTax","for":[{"who":"Responsibilities","point":"'grand' is read 11 times and never says what it holds."}],"code":{"before":"const grand = net + tax\nsendInvoice(grand)","after":"const totalWithTax = net + tax\nsendInvoice(totalWithTax)"},"after":["S0"],"brief":"Why: Responsibilities: `grand` hides that the total includes tax.\nDo:\n- Rename the local `grand` to `totalWithTax` in `buildInvoice`, at its declaration and in `sendInvoice(grand)`\nFence: `sendInvoice` and its parameters: only the local variable changes. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Variable grand in buildInvoice\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S3","group":"Backlog","title":"Remove Dead Code: exportCsv()","for":[{"who":"Minimalist","point":"No callers in the repo or in git history since it was added."}],"metrics":[{"label":"Lines","before":140,"after":112,"better":"lower"}],"after":["S0"],"brief":"Why: Minimalist: no callers in the repo or in git history.\nDo:\n- Delete `exportCsv()` and its entry in `module.exports`\n- Check `git grep exportCsv` returns nothing\nFence: the formatter it calls: `buildInvoice` still uses it. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Remove Dead Code exportCsv in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S4","group":"Backlog","title":"Extract Function: computeDiscount(tier, total)","detail":"Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.","for":[{"who":"Sequencing","point":"Make the change easy, then make the easy change: platinum lands next sprint."}],"against":[{"who":"Depth","point":"Fine only if it takes the rounding with it; a shallow wrapper would leak it."}],"code":{"before":"if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …","after":"const discount = computeDiscount(tier, total)"},"after":["S0"],"brief":"Why: Responsibilities: the tier switch is the next change's target (platinum).\nDo:\n- Move the `if (tier === …)` chain into `function computeDiscount(tier, total)` in the same file\n- Call it as `const discount = computeDiscount(tier, total)`\nFence: each tier's rounding as it is: Gold keeps `Math.floor` (pinned by S0, a team-review question). Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Function computeDiscount in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"sides":[{"who":"Responsibilities","position":"Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh.","brief":"Why: Responsibilities: three reasons to change in one file.\nDo:\n- Move the tax and discount functions to `src/invoice/calculate.js`, the formatter to `src/invoice/format.js`, the email to `src/invoice/send.js`\n- Keep `src/invoice.js` re-exporting `buildInvoice`, so its one caller does not change\nFence: every function body: moved as is. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Move Function calculate, format and send out of invoice.js\nOn red: revert the step, report why, stop."},{"who":"Minimalist + Depth","position":"After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.","recommended":true,"negative":true}],"kind":"tension","id":"T1","title":"Split invoice.js into calculate / format / send modules?","group":"Tensions","options":[{"value":"Responsibilities","label":"Side with Responsibilities","recommended":false,"brief":"Why: Responsibilities: three reasons to change in one file.\nDo:\n- Move the tax and discount functions to `src/invoice/calculate.js`, the formatter to `src/invoice/format.js`, the email to `src/invoice/send.js`\n- Keep `src/invoice.js` re-exporting `buildInvoice`, so its one caller does not change\nFence: every function body: moved as is. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Move Function calculate, format and send out of invoice.js\nOn red: revert the step, report why, stop."},{"value":"Minimalist + Depth","label":"Side with Minimalist + Depth","recommended":true,"negative":true},{"value":"defer","label":"Defer","negative":true}],"figures":[]},{"id":"RS-4","title":"DiscountStrategy interface with one class per tier","kind":"rejected","group":"Considered and rejected","why":"Rejected because: One use today; the switch is not repeated anywhere. Killed by the Minimalist gate.","options":[{"value":"keep-rejected","label":"Keep rejected","recommended":true},{"value":"revive","label":"Revive"}],"default":"keep-rejected","figures":[]},{"id":"A1","title":"Is the tier read per invoice?","answer":"Per invoice","source":"src/invoice.js:12","who":"Mechanics","kind":"settled","group":"Settled without you","options":[{"value":"ok","label":"OK","recommended":true},{"value":"reopen","label":"Reopen"}],"default":"ok","figures":[]}],"_rev":"f67d83b54c93"}</script>
+<script>
+/*CHROME-START*/
+// Every chrome string of the page, in English and in French ("vous"; PROMPT_TEXT keeps its own "tu"). Keys are area.name,
+// in both languages. A counted string is { one, other }, read by Lp; a string with a count or a name in it is one whole
+// sentence with {n} / {name} placeholders, never pieces joined with +. Not here: the decisions block, card ids, PROMPT_TEXT.
+const CHROME_TEXT = {
+  en: {
+    'title.suffix': ' · Gate',
+    'theme.toLight': 'Switch to light theme', 'theme.toDark': 'Switch to dark theme',
+    'theme.lightTitle': 'Light theme ( d )', 'theme.darkTitle': 'Dark theme ( d )',
+    'bar.reset': 'Reset', 'bar.acceptRecommended': 'Accept recommended', 'bar.share': 'Share',
+    'bar.copy': 'Copy decisions', 'bar.send': 'Send to Claude', 'bar.keys': 'Keys',
+    'aria.keyboardKeys': 'Keyboard keys', 'aria.panes': 'Panes', 'aria.cards': 'Cards',
+    'aria.keysNow': 'Keys that work now', 'aria.decisionsOut': 'Decisions to paste back',
+    'kind.debate': 'Debate gate', 'kind.plan': 'Plan gate', 'kind.refactor': 'Refactor gate', 'kind.review': 'Review gate',
+    'kind.kickoff': 'Kickoff gate', 'kind.decision': 'Decision gate', 'kind.other': '{kind} gate',
+    'list.findings': 'Findings', 'list.decisions': 'Decisions', 'list.cards': 'Cards',
+    'section.decisions': 'Decisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions for the author',
+    'section.minor': 'Minor items', 'section.settled': 'Settled without you', 'section.rejected': 'Considered and rejected',
+    'server.opened': 'Opened {path} in your editor.', 'server.gone': 'The page is no longer served: open {path} yourself.',
+    'server.notJson': 'not JSON', 'server.notAFile': 'Not a file this page names.',
+    'server.noEditor': 'No editor found: set TEAM_VIEW_EDITOR to its command (code, idea…) and render again.',
+    'server.couldNotRun': 'Could not run {cmd}: set TEAM_VIEW_EDITOR to your editor\'s command and render again.',
+    'server.notDecisions': 'Not a decisions block. Use Copy decisions and paste instead.',
+    'copy.selectClaude': 'Select all and copy, then paste into Claude',
+    'copy.selectAgent': 'Select all and copy, then paste into your coding agent, on your checkout of the branch',
+    'copy.copiedClaude': 'Copied. Paste it into Claude.',
+    'copy.copiedAgent': 'Copied. Paste it into your coding agent, on your checkout of the branch.',
+    'send.confirm': { one: '{n} item undecided. Send anyway? Claude will ask about it.', other: '{n} items undecided. Send anyway? Claude will ask about them.' },
+    'send.sent': 'Sent. Claude has your decisions; you can close this tab.',
+    'send.failed': 'Could not reach Claude. Use Copy decisions and paste instead.',
+    'share.needNote': 'Say why you leave {ids} as is: its reader will see it. Write a note, then share.',
+    'share.title': 'Share this page', 'share.submit': 'Share', 'share.cancel': 'Cancel', 'share.to': 'To (optional)',
+    'share.what': 'What the reader gets', 'share.where': 'Where it goes',
+    'share.sent': 'Sent. Claude is sharing the page; you can close this tab.',
+    'share.failed': 'Could not reach Claude. Ask it in chat to share this gate.',
+    'lens.business': 'Biz', 'lens.tech': 'Tech', 'lens.businessWord': 'business', 'lens.techWord': 'tech',
+    'lens.switch': 'Lens for the card and its evidence', 'lens.both': 'Both', 'lens.bothTitle': 'Both lenses  ( l )',
+    'lens.count': '· {n}', 'lens.none': '· none', 'lens.ofAll': '{n} of {all}', 'lens.showBoth': 'Show both',
+    'lens.onlyTitle': { one: '{lens} only: {n} item on this card  ( {key} )', other: '{lens} only: {n} items on this card  ( {key} )' },
+    'lens.hidden': { one: '{n} {lens} argument hidden by the lens.', other: '{n} {lens} arguments hidden by the lens.' },
+    'lens.noArgRaised': 'No {lens} argument raised.', 'lens.noEvidence': 'No {lens} evidence on this card.',
+    'arg.for': 'For', 'arg.against': 'Against', 'arg.noneFor': 'Nobody argued for it.', 'arg.noneAgainst': 'Nobody argued against it.',
+    'arg.noLensFor': 'No {lens} argument for it.', 'arg.noLensAgainst': 'No {lens} argument against it.',
+    'metric.up': 'Up {d}', 'metric.upBetter': 'Up {d}, better', 'metric.upWorse': 'Up {d}, worse',
+    'metric.down': 'Down {d}', 'metric.downBetter': 'Down {d}, better', 'metric.downWorse': 'Down {d}, worse',
+    'file.openEditor': 'Open in your editor', 'file.openRemote': 'Open {path} on {forge}', 'file.openOn': 'Open on {forge}', 'file.atLine': ', line {n}',
+    'rel.refines': 'Refines {id}', 'rel.needs': 'Needs {ids} first', 'rel.baseFor': { one: 'Base for {n} card', other: 'Base for {n} cards' },
+    'card.evidenceFor': 'Evidence for {id}', 'card.minor': 'Minor item', 'card.refines': 'refines {id}', 'card.vote': 'Vote {t}',
+    'card.kindFinding': 'Finding', 'card.kindDecision': 'Decision', 'card.kindTension': 'Tension',
+    'card.kindQuestion': 'Question for the author', 'card.kindSettled': 'Settled without you', 'card.kindRejected': 'Considered and rejected',
+    'card.refinedBy': { one: '{ids} refines this card: your answer here decides whether it still applies.', other: '{ids} refine this card: your answer here decides whether they still apply.' },
+    'card.comesAfter': { one: '{ids} comes after this: this card is their base.', other: '{ids} come after this: this card is their base.' },
+    'card.answer': 'The answer', 'card.theTeam': 'the team',
+    'card.foundBy': 'Found by {who}', 'card.foundByIn': 'Found by {who} in {source}', 'card.unverified': 'Not verified: {text}',
+    'card.askedBy': 'Asked by {who}', 'card.askedByAbout': 'Asked by {who}, about {source}',
+    'card.whyAside': 'Why it was set aside', 'card.stake': 'What’s at stake', 'card.details': 'Details',
+    'card.twoSides': 'The two sides', 'card.sides': 'The sides', 'card.recommended': 'Recommended', 'card.forAgainst': 'For and against',
+    'card.yourChoice': 'Your choice', 'card.hintMany': 'Press 1–{max} or click', 'card.hintOne': 'Press 1 or click',
+    'card.decisionFor': 'Decision for {id}', 'card.lifts': 'lifts {ids}',
+    'card.breaks': { one: 'Breaks {ids}: choosing it lifts it', other: 'Breaks {ids}: choosing it lifts them' },
+    'card.note': 'Note ', 'card.noteClaude': 'Note for Claude ', 'card.notePlaceholder': 'Optional: a note, or an edit to this choice',
+    'ev.pickAria': 'Show the evidence for', 'ev.pick': 'Evidence for', 'ev.title': 'Evidence', 'ev.constraints': 'Constraints', 'ev.from': 'From {source}',
+    'ev.tradeoffs': 'Trade-offs', 'ev.option': 'Option', 'ev.numbers': 'Numbers', 'ev.where': 'Where in the code',
+    'ev.suggested': 'Suggested change', 'ev.ifChoose': 'if you choose {label}',
+    'ev.replace': { one: 'Replace {n} line with', other: 'Replace {n} lines with' },
+    'ev.replaceFrom': { one: 'Replace {n} line from line {line} with', other: 'Replace {n} lines from line {line} with' },
+    'ev.codeBoth': 'The code, before and after', 'ev.before': 'Before', 'ev.after': 'After',
+    'ev.changedRed': 'changed lines in red', 'ev.newGreen': 'new lines in green', 'ev.noCodeChange': '{label}: no code change.',
+    'ev.figures': 'Figures', 'ev.howDone': 'How it gets done', 'ev.nothingToDo': '{label}: nothing to do, so no instructions.',
+    'ev.instructions': 'Instructions for the coding agent', 'ev.instructionsNamed': 'Instructions for the coding agent — {label}',
+    'ev.empty': 'No evidence attached: the case is on the card.',
+    'ev.accepts': 'Accepts: ', 'ev.recAccepts': 'The recommended option accepts: ',
+    'sum.title': 'Summary', 'sum.outcome': 'Outcome', 'sum.mockup': 'Mockup', 'sum.system': 'System',
+    'sum.whatSees': 'What the user sees', 'sum.howWorks': 'How the system works', 'sum.today': 'Today', 'sum.after': 'After', 'sum.target': 'Target',
+    'sum.ifChosen': 'If {id} = {label}', 'sum.ifRec': 'If {id} = {label} (recommended)',
+    'choose.set': { one: '{id}: {label}. {n} card still to decide.', other: '{id}: {label}. {n} cards still to decide.' },
+    'choose.setDone': '{id}: {label}. Every card decided.',
+    'choose.setLifts': { one: '{id}: {label}, lifts {ids}. {n} card still to decide.', other: '{id}: {label}, lifts {ids}. {n} cards still to decide.' },
+    'choose.setLiftsDone': '{id}: {label}, lifts {ids}. Every card decided.',
+    'choose.cleared': { one: '{id} cleared. {n} card still to decide.', other: '{id} cleared. {n} cards still to decide.' },
+    'choose.clearedDone': '{id} cleared. Every card decided.',
+    'meta.presetOneOne': 'Pre-filled by the reviewer: {c} choice, {n} note. Change any.',
+    'meta.presetOneMany': 'Pre-filled by the reviewer: {c} choice, {n} notes. Change any.',
+    'meta.presetManyOne': 'Pre-filled by the reviewer: {c} choices, {n} note. Change any.',
+    'meta.presetManyMany': 'Pre-filled by the reviewer: {c} choices, {n} notes. Change any.',
+    'out.copyPrompt': 'Copy prompt', 'out.promptAria': 'Prompt to paste into your coding agent',
+    'help.title': 'Keyboard keys',
+    'help.move': 'Move around',
+    'help.decide': 'Decide',
+    'help.finish': 'Finish',
+    'help.nav': 'Next / previous card (also <kbd>j</kbd> / <kbd>k</kbd>)',
+    'help.nextOpen': 'Next card still to decide',
+    'help.summary': 'The full summary, and back to the card',
+    'help.lens': 'Lens for both panes: both, biz only, tech only',
+    'help.lensBT': 'Biz / tech lens (again for both)',
+    'help.search': 'Search; <kbd>Enter</kbd> goes to the first result',
+    'help.list': 'The list: narrow to a rail, hide, show again',
+    'help.choose': 'Choose that option; the same key again clears it',
+    'help.tabStep': 'Step through the current card\'s options',
+    'help.enter': 'Choose the focused option (again to clear)',
+    'help.rec': 'Choose the recommended option',
+    'help.noteRow': 'Write a note on the current card',
+    'help.acceptAll': 'Accept the recommendation on every card still to decide',
+    'help.send': 'Send the decisions to Claude',
+    'help.copyAgent': 'Copy the prompt for your coding agent',
+    'help.copyDecisions': 'Copy the decisions',
+    'help.esc': 'Leave the search box, the note or the filter menu',
+    'help.this': 'This help',
+    'help.theme': 'Light / dark theme',
+    'help.rails': 'The lines between cards',
+    'help.refines': '<b>Refines</b>: answer the card above it first',
+    'help.needs': '<b>Needs … first</b>: the work order, built on its base',
+    'help.mouse': 'The mouse works everywhere: click a card, click an option.',
+    'help.close': 'Close <kbd>Esc</kbd>',
+    'legend.leaveNote': 'Leave the note',
+    'legend.saved': 'Saved as you type',
+    'legend.move': 'Move',
+    'legend.enter': 'Choose focused',
+    'legend.note': 'Note',
+    'legend.lensBoth': 'Lens: both',
+    'legend.lens': 'Lens: {lens}',
+    'legend.send': 'Send',
+    'legend.allKeys': 'All keys',
+    'nav.prev': 'Previous',
+    'nav.next': 'Next',
+    'nav.nextOpen': 'Next to decide',
+    'tab.card': 'Card',
+    'tab.evidence': 'Evidence',
+    'side.hide': 'Hide the list',
+    'side.legendHelp': 'What the lines between cards mean',
+    'side.search': 'Search  ( / )',
+    'side.searchAria': 'Search cards',
+    'side.show': 'Show the list  ( [ )',
+    'side.widenTitle': 'Widen the list  ( [ )',
+    'side.narrowTitle': 'Narrow the list to a rail  ( [ )',
+    'side.widen': 'Widen the list',
+    'side.narrow': 'Narrow the list',
+    'filter.button': 'Filter',
+    'filter.menu': 'Filters',
+    'filter.type': 'Type',
+    'filter.all': 'All',
+    'filter.rejected': 'Rejected',
+    'filter.status': 'Status',
+    'filter.anyStatus': 'Any status',
+    'filter.undecided': 'Undecided',
+    'filter.decided': 'Decided',
+    'filter.withNote': 'With note',
+    'filter.lens': 'Lens',
+    'filter.anyLens': 'Any lens',
+    'filter.byTag': 'Filter by tag',
+    'filter.allTags': 'All tags',
+    'filter.tag': 'Tag',
+    'filter.clear': 'Clear filters',
+    'filter.noMatch': 'No item matches these filters.',
+    'filter.shown': { one: '{n} of {total} shown', other: '{n} of {total} shown' },
+    'filter.only': 'Show only {section}',
+    'meta.record': 'Record: ',
+    'row.note': 'Has a note',
+    'row.wholeSummary': 'The whole summary',
+    'row.wholeSummaryOutcome': 'The whole summary and the outcome',
+    'row.defaults': 'Defaults applied, open to change.',
+    'row.notNeeded': 'Not needed',
+    'row.toDecide': 'To decide',
+    'row.withDefault': '{word} (default)',
+    'row.notChosen': { one: '{ids} not chosen', other: '{ids} not chosen' },
+    'row.titleChosen': '{id} · {title} — {label}',
+    'row.titleUndecided': '{id} · {title} — undecided',
+    'row.titleChosenGap': '{id} · {title} — {label} — comes after {ids}, not chosen',
+    'row.titleUndecidedGap': '{id} · {title} — undecided — comes after {ids}, not chosen',
+    'past.approve': 'Approved',
+    'past.decline': 'Declined',
+    'past.fix': 'Fix',
+    'past.leave': 'Leave as is',
+    'past.keepRejected': 'Stays rejected',
+    'past.revive': 'Revived',
+    'past.ok': 'Settled',
+    'past.reopen': 'Reopened',
+    'past.defer': 'Deferred',
+    'past.ask': 'To ask',
+    'past.drop': 'Dropped',
+    'past.sidesWith': 'Sides with {label}',
+    'opt.approve': 'Approve',
+    'opt.decline': 'Decline',
+    'opt.defer': 'Defer',
+    'opt.keepRejected': 'Keep rejected',
+    'opt.revive': 'Revive',
+    'opt.ok': 'OK',
+    'opt.reopen': 'Reopen',
+    'opt.askAuthor': 'Ask the author',
+    'opt.drop': 'Drop',
+    'opt.sideWith': 'Side with {who}',
+    'rel.gap': { one: '{ids} not chosen: you\'ll be asked before {id} runs without it.', other: '{ids} not chosen: you\'ll be asked before {id} runs without them.' },
+    'rel.notNeeded': 'Not needed: {id} = {label}',
+    'rel.refinesTitle': 'Refines {id} · {title}',
+    'rel.after': 'Comes after {id}',
+    'rel.afterTitle': 'Comes after {id} · {title}',
+    'rel.chosen': 'chosen: {label}',
+    'rel.answerFirst': 'Answer it first',
+    'rel.answerTitle': 'answer it first ↑',
+    'rel.moot': 'Not needed: {id} is set to “{label}”, so this card no longer applies.',
+    'card.liftedBy': 'Lifted by your choice: {label}',
+    'card.holds': 'Holds',
+    'card.holdsLifted': 'Holds · lifted if you choose {options}',
+    'card.or': ' or ',
+    'prog.of': '{n} of {total}',
+    'prog.decided': 'Decided {done}',
+    'list.toDecide': '{n} to decide',
+    'list.allDecided': 'All decided',
+    'bar.allDecided': 'Every card already has a choice',
+    'toast.reset': 'Decisions reset.',
+    'toast.accepted': { one: '{n} card set to the recommended option.', other: '{n} cards set to the recommended option.' },
+    'toast.noneRecommended': 'No undecided card has a recommended option.',
+    'toast.allSend': 'Every card is decided. Press S to send.',
+    'toast.allCopy': 'Every card is decided. Press C to copy.',
+    'share.whatFile': 'The page as a file',
+    'share.whatLink': 'A claude.ai link',
+    'share.whatLinkWhy': 'Needs Claude\'s Artifact tool in this session.',
+    'share.whatReview': 'A review on the merge/pull request (you submit it)',
+    'share.reviewWhy': 'Not detected: needs the repo host\'s CLI (glab, gh…) logged in and an open merge/pull request for this branch.',
+    'share.whereSelf': 'I\'ll send it myself',
+    'share.whereReview': 'Comment on the merge/pull request',
+    'share.whereMail': 'Email: Claude prepares the draft',
+    'share.whereSlack': 'Slack: Claude prepares the message',
+    'share.phReview': '@username',
+    'share.phMail': 'name@example.com',
+    'share.phSlack': '@person or #channel',
+    'share.withLabel': '{base} — {label}'
+  },
+  fr: {
+    'title.suffix': ' · Gate',
+    'theme.toLight': 'Passer au thème clair', 'theme.toDark': 'Passer au thème sombre',
+    'theme.lightTitle': 'Thème clair ( d )', 'theme.darkTitle': 'Thème sombre ( d )',
+    'bar.reset': 'Réinitialiser', 'bar.acceptRecommended': 'Accepter la recommandation', 'bar.share': 'Partager',
+    'bar.copy': 'Copier les décisions', 'bar.send': 'Envoyer à Claude', 'bar.keys': 'Raccourcis',
+    'aria.keyboardKeys': 'Raccourcis clavier', 'aria.panes': 'Volets', 'aria.cards': 'Cartes',
+    'aria.keysNow': 'Raccourcis actifs maintenant', 'aria.decisionsOut': 'Décisions à recoller',
+    'kind.debate': 'Gate de débat', 'kind.plan': 'Gate de plan', 'kind.refactor': 'Gate de refactorisation', 'kind.review': 'Gate de revue',
+    'kind.kickoff': 'Gate de lancement', 'kind.decision': 'Gate de décision', 'kind.other': 'Gate {kind}',
+    'list.findings': 'Constats', 'list.decisions': 'Décisions', 'list.cards': 'Cartes',
+    'section.decisions': 'Décisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions pour l\'auteur',
+    'section.minor': 'Points mineurs', 'section.settled': 'Réglé sans vous', 'section.rejected': 'Envisagé et rejeté',
+    'server.opened': '{path} ouvert dans votre éditeur.', 'server.gone': 'La page n\'est plus servie : ouvrez {path} vous-même.',
+    'server.notJson': 'Pas du JSON', 'server.notAFile': 'Cette page ne cite pas ce fichier.',
+    'server.noEditor': 'Aucun éditeur trouvé : indiquez sa commande (code, idea…) dans TEAM_VIEW_EDITOR, puis relancez le rendu.',
+    'server.couldNotRun': 'Impossible de lancer {cmd} : indiquez la commande de votre éditeur dans TEAM_VIEW_EDITOR, puis relancez le rendu.',
+    'server.notDecisions': 'Ce n\'est pas un bloc de décisions. Utilisez plutôt Copier les décisions, puis collez.',
+    'copy.selectClaude': 'Sélectionnez tout et copiez, puis collez dans Claude',
+    'copy.selectAgent': 'Sélectionnez tout et copiez, puis collez dans votre agent de code, sur votre copie de la branche',
+    'copy.copiedClaude': 'Copié. Collez-le dans Claude.',
+    'copy.copiedAgent': 'Copié. Collez-le dans votre agent de code, sur votre copie de la branche.',
+    'send.confirm': { one: '{n} élément non décidé. Envoyer quand même ? Claude vous posera la question.', other: '{n} éléments non décidés. Envoyer quand même ? Claude vous posera la question.' },
+    'send.sent': 'Envoyé. Claude a vos décisions ; vous pouvez fermer cet onglet.',
+    'send.failed': 'Claude est injoignable. Utilisez plutôt Copier les décisions, puis collez.',
+    'share.needNote': 'Dites pourquoi vous laissez {ids} tel quel : son lecteur le verra. Écrivez une note, puis partagez.',
+    'share.title': 'Partager cette page', 'share.submit': 'Partager', 'share.cancel': 'Annuler', 'share.to': 'Destinataire (facultatif)',
+    'share.what': 'Ce que le lecteur reçoit', 'share.where': 'Par où elle passe',
+    'share.sent': 'Envoyé. Claude partage la page ; vous pouvez fermer cet onglet.',
+    'share.failed': 'Claude est injoignable. Demandez-lui dans la conversation de partager cette page.',
+    'lens.business': 'Métier', 'lens.tech': 'Technique', 'lens.businessWord': 'métier', 'lens.techWord': 'technique',
+    'lens.switch': 'Lentille pour la carte et ses preuves', 'lens.both': 'Les deux', 'lens.bothTitle': 'Les deux lentilles  ( l )',
+    'lens.count': '· {n}', 'lens.none': '· aucun', 'lens.ofAll': '{n} sur {all}', 'lens.showBoth': 'Afficher les deux',
+    'lens.onlyTitle': { one: '{lens} seulement : {n} élément sur cette carte  ( {key} )', other: '{lens} seulement : {n} éléments sur cette carte  ( {key} )' },
+    'lens.hidden': { one: '{n} argument {lens} masqué par la lentille.', other: '{n} arguments {lens} masqués par la lentille.' },
+    'lens.noArgRaised': 'Aucun argument {lens} soulevé.', 'lens.noEvidence': 'Aucune preuve {lens} sur cette carte.',
+    'arg.for': 'Pour', 'arg.against': 'Contre', 'arg.noneFor': 'Personne n\'a plaidé pour.', 'arg.noneAgainst': 'Personne n\'a plaidé contre.',
+    'arg.noLensFor': 'Aucun argument {lens} pour.', 'arg.noLensAgainst': 'Aucun argument {lens} contre.',
+    'metric.up': 'Hausse de {d}', 'metric.upBetter': 'Hausse de {d}, favorable', 'metric.upWorse': 'Hausse de {d}, défavorable',
+    'metric.down': 'Baisse de {d}', 'metric.downBetter': 'Baisse de {d}, favorable', 'metric.downWorse': 'Baisse de {d}, défavorable',
+    'file.openEditor': 'Ouvrir dans votre éditeur', 'file.openRemote': 'Ouvrir {path} sur {forge}', 'file.openOn': 'Ouvrir sur {forge}', 'file.atLine': ', ligne {n}',
+    'rel.refines': 'Précise {id}', 'rel.needs': 'Nécessite {ids} d\'abord', 'rel.baseFor': { one: 'Base de {n} carte', other: 'Base de {n} cartes' },
+    'card.evidenceFor': 'Preuves de {id}', 'card.minor': 'Point mineur', 'card.refines': 'précise {id}', 'card.vote': 'Vote {t}',
+    'card.kindFinding': 'Constat', 'card.kindDecision': 'Décision', 'card.kindTension': 'Tension',
+    'card.kindQuestion': 'Question pour l\'auteur', 'card.kindSettled': 'Réglé sans vous', 'card.kindRejected': 'Envisagé et rejeté',
+    'card.refinedBy': { one: '{ids} précise cette carte : votre réponse ici décide s\'il s\'applique encore.', other: '{ids} précisent cette carte : votre réponse ici décide s\'ils s\'appliquent encore.' },
+    'card.comesAfter': { one: '{ids} vient après celle-ci : cette carte en est la base.', other: '{ids} viennent après celle-ci : cette carte en est la base.' },
+    'card.answer': 'La réponse', 'card.theTeam': 'l\'équipe',
+    'card.foundBy': 'Trouvé par {who}', 'card.foundByIn': 'Trouvé par {who} dans {source}', 'card.unverified': 'Non vérifié : {text}',
+    'card.askedBy': 'Question de {who}', 'card.askedByAbout': 'Question de {who}, à propos de {source}',
+    'card.whyAside': 'Pourquoi c\'est écarté', 'card.stake': 'L’enjeu', 'card.details': 'Détails',
+    'card.twoSides': 'Les deux camps', 'card.sides': 'Les camps', 'card.recommended': 'Recommandé', 'card.forAgainst': 'Pour et contre',
+    'card.yourChoice': 'Votre choix', 'card.hintMany': 'Touches 1–{max} ou clic', 'card.hintOne': 'Touche 1 ou clic',
+    'card.decisionFor': 'Décision pour {id}', 'card.lifts': 'lève {ids}',
+    'card.breaks': { one: 'Rompt {ids} : le choisir le lève', other: 'Rompt {ids} : le choisir les lève' },
+    'card.note': 'Note ', 'card.noteClaude': 'Note pour Claude ', 'card.notePlaceholder': 'Facultatif : une note, ou une modification de ce choix',
+    'ev.pickAria': 'Afficher les preuves de', 'ev.pick': 'Preuves de', 'ev.title': 'Preuves', 'ev.constraints': 'Contraintes', 'ev.from': 'Source : {source}',
+    'ev.tradeoffs': 'Compromis', 'ev.option': 'Option', 'ev.numbers': 'Chiffres', 'ev.where': 'Où dans le code',
+    'ev.suggested': 'Modification suggérée', 'ev.ifChoose': 'si vous choisissez {label}',
+    'ev.replace': { one: 'Remplacer {n} ligne par', other: 'Remplacer {n} lignes par' },
+    'ev.replaceFrom': { one: 'Remplacer {n} ligne à partir de la ligne {line} par', other: 'Remplacer {n} lignes à partir de la ligne {line} par' },
+    'ev.codeBoth': 'Le code, avant et après', 'ev.before': 'Avant', 'ev.after': 'Après',
+    'ev.changedRed': 'lignes modifiées en rouge', 'ev.newGreen': 'nouvelles lignes en vert', 'ev.noCodeChange': '{label} : aucun changement de code.',
+    'ev.figures': 'Schémas', 'ev.howDone': 'Comment le faire', 'ev.nothingToDo': '{label} : rien à faire, donc aucune instruction.',
+    'ev.instructions': 'Instructions pour l\'agent de code', 'ev.instructionsNamed': 'Instructions pour l\'agent de code — {label}',
+    'ev.empty': 'Aucune preuve jointe : le dossier est sur la carte.',
+    'ev.accepts': 'Accepte : ', 'ev.recAccepts': 'L\'option recommandée accepte : ',
+    'sum.title': 'Résumé', 'sum.outcome': 'Résultat attendu', 'sum.mockup': 'Maquette', 'sum.system': 'Système',
+    'sum.whatSees': 'Ce que voit l\'utilisateur', 'sum.howWorks': 'Comment le système fonctionne', 'sum.today': 'Aujourd\'hui', 'sum.after': 'Après', 'sum.target': 'Cible',
+    'sum.ifChosen': 'Si {id} = {label}', 'sum.ifRec': 'Si {id} = {label} (recommandé)',
+    'choose.set': { one: '{id} : {label}. {n} carte reste à décider.', other: '{id} : {label}. {n} cartes restent à décider.' },
+    'choose.setDone': '{id} : {label}. Toutes les cartes sont décidées.',
+    'choose.setLifts': { one: '{id} : {label}, lève {ids}. {n} carte reste à décider.', other: '{id} : {label}, lève {ids}. {n} cartes restent à décider.' },
+    'choose.setLiftsDone': '{id} : {label}, lève {ids}. Toutes les cartes sont décidées.',
+    'choose.cleared': { one: '{id} effacé. {n} carte reste à décider.', other: '{id} effacé. {n} cartes restent à décider.' },
+    'choose.clearedDone': '{id} effacé. Toutes les cartes sont décidées.',
+    'meta.presetOneOne': 'Prérempli par le relecteur : {c} choix, {n} note. Modifiez à votre guise.',
+    'meta.presetOneMany': 'Prérempli par le relecteur : {c} choix, {n} notes. Modifiez à votre guise.',
+    'meta.presetManyOne': 'Prérempli par le relecteur : {c} choix, {n} note. Modifiez à votre guise.',
+    'meta.presetManyMany': 'Prérempli par le relecteur : {c} choix, {n} notes. Modifiez à votre guise.',
+    'out.copyPrompt': 'Copier le prompt', 'out.promptAria': 'Prompt à coller dans votre agent de code',
+    'help.title': 'Raccourcis clavier',
+    'help.move': 'Se déplacer',
+    'help.decide': 'Décider',
+    'help.finish': 'Terminer',
+    'help.nav': 'Carte suivante / précédente (aussi <kbd>j</kbd> / <kbd>k</kbd>)',
+    'help.nextOpen': 'Prochaine carte à décider',
+    'help.summary': 'Le résumé complet, puis retour à la carte',
+    'help.lens': 'Lentille pour les deux volets : les deux, métier seul, technique seul',
+    'help.lensBT': 'Lentille métier / technique (encore une fois pour les deux)',
+    'help.search': 'Rechercher ; <kbd>Enter</kbd> mène au premier résultat',
+    'help.list': 'La liste : la réduire en rail, la masquer, la réafficher',
+    'help.choose': 'Choisir cette option ; la même touche une seconde fois l\'efface',
+    'help.tabStep': 'Parcourir les options de la carte courante',
+    'help.enter': 'Choisir l\'option ciblée (encore une fois pour l\'effacer)',
+    'help.rec': 'Choisir l\'option recommandée',
+    'help.noteRow': 'Écrire une note sur la carte courante',
+    'help.acceptAll': 'Accepter la recommandation sur chaque carte restant à décider',
+    'help.send': 'Envoyer les décisions à Claude',
+    'help.copyAgent': 'Copier le prompt pour votre agent de code',
+    'help.copyDecisions': 'Copier les décisions',
+    'help.esc': 'Quitter la recherche, la note ou le menu des filtres',
+    'help.this': 'Cette aide',
+    'help.theme': 'Thème clair / sombre',
+    'help.rails': 'Les lignes entre les cartes',
+    'help.refines': '<b>Précise</b> : répondez d\'abord à la carte au-dessus',
+    'help.needs': '<b>Nécessite … d\'abord</b> : l\'ordre de travail, bâti sur sa base',
+    'help.mouse': 'La souris fonctionne partout : cliquez sur une carte, cliquez sur une option.',
+    'help.close': 'Fermer <kbd>Esc</kbd>',
+    'legend.leaveNote': 'Quitter la note',
+    'legend.saved': 'Enregistré au fil de la frappe',
+    'legend.move': 'Déplacer',
+    'legend.enter': 'Choisir l\'option ciblée',
+    'legend.note': 'Note',
+    'legend.lensBoth': 'Lentille : les deux',
+    'legend.lens': 'Lentille : {lens}',
+    'legend.send': 'Envoyer',
+    'legend.allKeys': 'Tous les raccourcis',
+    'nav.prev': 'Précédente',
+    'nav.next': 'Suivante',
+    'nav.nextOpen': 'Suivante à décider',
+    'tab.card': 'Carte',
+    'tab.evidence': 'Preuves',
+    'side.hide': 'Masquer la liste',
+    'side.legendHelp': 'Ce que signifient les lignes entre les cartes',
+    'side.search': 'Rechercher  ( / )',
+    'side.searchAria': 'Rechercher dans les cartes',
+    'side.show': 'Afficher la liste  ( [ )',
+    'side.widenTitle': 'Élargir la liste  ( [ )',
+    'side.narrowTitle': 'Réduire la liste en rail  ( [ )',
+    'side.widen': 'Élargir la liste',
+    'side.narrow': 'Réduire la liste',
+    'filter.button': 'Filtrer',
+    'filter.menu': 'Filtres',
+    'filter.type': 'Nature',
+    'filter.all': 'Tous',
+    'filter.rejected': 'Rejetés',
+    'filter.status': 'Statut',
+    'filter.anyStatus': 'Tout statut',
+    'filter.undecided': 'À décider',
+    'filter.decided': 'Décidé',
+    'filter.withNote': 'Avec note',
+    'filter.lens': 'Lentille',
+    'filter.anyLens': 'Toute lentille',
+    'filter.byTag': 'Filtrer par étiquette',
+    'filter.allTags': 'Toutes les étiquettes',
+    'filter.tag': 'Étiquette',
+    'filter.clear': 'Effacer les filtres',
+    'filter.noMatch': 'Aucun élément ne correspond à ces filtres.',
+    'filter.shown': { one: '{n} sur {total} affiché', other: '{n} sur {total} affichés' },
+    'filter.only': 'Afficher seulement {section}',
+    'meta.record': 'Dossier : ',
+    'row.note': 'A une note',
+    'row.wholeSummary': 'Le résumé complet',
+    'row.wholeSummaryOutcome': 'Le résumé complet et le résultat attendu',
+    'row.defaults': 'Valeurs par défaut appliquées, ouvrez pour modifier.',
+    'row.notNeeded': 'Inutile',
+    'row.toDecide': 'À décider',
+    'row.withDefault': '{word} (par défaut)',
+    'row.notChosen': { one: '{ids} non choisi', other: '{ids} non choisis' },
+    'row.titleChosen': '{id} · {title} — {label}',
+    'row.titleUndecided': '{id} · {title} — à décider',
+    'row.titleChosenGap': '{id} · {title} — {label} — vient après {ids}, non choisi',
+    'row.titleUndecidedGap': '{id} · {title} — à décider — vient après {ids}, non choisi',
+    'past.approve': 'Approuvé',
+    'past.decline': 'Refusé',
+    'past.fix': 'À corriger',
+    'past.leave': 'Laissé tel quel',
+    'past.keepRejected': 'Reste rejeté',
+    'past.revive': 'Relancé',
+    'past.ok': 'Réglé',
+    'past.reopen': 'Rouvert',
+    'past.defer': 'Reporté',
+    'past.ask': 'À demander',
+    'past.drop': 'Abandonné',
+    'past.sidesWith': 'Du côté de {label}',
+    'opt.approve': 'Approuver',
+    'opt.decline': 'Refuser',
+    'opt.defer': 'Reporter',
+    'opt.keepRejected': 'Garder rejeté',
+    'opt.revive': 'Relancer',
+    'opt.ok': 'OK',
+    'opt.reopen': 'Rouvrir',
+    'opt.askAuthor': 'Demander à l\'auteur',
+    'opt.drop': 'Abandonner',
+    'opt.sideWith': 'Donner raison à {who}',
+    'rel.gap': { one: '{ids} non choisi : vous serez interrogé avant que {id} s\'exécute sans lui.', other: '{ids} non choisis : vous serez interrogé avant que {id} s\'exécute sans eux.' },
+    'rel.notNeeded': 'Inutile : {id} = {label}',
+    'rel.refinesTitle': 'Précise {id} · {title}',
+    'rel.after': 'Vient après {id}',
+    'rel.afterTitle': 'Vient après {id} · {title}',
+    'rel.chosen': 'choisi : {label}',
+    'rel.answerFirst': 'Répondez-y d\'abord',
+    'rel.answerTitle': 'répondez-y d\'abord ↑',
+    'rel.moot': 'Inutile : {id} est réglé sur « {label} », cette carte ne s\'applique donc plus.',
+    'card.liftedBy': 'Levé par votre choix : {label}',
+    'card.holds': 'Tient',
+    'card.holdsLifted': 'Tient · levé si vous choisissez {options}',
+    'card.or': ' ou ',
+    'prog.of': '{n} sur {total}',
+    'prog.decided': 'Décidé {done}',
+    'list.toDecide': '{n} à décider',
+    'list.allDecided': 'Tout est décidé',
+    'bar.allDecided': 'Chaque carte a déjà un choix',
+    'toast.reset': 'Décisions réinitialisées.',
+    'toast.accepted': { one: '{n} carte réglée sur l\'option recommandée.', other: '{n} cartes réglées sur l\'option recommandée.' },
+    'toast.noneRecommended': 'Aucune carte à décider n\'a d\'option recommandée.',
+    'toast.allSend': 'Toutes les cartes sont décidées. Appuyez sur S pour envoyer.',
+    'toast.allCopy': 'Toutes les cartes sont décidées. Appuyez sur C pour copier.',
+    'share.whatFile': 'La page en fichier',
+    'share.whatLink': 'Un lien claude.ai',
+    'share.whatLinkWhy': 'Nécessite l\'outil Artifact de Claude dans cette session.',
+    'share.whatReview': 'Une revue sur la merge/pull request (c\'est vous qui la soumettez)',
+    'share.reviewWhy': 'Non détecté : nécessite le CLI de l\'hébergeur du dépôt (glab, gh…) connecté et une merge/pull request ouverte pour cette branche.',
+    'share.whereSelf': 'Je l\'enverrai moi-même',
+    'share.whereReview': 'Commenter la merge/pull request',
+    'share.whereMail': 'E-mail : Claude prépare le brouillon',
+    'share.whereSlack': 'Slack : Claude prépare le message',
+    'share.phReview': '@utilisateur',
+    'share.phMail': 'nom@exemple.fr',
+    'share.phSlack': '@personne ou #canal',
+    'share.withLabel': '{base} — {label}'
+  }
+};
+// makeL(lang) gives L(key, vars): the string in that language, else in English, else the key itself, its {name}
+// placeholders filled from vars; and Lp(key, n, vars): the { one, other } form for n, {n} filled (French counts 0 and 1 as one).
+function makeL(lang) {
+  var own = Object.prototype.hasOwnProperty, code = own.call(CHROME_TEXT, lang) ? lang : 'en';
+  function pick(key) {
+    if (own.call(CHROME_TEXT[code], key)) return CHROME_TEXT[code][key];
+    return own.call(CHROME_TEXT.en, key) ? CHROME_TEXT.en[key] : key;
+  }
+  function fill(s, vars) {
+    return String(s).replace(/\{(\w+)\}/g, function (m, name) { return vars && own.call(vars, name) ? String(vars[name]) : m; });
+  }
+  function L(key, vars) { return fill(pick(key), vars); }
+  function Lp(key, n, vars) {
+    var v = pick(key), one = code === 'fr' ? Math.abs(n) < 2 : n === 1, all = { n: n };
+    if (vars) Object.keys(vars).forEach(function (k) { all[k] = vars[k]; });
+    return fill(v && typeof v === 'object' ? (one ? v.one : v.other) : v, all);
+  }
+  return { L: L, Lp: Lp };
+}
+/*CHROME-END*/
+</script>
+<script type="application/json" id="gate-data">{"kind":"refactor","title":"Refactoring backlog — src/invoice.js","date":"2026-09-26","source":".council/refactors/2026-09-26-invoice.md","summary":[{"label":"Verdict","text":"invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."},{"label":"Weak spots","points":["The 20% tax rule is written out in three places","exportCsv() has no callers","The name 'grand' hides that it is the total including tax"]},{"label":"For team-review","points":["Gold customers' discount rounds down while every other tier rounds to nearest","Currency symbol printed after a space ('12,00 €'), in the formatter; S0 pins it as-is","'Discount: -0.00' printed when there is no discount, in the totals block; S0 pins it as-is","Run team-review on src/invoice.js before executing: the rounding touches money."]},{"label":"Recommendation","points":["Approve S0–S4","Side with the Minimalist on T1"]}],"outcome":[{"view":"system","title":"invoice.js after the approved steps","caption":"The tier switch leaves as computeDiscount(), tax becomes one constant, exportCsv() is gone. Still one module, one caller.","before":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 196\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">140 lines · tax rule ×3\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">tier switch · format · email\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">exportCsv()\u003c/text>\n\u003c/svg>\n"},"after":{"svg":"\u003csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 820 268\" font-size=\"12\">\n  \u003crect x=\"212\" y=\"24\" width=\"584\" height=\"156\" rx=\"8\" fill=\"none\" stroke-dasharray=\"5 4\" style=\"stroke: var(--ink-2)\"/>\n  \u003crect x=\"220\" y=\"16\" width=\"116\" height=\"16\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"228\" y=\"28\" style=\"fill: var(--ink-2); font-family: var(--mono)\">src/invoice.js\u003c/text>\n\n  \u003cpath d=\"M174 102 H236\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M236 97 L244 102 L236 107 Z\" style=\"fill: var(--ink-2)\"/>\n  \u003cpath d=\"M494 128 H552\" fill=\"none\" style=\"stroke: var(--ink-2)\"/>\n  \u003cpath d=\"M552 123 L560 128 L552 133 Z\" style=\"fill: var(--ink-2)\"/>\n\n  \u003crect x=\"24\" y=\"82\" width=\"150\" height=\"40\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"99\" y=\"106\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">checkout.js\u003c/text>\n\n  \u003crect x=\"244\" y=\"56\" width=\"250\" height=\"92\" rx=\"6\" stroke=\"currentColor\" style=\"fill: var(--surface)\"/>\n  \u003ctext x=\"369\" y=\"84\" text-anchor=\"middle\" fill=\"currentColor\" font-size=\"13\" style=\"font-family: var(--mono)\">invoice()\u003c/text>\n  \u003ctext x=\"369\" y=\"108\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">112 lines · one TAX_RATE\u003c/text>\n  \u003ctext x=\"369\" y=\"126\" text-anchor=\"middle\" style=\"fill: var(--ink-2)\">format · email\u003c/text>\n  \u003ctext x=\"494\" y=\"48\" text-anchor=\"end\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">CHANGED\u003c/text>\n\n  \u003crect x=\"560\" y=\"56\" width=\"160\" height=\"40\" rx=\"6\" stroke-dasharray=\"5 4\" style=\"fill: var(--surface); stroke: var(--ink-2)\"/>\n  \u003ctext x=\"640\" y=\"80\" text-anchor=\"middle\" style=\"fill: var(--ink-2); font-family: var(--mono)\">exportCsv()\u003c/text>\n  \u003ctext x=\"728\" y=\"80\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">REMOVED\u003c/text>\n\n  \u003crect x=\"560\" y=\"108\" width=\"160\" height=\"40\" rx=\"6\" stroke-width=\"1.5\" style=\"fill: var(--surface); stroke: var(--accent)\"/>\n  \u003ctext x=\"640\" y=\"132\" text-anchor=\"middle\" fill=\"currentColor\" style=\"font-family: var(--mono)\">computeDiscount()\u003c/text>\n  \u003ctext x=\"728\" y=\"132\" font-size=\"11\" fill=\"currentColor\" style=\"font-family: var(--mono)\">NEW\u003c/text>\n\n  \u003ctext x=\"24\" y=\"214\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">NEW\u003c/tspan>\u003ctspan x=\"96\">computeDiscount(tier, total): the tier switch and its rounding leave invoice()\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"234\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">REMOVED\u003c/tspan>\u003ctspan x=\"96\">exportCsv(): no caller in the repo or its git history\u003c/tspan>\u003c/text>\n  \u003ctext x=\"24\" y=\"254\" fill=\"currentColor\">\u003ctspan font-size=\"11\" style=\"font-family: var(--mono)\">CHANGED\u003c/tspan>\u003ctspan x=\"96\">invoice(): 140 → 112 lines, one TAX_RATE in place of three tax literals\u003c/tspan>\u003c/text>\n\u003c/svg>\n"}}],"figures":[],"items":[{"kind":"decision","id":"S0","group":"Backlog","title":"Characterize invoice totals (safety net)","detail":["Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject","Proves they bite by flipping the rounding and the tax constant"],"for":[{"who":"Safety Net","point":"Today's two tests only cover the silver path."}],"metrics":[{"label":"Pinned branches","before":2,"after":11,"better":"higher"}],"brief":"Why: Safety Net: today's two tests only cover the silver path.\nDo:\n- Add `test/invoice.characterization.test.js`: one test per behavior in *Details*, each asserting today's output, quirks included (Gold rounds down, `12,00 €`, `Discount: -0.00`)\n- Make each one bite: flip the rounding, then the tax constant, watch it fail, revert\nFence: `src/invoice.js` and the existing tests. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: test(invoice): characterize invoice totals\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S1","group":"Backlog","title":"Extract Constant: TAX_RATE","detail":"The 20 % rate is written three times: once `0.2`, twice `1.2`.","for":[{"who":"Responsibilities","point":"A tax change today means three edits."},{"who":"Minimalist","point":"KEEP: removes a present, bug-prone duplication."}],"code":{"before":"const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2","after":"const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"},"after":["S0"],"brief":"Why: Responsibilities, Minimalist: one tax rule written three times (DRY).\nDo:\n- Add `const TAX_RATE = 0.2` at the top of `src/invoice.js`\n- Replace `0.2` with `TAX_RATE`, and both `1.2` with `(1 + TAX_RATE)`\nFence: the rest of `src/invoice.js`; no rounding change. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Constant TAX_RATE in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S5","group":"Backlog","title":"Name the rate TAX_RATE_PCT?","on":{"id":"S1"},"detail":"S1 keeps the rate as `0.2`; this one stores `20` and divides at the call site.","why":"Changes the constant S1 introduces, not the invoice.","for":[{"who":"Responsibilities","point":"A percentage reads the way the business says it."}],"against":[{"who":"Minimalist","point":"One more conversion for no new behavior."}],"brief":"Why: Responsibilities: a percentage reads the way the business says it.\nDo:\n- Rename `TAX_RATE` to `TAX_RATE_PCT` and store `20`\n- Divide by `100` at each of its three uses\nFence: the computed amounts: S0's tests stay green unchanged. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Constant TAX_RATE to TAX_RATE_PCT\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[],"block":"S1"},{"kind":"decision","id":"S2","group":"Backlog","title":"Rename Variable: grand → totalWithTax","for":[{"who":"Responsibilities","point":"'grand' is read 11 times and never says what it holds."}],"code":{"before":"const grand = net + tax\nsendInvoice(grand)","after":"const totalWithTax = net + tax\nsendInvoice(totalWithTax)"},"after":["S0"],"brief":"Why: Responsibilities: `grand` hides that the total includes tax.\nDo:\n- Rename the local `grand` to `totalWithTax` in `buildInvoice`, at its declaration and in `sendInvoice(grand)`\nFence: `sendInvoice` and its parameters: only the local variable changes. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Variable grand in buildInvoice\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S3","group":"Backlog","title":"Remove Dead Code: exportCsv()","for":[{"who":"Minimalist","point":"No callers in the repo or in git history since it was added."}],"metrics":[{"label":"Lines","before":140,"after":112,"better":"lower"}],"after":["S0"],"brief":"Why: Minimalist: no callers in the repo or in git history.\nDo:\n- Delete `exportCsv()` and its entry in `module.exports`\n- Check `git grep exportCsv` returns nothing\nFence: the formatter it calls: `buildInvoice` still uses it. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Remove Dead Code exportCsv in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"kind":"decision","id":"S4","group":"Backlog","title":"Extract Function: computeDiscount(tier, total)","detail":"Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.","for":[{"who":"Sequencing","point":"Make the change easy, then make the easy change: platinum lands next sprint."}],"against":[{"who":"Depth","point":"Fine only if it takes the rounding with it; a shallow wrapper would leak it."}],"code":{"before":"if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …","after":"const discount = computeDiscount(tier, total)"},"after":["S0"],"brief":"Why: Responsibilities: the tier switch is the next change's target (platinum).\nDo:\n- Move the `if (tier === …)` chain into `function computeDiscount(tier, total)` in the same file\n- Call it as `const discount = computeDiscount(tier, total)`\nFence: each tier's rounding as it is: Gold keeps `Math.floor` (pinned by S0, a team-review question). Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Function computeDiscount in invoice.js\nOn red: revert the step, report why, stop.","options":[{"value":"approve","label":"Approve","recommended":true},{"value":"decline","label":"Decline","negative":true,"recommended":false}],"figures":[]},{"sides":[{"who":"Responsibilities","position":"Three reasons to change (tax law, layout, mail provider) live in one file. Separate them now while the tests are fresh.","brief":"Why: Responsibilities: three reasons to change in one file.\nDo:\n- Move the tax and discount functions to `src/invoice/calculate.js`, the formatter to `src/invoice/format.js`, the email to `src/invoice/send.js`\n- Keep `src/invoice.js` re-exporting `buildInvoice`, so its one caller does not change\nFence: every function body: moved as is. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Move Function calculate, format and send out of invoice.js\nOn red: revert the step, report why, stop."},{"who":"Minimalist + Depth","position":"After S1–S4 the file is 110 lines with one caller. Three modules would be shallow and must be read together. Split when a second caller appears.","recommended":true,"negative":true}],"kind":"tension","id":"T1","title":"Split invoice.js into calculate / format / send modules?","group":"Tensions","options":[{"value":"Responsibilities","label":"Side with Responsibilities","recommended":false,"brief":"Why: Responsibilities: three reasons to change in one file.\nDo:\n- Move the tax and discount functions to `src/invoice/calculate.js`, the formatter to `src/invoice/format.js`, the email to `src/invoice/send.js`\n- Keep `src/invoice.js` re-exporting `buildInvoice`, so its one caller does not change\nFence: every function body: moved as is. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Move Function calculate, format and send out of invoice.js\nOn red: revert the step, report why, stop."},{"value":"Minimalist + Depth","label":"Side with Minimalist + Depth","recommended":true,"negative":true},{"value":"defer","label":"Defer","negative":true}],"figures":[]},{"id":"RS-4","title":"DiscountStrategy interface with one class per tier","kind":"rejected","group":"Considered and rejected","why":"Rejected because: One use today; the switch is not repeated anywhere. Killed by the Minimalist gate.","options":[{"value":"keep-rejected","label":"Keep rejected","recommended":true},{"value":"revive","label":"Revive"}],"default":"keep-rejected","figures":[]},{"id":"A1","title":"Is the tier read per invoice?","answer":"Per invoice","source":"src/invoice.js:12","who":"Mechanics","kind":"settled","group":"Settled without you","options":[{"value":"ok","label":"OK","recommended":true},{"value":"reopen","label":"Reopen"}],"default":"ok","figures":[]}],"lang":"en","_rev":"3f3f017c178c"}</script>
 <script>
 (function () {
-  var data = JSON.parse(document.getElementById('ceo-data').textContent);
+  var data = JSON.parse(document.getElementById('gate-data').textContent);
+  // The page's language: every chrome string goes through L / Lp (CHROME_TEXT). render.js already wrote <html lang> and
+  // the title; set both again for --artifact, where the host owns <html>.
+  var LANG = data.lang === 'fr' ? 'fr' : 'en';
+  var _l = makeL(LANG), L = _l.L, Lp = _l.Lp;
+  document.documentElement.lang = LANG;
   var items = data.items || [];
-  var app = document.getElementById('app'), head = document.getElementById('gt'), side = document.getElementById('sideScroll');
+  // lib/gate.js writes its built-in option labels in English: show them in the page's language. A label the gate's
+  // author wrote stays as is; the decisions block carries values, never labels. A tension side keeps its name in o.side.
+  var BUILT_IN = { approve: ['Approve', L('opt.approve')], decline: ['Decline', L('opt.decline')], defer: ['Defer', L('opt.defer')], 'keep-rejected': ['Keep rejected', L('opt.keepRejected')], revive: ['Revive', L('opt.revive')], ok: ['OK', L('opt.ok')], reopen: ['Reopen', L('opt.reopen')], ask: ['Ask the author', L('opt.askAuthor')], drop: ['Drop', L('opt.drop')] };
+  items.forEach(function (it) {
+    (it.options || []).forEach(function (o) {
+      var sw = it.kind === 'tension' && /^Side with ([\s\S]*)$/.exec(o.label || '');
+      if (sw) { o.side = sw[1]; o.label = L('opt.sideWith', { who: sw[1] }); }
+      else if (BUILT_IN.hasOwnProperty(o.value) && o.label === BUILT_IN[o.value][0]) o.label = BUILT_IN[o.value][1];
+    });
+  });
+  var app =document.getElementById('app'), head = document.getElementById('gt'), side = document.getElementById('sideScroll');
   var layout = document.querySelector('.layout');
-  var key = 'ceo-view:' + (data.source || data.title) + ':' + (data._rev || '');
+  var key = 'team-view:' + (data.source || data.title) + ':' + (data._rev || '');
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
   // Share mode: the sharer's choices and notes (render.js --preset), until the reader's own saved state replaces them.
@@ -600,12 +1152,37 @@ dialog.zoom p:empty { display: none; }
   }
   function choiceOf(id) { return state[id] && state[id].choice; }
   function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
-  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
   function say(t) { document.getElementById('toast').textContent = t; }
+  // Whether a count takes the singular form in the page's language (French: 0 and 1), for keys picked by hand.
+  function isOne(n) { return LANG === 'fr' ? Math.abs(n) < 2 : n === 1; }
+  // A sentence with a node inside it (a link, a code span): the key carries SLOT where the node goes.
+  var SLOT = '\u0001';
+  function putNode(parent, text, node) {
+    var parts = String(text).split(SLOT);
+    if (parts[0]) parent.appendChild(document.createTextNode(parts[0]));
+    parent.appendChild(node);
+    if (parts[1]) parent.appendChild(document.createTextNode(parts[1]));
+    return parent;
+  }
 
   // Share mode: the page someone else decides on alone (render.js --share); its reader copies a prompt, nothing comes back.
   var shareMode = data.mode === 'share';
-  document.title = shareMode ? data.title : data.title + ' · CEO Gate';
+  document.title = shareMode ? data.title : data.title + L('title.suffix');
+  // The page shell: its static English labels, in the page's language.
+  [['reset', L('bar.reset')], ['recAllLabel', L('bar.acceptRecommended')], ['share', L('bar.share')], ['copyLabel', L('bar.copy')],
+    ['sendLabel', L('bar.send')], ['keysLabel', L('bar.keys')]].forEach(function (p) { document.getElementById(p[0]).textContent = p[1]; });
+  [['keys', L('aria.keyboardKeys')], ['tabs', L('aria.panes')], ['side', L('aria.cards')], ['legend', L('aria.keysNow')],
+    ['out', L('aria.decisionsOut')]].forEach(function (p) { document.getElementById(p[0]).setAttribute('aria-label', p[1]); });
+  // The local server answers in English: the page shows its own text for the cases it knows, else the server's, else otherwise.
+  function serverText(text, otherwise) {
+    var m = /^Could not run (.+?): /.exec(text);
+    if (m) return L('server.couldNotRun', { cmd: m[1] });
+    if (/^No editor found\b/.test(text)) return L('server.noEditor');
+    if (text === 'not JSON') return L('server.notJson');
+    if (text === 'Not a file this page names.') return L('server.notAFile');
+    if (text === 'not a decisions block') return L('server.notDecisions');
+    return text || otherwise;
+  }
   var served = !shareMode && /^https?:$/.test(location.protocol);
   function query(q) { try { return matchMedia(q); } catch (e) { return { matches: false }; } }
   var narrowQ = query('(max-width: 760px)'), reducedQ = query('(prefers-reduced-motion: reduce)');
@@ -625,11 +1202,24 @@ dialog.zoom p:empty { display: none; }
     back: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     up: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3.5M4 7.5l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     help: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.9 1.6c-.7.4-1.1.8-1.1 1.6M8 11.4v.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    next: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    next: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    sun: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    moon: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.2 9.8A5.6 5.6 0 1 1 6.2 2.8a4.5 4.5 0 0 0 7 7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>'
   };
   var tplBox = document.createElement('template');
   function svgEl(markup) { tplBox.innerHTML = markup; return tplBox.content.firstChild; }
   function icon(name) { return svgEl(ICON[name]); }
+  // The theme toggle is an icon (sun / moon) at every width: a word made the top bar wrap. Its accessible name and
+  // tooltip name the theme it switches to; focus stays on it and its name changes in place.
+  var themeBtn = document.getElementById('theme');
+  function paintTheme(t) {
+    var toLight = t !== 'light';
+    themeBtn.innerHTML = ICON[toLight ? 'sun' : 'moon'] + ' <kbd>D</kbd>';
+    themeBtn.setAttribute('aria-label', toLight ? L('theme.toLight') : L('theme.toDark'));
+    themeBtn.title = toLight ? L('theme.lightTitle') : L('theme.darkTitle');
+  }
+  paintTheme(viewTheme.get()); viewTheme.on(paintTheme);
+  themeBtn.addEventListener('click', function () { viewTheme.toggle(); });
   // Status: a drawn mark plus a word. Open ring = to decide, filled check = chosen, grey bar = declined, dot = a default, dashed = not needed.
   function mark(kind) {
     var s = '<svg viewBox="0 0 16 16" aria-hidden="true">', bg = 'fill:var(--rowbg, var(--panel));';
@@ -680,7 +1270,7 @@ dialog.zoom p:empty { display: none; }
     return data.repo.blob + p.split('/').map(encodeURIComponent).join('/') + (line ? '#L' + line : '');
   }
   function remoteLink(href, cls) {
-    var a = el('a', cls); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Open on ' + forge.name;
+    var a = el('a', cls); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.title = L('file.openOn', { forge: forge.name });
     return a;
   }
   function fileRef(p, line, label) {
@@ -691,16 +1281,16 @@ dialog.zoom p:empty { display: none; }
       return a;
     }
     var box = el('span', 'fref'), b = el('button', 'link');
-    b.type = 'button'; b.title = 'Open in your editor'; b.appendChild(code);
+    b.type = 'button'; b.title = L('file.openEditor'); b.appendChild(code);
     b.addEventListener('click', function () {
       fetch('open', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: p, line: line }) })
-        .then(function (r) { return r.ok ? say('Opened ' + p + ' in your editor.') : r.text().then(say); })
-        .catch(function () { say('The page is no longer served: open ' + p + ' yourself.'); });
+        .then(function (r) { return r.ok ? say(L('server.opened', { path: p })) : r.text().then(function (t) { say(serverText(t, '')); }); })
+        .catch(function () { say(L('server.gone', { path: p })); });
     });
     box.appendChild(b);
     if (remote) {
       var ext = remoteLink(remote, 'ext');
-      ext.setAttribute('aria-label', 'Open ' + p + ' on ' + forge.name); ext.appendChild(forgeIcon());
+      ext.setAttribute('aria-label', L('file.openRemote', { path: p, forge: forge.name })); ext.appendChild(forgeIcon());
       box.appendChild(ext);
     }
     return box;
@@ -708,7 +1298,7 @@ dialog.zoom p:empty { display: none; }
   // A card's "at" as "path, line n" into box, the path linked when the page knows the file.
   function atNode(box, at) {
     box.appendChild(files.indexOf(at.path) >= 0 ? fileRef(at.path, at.line, at.path) : document.createTextNode(at.path));
-    if (at.line) box.appendChild(document.createTextNode(', line ' + at.line));
+    if (at.line) box.appendChild(document.createTextNode(L('file.atLine', { n: at.line })));
     return box;
   }
   // `path`, `path:line` or `path:line-line`, as lib/files.js reads them.
@@ -810,13 +1400,13 @@ dialog.zoom p:empty { display: none; }
   }
   // A side-by-side diff of before and after: lines both keep stay plain, the rest are marked.
   function lcsDiff(a, b) {
-    var n = a.length, m = b.length, L = [], i, j;
-    for (i = 0; i <= n; i++) L.push(new Array(m + 1).fill(0));
-    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var n = a.length, m = b.length, len = [], i, j;
+    for (i = 0; i <= n; i++) len.push(new Array(m + 1).fill(0));
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) len[i][j] = a[i] === b[j] ? len[i + 1][j + 1] + 1 : Math.max(len[i + 1][j], len[i][j + 1]);
     var keepA = {}, keepB = {}; i = 0; j = 0;
     while (i < n && j < m) {
       if (a[i] === b[j]) { keepA[i] = keepB[j] = true; i++; j++; }
-      else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+      else if (len[i + 1][j] >= len[i][j + 1]) i++; else j++;
     }
     return { a: keepA, b: keepB };
   }
@@ -831,7 +1421,8 @@ dialog.zoom p:empty { display: none; }
 
   // Lens marks: a drawn icon and its name, the same on the list, the card, the switch, the filter and the constraints.
   // A briefcase for business, brackets for tech.
-  var LENS_NAME = { business: 'Biz', tech: 'Tech' };
+  var LENS_NAME = { business: L('lens.business'), tech: L('lens.tech') };
+  var LENS_WORD = { business: L('lens.businessWord'), tech: L('lens.techWord') };
   var LENS_PATHS = {
     business: ['M3.5 5.5h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z', 'M6 5.5v-2h4v2', 'M2.5 9.5h11'],
     tech: ['M5.5 4L2 8l3.5 4', 'M10.5 4L14 8l-3.5 4']
@@ -849,21 +1440,32 @@ dialog.zoom p:empty { display: none; }
   // Top bar: the gate's name, kind and date, its record, and what a share page arrived with.
   head.appendChild(el('h1', null, data.title));
   var meta = el('div', 'meta');
-  meta.appendChild(el('span', null, cap(data.kind || 'decision') + ' gate' + (data.date ? ' · ' + data.date : '')));
-  if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode('Record: ')); s.appendChild(codeOrFile(data.source)); meta.appendChild(s); }
+  // The kind label: one key per kind the skills write (kind.<kind>), else the kind's own name.
+  var GATE_KINDS = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision'];
+  var gateKind = data.kind || 'decision';
+  var kindLabel = GATE_KINDS.indexOf(gateKind) >= 0 ? L('kind.' + gateKind) : L('kind.other', { kind: cap(gateKind) });
+  meta.appendChild(el('span', null, [kindLabel, data.date].filter(Boolean).join(' · ')));
+  if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode(L('meta.record'))); s.appendChild(codeOrFile(data.source)); meta.appendChild(s); }
   if (data.preset) {
     var pc = 0, pn = 0;
     var defaultOf = function (id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i].default; };
     Object.keys(data.preset).forEach(function (id) { var p = data.preset[id]; if (!p || typeof p !== 'object') return; if (p.choice && p.choice !== defaultOf(id)) pc++; if (p.note) pn++; });
-    if (pc || pn) meta.appendChild(el('span', 'preset', 'Pre-filled by the reviewer: ' + pc + ' choice' + (pc === 1 ? '' : 's') + ', ' + pn + ' note' + (pn === 1 ? '' : 's') + '. Change any.'));
+    if (pc || pn) {
+      var pv = { c: pc, n: pn }, pone = isOne(pc), pnone = isOne(pn);
+      meta.appendChild(el('span', 'preset', pone ? (pnone ? L('meta.presetOneOne', pv) : L('meta.presetOneMany', pv)) : (pnone ? L('meta.presetManyOne', pv) : L('meta.presetManyMany', pv))));
+    }
   }
   head.appendChild(meta);
 
   // Sections, in page order: weighty decision groups, tensions, minor items, settled, rejected.
   var sections = [];
+  // A section's name is its id (filters match on it); the list shows its label: a built-in section's in the page's language.
+  var SECTION_LABEL = { 'Decisions': L('section.decisions'), 'Tensions': L('section.tensions'), 'Questions for the author': L('section.questions'),
+    'Minor items': L('section.minor'), 'Settled without you': L('section.settled'), 'Considered and rejected': L('section.rejected') };
   function sectionFor(name, folded) {
     for (var i = 0; i < sections.length; i++) if (sections[i].name === name) return sections[i];
-    var sec = { name: name, folded: folded, items: [] }; sections.push(sec); return sec;
+    var label = Object.prototype.hasOwnProperty.call(SECTION_LABEL, name) ? SECTION_LABEL[name] : name;
+    var sec = { name: name, label: label, folded: folded, items: [] }; sections.push(sec); return sec;
   }
   // A linked card (it.block = its root's id) belongs to its root's section, right after the root: filters run on home(it).
   var byIdx = {}; items.forEach(function (it) { byIdx[it.id] = it; });
@@ -910,20 +1512,20 @@ dialog.zoom p:empty { display: none; }
     (function down(id) { rowsMeta[id].kids.forEach(function (k) { lit[k] = true; rel[k] = true; down(k); }); })(cur);
     return { lit: lit, rel: rel };
   }
-  function railsFor(id, L) {
+  function railsFor(id, lit) {
     var m = rowsMeta[id], h = '';
     function vert(x, top, bottom, kind, on) {
       return '<span class="rv' + (kind === 'after' ? ' after' : '') + (on ? ' lit' : '') + '" style="left:' + x + 'px;top:' + top + ';' + (bottom === null ? 'bottom:0' : 'height:' + bottom) + '"></span>';
     }
     function laterKids(pid, fromI, incl) { return rowsMeta[pid].kids.filter(function (k) { return incl ? rowsMeta[k].i >= fromI : rowsMeta[k].i > fromI; }); }
-    function anyLit(arr) { return arr.some(function (k) { return L[k]; }); }
+    function anyLit(arr) { return arr.some(function (k) { return lit[k]; }); }
     var chain = [], a = m.parent;
     while (a) { chain.unshift(a); a = rowsMeta[a].parent; }
     chain.forEach(function (aid, l) {
       var later = laterKids(aid, m.i, false);
       if (aid === m.parent) {
         h += vert(laneX(l), '0', NY, m.kind, anyLit(laterKids(aid, m.i, true)));
-        h += '<span class="rh' + (m.kind === 'after' ? ' after' : '') + (L[id] ? ' lit' : '') + '" style="left:' + laneX(l) + 'px;top:' + NY + ';width:' + (LANE - 7) + 'px"></span>';
+        h += '<span class="rh' + (m.kind === 'after' ? ' after' : '') + (lit[id] ? ' lit' : '') + '" style="left:' + laneX(l) + 'px;top:' + NY + ';width:' + (LANE - 7) + 'px"></span>';
         if (later.length) h += vert(laneX(l), NY, null, rowsMeta[later[0]].kind, anyLit(later));
       } else if (later.length) {
         h += vert(laneX(l), '0', null, rowsMeta[later[0]].kind, anyLit(later));
@@ -945,8 +1547,8 @@ dialog.zoom p:empty { display: none; }
   }
 
   // List pane: its head, search and the filter menu
-  var LIST_NAME = { review: 'Findings', council: 'Decisions', plan: 'Decisions' };
-  var listName = LIST_NAME[data.kind] || 'Cards';
+  var LIST_NAME = { review: L('list.findings'), debate: L('list.decisions'), plan: L('list.decisions') };
+  var listName = Object.prototype.hasOwnProperty.call(LIST_NAME, data.kind) ? LIST_NAME[data.kind] : L('list.cards');
   var sideHead = document.getElementById('sideHead'), find = document.getElementById('find');
   sideHead.appendChild(el('h2', null, listName));
   var listCount = el('span', 'c'); sideHead.appendChild(listCount);
@@ -954,18 +1556,18 @@ dialog.zoom p:empty { display: none; }
   var narrowBtn = el('button', 'icon-btn narrow-btn'); narrowBtn.type = 'button';
   var nIc = icon('back'), wIc = icon('next'); nIc.classList.add('narrow-ic'); wIc.classList.add('wide-ic');
   narrowBtn.appendChild(nIc); narrowBtn.appendChild(wIc); sideHead.appendChild(narrowBtn);
-  var hideBtn = el('button', 'icon-btn'); hideBtn.type = 'button'; hideBtn.title = 'Hide the list'; hideBtn.setAttribute('aria-label', 'Hide the list');
+  var hideBtn = el('button', 'icon-btn'); hideBtn.type = 'button'; hideBtn.title = L('side.hide'); hideBtn.setAttribute('aria-label', L('side.hide'));
   hideBtn.appendChild(icon('panel')); sideHead.appendChild(hideBtn);
   var helpBtn = el('button', 'icon-btn helpbtn'); helpBtn.type = 'button'; helpBtn.hidden = true;
-  helpBtn.title = 'What the lines between cards mean'; helpBtn.setAttribute('aria-label', 'What the lines between cards mean');
+  helpBtn.title = L('side.legendHelp'); helpBtn.setAttribute('aria-label', L('side.legendHelp'));
   helpBtn.appendChild(icon('help')); sideHead.insertBefore(helpBtn, listCount);
   var filters = { kind: 'all', status: 'all', group: '', tag: '', lens: 'all' };
-  var search = el('input'); search.type = 'search'; search.placeholder = 'Search  ( / )'; search.setAttribute('aria-label', 'Search cards');
+  var search = el('input'); search.type = 'search'; search.placeholder = L('side.search'); search.setAttribute('aria-label', L('side.searchAria'));
   find.appendChild(search);
   var filterBtn = el('button', 'fbtn'); filterBtn.type = 'button'; filterBtn.setAttribute('aria-expanded', 'false'); filterBtn.setAttribute('aria-controls', 'fmenu');
-  filterBtn.appendChild(icon('filter')); filterBtn.appendChild(document.createTextNode('Filter'));
+  filterBtn.appendChild(icon('filter')); filterBtn.appendChild(document.createTextNode(L('filter.button')));
   var filterN = el('span', 'n'); filterN.hidden = true; filterBtn.appendChild(filterN);
-  var fmenu = el('div', 'fmenu'); fmenu.id = 'fmenu'; fmenu.hidden = true; fmenu.setAttribute('role', 'group'); fmenu.setAttribute('aria-label', 'Filters');
+  var fmenu = el('div', 'fmenu'); fmenu.id = 'fmenu'; fmenu.hidden = true; fmenu.setAttribute('role', 'group'); fmenu.setAttribute('aria-label', L('filter.menu'));
   find.appendChild(filterBtn); find.appendChild(fmenu);
   function menu(open) { fmenu.hidden = !open; filterBtn.setAttribute('aria-expanded', String(open)); }
   filterBtn.addEventListener('click', function () { menu(fmenu.hidden); });
@@ -981,42 +1583,42 @@ dialog.zoom p:empty { display: none; }
     function sync() { [].forEach.call(g.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === filters[field])); }); }
     sync(); g.sync = sync; return g;
   }
-  var kinds = [['all', 'All']];
-  if (items.some(function (it) { return it.kind === 'decision'; })) kinds.push(['decision', 'Decisions']);
-  if (items.some(function (it) { return it.kind === 'tension'; })) kinds.push(['tension', 'Tensions']);
-  if (items.some(function (it) { return it.kind === 'rejected'; })) kinds.push(['rejected', 'Rejected']);
-  var kindPills = pills('Type', 'kind', kinds); if (kinds.length > 2) fgroup('Type', kindPills);
-  var statusPills = pills('Status', 'status', [['all', 'Any status'], ['open', 'Undecided'], ['done', 'Decided'], ['note', 'With note']]);
-  fgroup('Status', statusPills);
+  var kinds = [['all', L('filter.all')]];
+  if (items.some(function (it) { return it.kind === 'decision'; })) kinds.push(['decision', L('section.decisions')]);
+  if (items.some(function (it) { return it.kind === 'tension'; })) kinds.push(['tension', L('section.tensions')]);
+  if (items.some(function (it) { return it.kind === 'rejected'; })) kinds.push(['rejected', L('filter.rejected')]);
+  var kindPills = pills(L('filter.type'), 'kind', kinds); if (kinds.length > 2) fgroup(L('filter.type'), kindPills);
+  var statusPills = pills(L('filter.status'), 'status', [['all', L('filter.anyStatus')], ['open', L('filter.undecided')], ['done', L('filter.decided')], ['note', L('filter.withNote')]]);
+  fgroup(L('filter.status'), statusPills);
   // Lens: hide the cards that don't concern it, and turn both panes to it.
-  var lensPills = pills('Lens', 'lens', [['all', 'Any lens'], ['business', 'Biz'], ['tech', 'Tech']], function (l) { setLens(l === 'all' ? 'both' : l); });
+  var lensPills = pills(L('filter.lens'), 'lens', [['all', L('filter.anyLens')], ['business', L('lens.business')], ['tech', L('lens.tech')]], function (l) { setLens(l === 'all' ? 'both' : l); });
   [].forEach.call(lensPills.children, function (b) { if (LENS_PATHS[b.dataset.v]) b.insertBefore(lensIcon(b.dataset.v), b.firstChild); });
-  if (lensed) fgroup('Lens', lensPills);
+  if (lensed) fgroup(L('filter.lens'), lensPills);
   var tags = [];
   items.forEach(function (it) { (it.tags || []).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
-  var tagSel = el('select'); tagSel.setAttribute('aria-label', 'Filter by tag');
-  var t0 = el('option', null, 'All tags'); t0.value = ''; tagSel.appendChild(t0);
+  var tagSel = el('select'); tagSel.setAttribute('aria-label', L('filter.byTag'));
+  var t0 = el('option', null, L('filter.allTags')); t0.value = ''; tagSel.appendChild(t0);
   tags.sort().forEach(function (t) { var o = el('option', null, t); o.value = t; tagSel.appendChild(o); });
   tagSel.addEventListener('change', function () { filters.tag = tagSel.value; applyFilters(); });
-  if (tags.length) fgroup('Tag', tagSel);
-  var shownRow = el('div', 'shown-row'), shown = el('span'), clear = el('button', 'link', 'Clear filters'); clear.type = 'button';
+  if (tags.length) fgroup(L('filter.tag'), tagSel);
+  var shownRow = el('div', 'shown-row'), shown = el('span'), clear = el('button', 'link', L('filter.clear')); clear.type = 'button';
   shownRow.appendChild(shown); shownRow.appendChild(clear); find.parentNode.insertBefore(shownRow, find.nextSibling);
 
   // List pane: every card, by section, each row a drawn status mark plus a word
   var list = el('div', 'list'); side.appendChild(list);
-  var empty = el('div', 'empty', 'No item matches these filters.'); empty.hidden = true; side.appendChild(empty);
+  var empty = el('div', 'empty', L('filter.noMatch')); empty.hidden = true; side.appendChild(empty);
   var chipsById = {}, rowParts = {}, sumRow = null;
-  var PAST = { approve: 'Approved', decline: 'Declined', fix: 'Fix', leave: 'Leave as is', 'keep-rejected': 'Stays rejected', revive: 'Revived', ok: 'Settled', reopen: 'Reopened', defer: 'Deferred', ask: 'To ask', drop: 'Dropped' };
-  function word(o) { return PAST[o.value] || o.label.replace(/^Side with /i, 'Sides with '); }
+  var PAST = { approve: L('past.approve'), decline: L('past.decline'), fix: L('past.fix'), leave: L('past.leave'), 'keep-rejected': L('past.keepRejected'), revive: L('past.revive'), ok: L('past.ok'), reopen: L('past.reopen'), defer: L('past.defer'), ask: L('past.ask'), drop: L('past.drop') };
+  function word(o) { return PAST[o.value] || (o.side != null ? L('past.sidesWith', { label: o.side }) : o.label); }
   function sevOf(it) { return (it.tags || []).filter(function (t) { return /^(blocker|major|minor)$/.test(t); })[0]; }
   function relWord(it) {
     var m = rowsMeta[it.id], w = el('span', 'relw');
-    if (it.on) { w.appendChild(document.createTextNode('Refines ')); w.appendChild(el('b', null, it.on.id)); }
-    else if (it.after && it.after.length) { w.appendChild(document.createTextNode('Needs ')); w.appendChild(el('b', null, it.after.join(', '))); w.appendChild(document.createTextNode(' first')); }
+    if (it.on) putNode(w, L('rel.refines', { id: SLOT }), el('b', null, it.on.id));
+    else if (it.after && it.after.length) putNode(w, L('rel.needs', { ids: SLOT }), el('b', null, it.after.join(', ')));
     else {
       var ka = m ? m.kids.filter(function (k) { return rowsMeta[k].kind === 'after'; }).length : 0;
       if (!ka) return null;
-      w.textContent = 'Base for ' + plural(ka, 'card');
+      w.textContent = Lp('rel.baseFor', ka);
     }
     return w;
   }
@@ -1025,7 +1627,7 @@ dialog.zoom p:empty { display: none; }
     row.style.setProperty('--pl', (laneX(m.depth) + 18) + 'px');
     var rails = el('span', 'rails'); rails.setAttribute('aria-hidden', 'true'); row.appendChild(rails);
     var l1 = el('span', 'l1'); l1.appendChild(el('span', 'rid', it.id)); l1.appendChild(inline(el('span', 'rti'), it.title, true));
-    var nmark = el('span', 'nmark'); nmark.title = 'Has a note'; nmark.appendChild(icon('note')); nmark.hidden = true; l1.appendChild(nmark);
+    var nmark = el('span', 'nmark'); nmark.title = L('row.note'); nmark.appendChild(icon('note')); nmark.hidden = true; l1.appendChild(nmark);
     row.appendChild(l1);
     var l2 = el('span', 'l2'), stw = el('span', 'stw'), sev = sevOf(it), rw = relWord(it), gapw = el('span', 'gapw');
     l2.appendChild(stw);
@@ -1043,19 +1645,19 @@ dialog.zoom p:empty { display: none; }
     sumRow = el('button', 'row sumrow'); sumRow.type = 'button'; sumRow.id = 'r-' + SUM; sumRow.style.setProperty('--pl', (laneX(0) + 18) + 'px');
     var sr = el('span', 'rails'); sr.setAttribute('aria-hidden', 'true');
     sr.innerHTML = '<span class="node" style="left:' + laneX(0) + 'px;top:' + NY + '">' + mark('doc') + '</span>';
-    var s1 = el('span', 'l1'); s1.appendChild(el('span', 'rti', 'Summary'));
-    var s2 = el('span', 'l2'); s2.appendChild(el('span', 'stw todo', data.outcome && data.outcome.length ? 'The whole summary and the outcome' : 'The whole summary'));
+    var s1 = el('span', 'l1'); s1.appendChild(el('span', 'rti', L('sum.title')));
+    var s2 = el('span', 'l2'); s2.appendChild(el('span', 'stw todo', data.outcome && data.outcome.length ? L('row.wholeSummaryOutcome') : L('row.wholeSummary')));
     s2.style.paddingLeft = '0';
     sumRow.appendChild(sr); sumRow.appendChild(s1); sumRow.appendChild(s2);
     sumRow.addEventListener('click', function () { if (cur !== SUM) backTo = cur; pick(SUM); });
     list.appendChild(sumRow);
   }
   sections.forEach(function (sec) {
-    var sh = el('div', 'sec'), name = el('button', 'gname', sec.name); name.type = 'button'; name.title = 'Show only ' + sec.name;
+    var sh = el('div', 'sec'), name = el('button', 'gname', sec.label); name.type = 'button'; name.title = L('filter.only', { section: sec.label });
     name.addEventListener('click', function () { filters.group = filters.group === sec.name ? '' : sec.name; applyFilters(); });
     sec.gname = name; sec.count = el('span', 'count'); sh.appendChild(name); sh.appendChild(sec.count);
     sec.heading = sh; list.appendChild(sh);
-    if (sec.folded && sec.items.some(function (it) { return it.default; })) { sec.hint = el('div', 'sec-hint', 'Defaults applied, open to change.'); list.appendChild(sec.hint); }
+    if (sec.folded && sec.items.some(function (it) { return it.default; })) { sec.hint = el('div', 'sec-hint', L('row.defaults')); list.appendChild(sec.hint); }
     // A root with cards hanging under it sits in a .block with them.
     var host = list;
     sec.rows.forEach(function (r) {
@@ -1071,8 +1673,9 @@ dialog.zoom p:empty { display: none; }
   var hasAfter = items.some(function (it) { return rowsMeta[it.id] && rowsMeta[it.id].kind === 'after'; });
   // The key to the rails goes in the Keys dialog; a ? beside the list title opens it.
   var rlegendHtml = '';
-  if (hasOn) rlegendHtml += '<div><i></i><span><b>Refines</b>: answer the card above it first</span></div>';
-  if (hasAfter) rlegendHtml += '<div><i class="after"></i><span><b>Needs … first</b>: the work order, built on its base</span></div>';
+  function rrow(cls, text) { return '<div><i' + (cls ? ' class="' + cls + '"' : '') + '></i><span>' + text + '</span></div>'; }
+  if (hasOn) rlegendHtml += rrow('', L('help.refines'));
+  if (hasAfter) rlegendHtml += rrow('after', L('help.needs'));
   helpBtn.hidden = !rlegendHtml;
   // A list longer than its pane fades at the foot while more rows wait below.
   var sidebody = document.getElementById('sidebody');
@@ -1096,11 +1699,11 @@ dialog.zoom p:empty { display: none; }
   if (window.ResizeObserver) { var fro = new ResizeObserver(refit); fro.observe(side); fro.observe(list); } else measureNY();
   function rowOf(id) { return id === SUM ? sumRow : chipsById[id]; }
   function paintRails() {
-    var L = litSet();
+    var ls = litSet();
     Object.keys(rowParts).forEach(function (id) {
       var p = rowParts[id];
-      p.rails.innerHTML = railsFor(id, L.lit) + '<span class="node" style="left:' + laneX(rowsMeta[id].depth) + 'px;top:' + NY + '">' + mark(p.m) + '</span>';
-      chipsById[id].classList.toggle('kin', !!L.rel[id]);
+      p.rails.innerHTML = railsFor(id, ls.lit) + '<span class="node" style="left:' + laneX(rowsMeta[id].depth) + 'px;top:' + NY + '">' + mark(p.m) + '</span>';
+      chipsById[id].classList.toggle('kin', !!ls.rel[id]);
     });
   }
 
@@ -1126,21 +1729,21 @@ dialog.zoom p:empty { display: none; }
       var c = cards[id];
       if (l === 'both') c.card.removeAttribute('data-lens'); else c.card.dataset.lens = l;
       (c.tabs || []).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === l)); });
-      (c.cols || []).forEach(function (k) { var n = l === 'both' ? k.all : k.shown[l]; k.n.textContent = n === k.all ? String(k.all) : n + ' of ' + k.all; });
+      (c.cols || []).forEach(function (k) { var n = l === 'both' ? k.all : k.shown[l]; k.n.textContent = n === k.all ? String(k.all) : L('lens.ofAll', { n: n, all: k.all }); });
     });
     legend();
   }
   function setCardLens(c, l) { if (c && c.tabs) setLens(l); }
   // Each card's switch counts what each lens holds on it, arguments and evidence together.
   function lensTabBar(it, n) {
-    var g = el('div', 'lswitch'), tabs = []; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Lens for the card and its evidence');
+    var g = el('div', 'lswitch'), tabs = []; g.setAttribute('role', 'group'); g.setAttribute('aria-label', L('lens.switch'));
     ['both'].concat(LENSES).forEach(function (l) {
       var b = el('button'); b.type = 'button'; b.dataset.v = l;
-      if (l === 'both') { b.className = 'both'; b.textContent = 'Both'; b.title = 'Both lenses  ( l )'; }
+      if (l === 'both') { b.className = 'both'; b.textContent = L('lens.both'); b.title = L('lens.bothTitle'); }
       else {
         b.appendChild(lensIcon(l)); b.appendChild(document.createTextNode(LENS_NAME[l]));
-        b.appendChild(el('span', 'n', n[l] ? '· ' + n[l] : '· none'));
-        b.title = LENS_NAME[l] + ' only: ' + plural(n[l], 'item') + ' on this card  ( ' + l[0] + ' )';
+        b.appendChild(el('span', 'n', n[l] ? L('lens.count', { n: n[l] }) : L('lens.none')));
+        b.title = Lp('lens.onlyTitle', n[l], { lens: LENS_NAME[l], key: l[0] });
       }
       b.setAttribute('aria-pressed', String(l === lensView));
       b.addEventListener('click', function () { setLens(l); });
@@ -1152,7 +1755,7 @@ dialog.zoom p:empty { display: none; }
   // For and against, each point tagged by its lens. The counts follow the lens.
   function argCols(pros, cons) {
     var args = el('div', 'args'), cols = [];
-    [['pro', 'For', pros, 'plus', 'Nobody argued for it.'], ['con', 'Against', cons, 'minus', 'Nobody argued against it.']].forEach(function (k) {
+    [['pro', L('arg.for'), pros, 'plus', L('arg.noneFor')], ['con', L('arg.against'), cons, 'minus', L('arg.noneAgainst')]].forEach(function (k) {
       var col = el('div', 'argcol ' + k[0]), h4 = el('h4'), sg = el('span', 'sg'), n = el('span', 'n', String(k[2].length));
       sg.appendChild(icon(k[3])); h4.appendChild(sg); h4.appendChild(document.createTextNode(k[1])); h4.appendChild(n); col.appendChild(h4);
       if (!k[2].length) col.appendChild(el('p', 'none', k[4]));
@@ -1169,7 +1772,7 @@ dialog.zoom p:empty { display: none; }
       LENSES.forEach(function (l) {
         shownBy[l] = k[2].filter(function (a) { return !a.lens || a.lens === l; }).length;
         if (lensed && k[2].length && !shownBy[l] && pros.concat(cons).some(function (a) { return a.lens === l; })) {
-          col.appendChild(el('p', 'lens-none ' + l, 'No ' + l + ' argument ' + (k[0] === 'pro' ? 'for' : 'against') + ' it.'));
+          col.appendChild(el('p', 'lens-none ' + l, k[0] === 'pro' ? L('arg.noLensFor', { lens: LENS_WORD[l] }) : L('arg.noLensAgainst', { lens: LENS_WORD[l] })));
         }
       });
       cols.push({ n: n, all: k[2].length, shown: shownBy });
@@ -1187,7 +1790,9 @@ dialog.zoom p:empty { display: none; }
       var dd = Number(m.after) - Number(m.before);
       if (!isNaN(dd) && dd !== 0) {
         var good = m.better ? ((m.better === 'higher') === (dd > 0)) : null;
-        dl = (dd > 0 ? 'Up ' : 'Down ') + Math.round(Math.abs(dd) * 1000) / 1000 + (m.unit ? ' ' + m.unit : '') + (good === null ? '' : good ? ', better' : ', worse');
+        var mvars = { d: Math.round(Math.abs(dd) * 1000) / 1000 + (m.unit ? ' ' + m.unit : '') };
+        dl = dd > 0 ? (good === null ? L('metric.up', mvars) : good ? L('metric.upBetter', mvars) : L('metric.upWorse', mvars))
+          : (good === null ? L('metric.down', mvars) : good ? L('metric.downBetter', mvars) : L('metric.downWorse', mvars));
         dc = good === null ? '' : good ? 'better' : 'worse';
       }
     } else val = (m.value != null ? m.value : '') + (m.unit ? ' ' + m.unit : '');
@@ -1195,19 +1800,19 @@ dialog.zoom p:empty { display: none; }
     if (dl) r.appendChild(el('span', 'md ' + dc, dl));
     return r;
   }
-  var KIND_NAME = { decision: data.kind === 'review' ? 'Finding' : 'Decision', tension: 'Tension', question: 'Question for the author', settled: 'Settled without you', rejected: 'Considered and rejected' };
+  var KIND_NAME = { decision: data.kind === 'review' ? L('card.kindFinding') : L('card.kindDecision'), tension: L('card.kindTension'), question: L('card.kindQuestion'), settled: L('card.kindSettled'), rejected: L('card.kindRejected') };
   function card(it) {
     var c = el('article', 'card'); c.id = 'd-' + it.id;
     var main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll'), ev = el('section', 'c-ev panel');
-    main.setAttribute('aria-label', it.id + ': ' + plainTitle(it.id)); ev.setAttribute('aria-label', 'Evidence for ' + it.id);
+    main.setAttribute('aria-label', it.id + ': ' + plainTitle(it.id)); ev.setAttribute('aria-label', L('card.evidenceFor', { id: it.id }));
     // Head: id and title, what kind of card it is, its tags and its lenses
     var h = el('div', 'ch'); h.appendChild(el('span', 'cid', it.id)); h.appendChild(inline(el('h2', 'ctitle'), it.title)); body.appendChild(h);
     var tg = el('div', 'tags');
-    tg.appendChild(el('span', 'tag', it.minor ? 'Minor item' : KIND_NAME[it.kind] || cap(it.kind)));
-    if (it.on) tg.appendChild(el('span', 'tag rel-kind refines', 'refines ' + it.on.id));
+    tg.appendChild(el('span', 'tag', it.minor ? L('card.minor') : KIND_NAME[it.kind] || cap(it.kind)));
+    if (it.on) tg.appendChild(el('span', 'tag rel-kind refines', L('card.refines', { id: it.on.id })));
     (it.tags || []).forEach(function (t) {
       var cls = t === 'blocker' ? ' blocker' : /behavio|risk|money|breaking/i.test(t) ? ' warn' : '';
-      tg.appendChild(el('span', 'tag' + cls, /^\d+\s*[–-]\s*\d+$/.test(t) ? 'Vote ' + t : cap(t)));
+      tg.appendChild(el('span', 'tag' + cls, /^\d+\s*[–-]\s*\d+$/.test(t) ? L('card.vote', { t: t }) : cap(t)));
     });
     if (it.lenses) {
       var lc = el('span', 'lens-chips');
@@ -1220,62 +1825,61 @@ dialog.zoom p:empty { display: none; }
     if (relyLines(it, items, {}).length) { rely = el('div', 'rely'); rels.appendChild(rely); }
     if (refinedBy[it.id]) {
       var rb = el('div', 'relx'), rbt = el('span', 'rt'); rb.appendChild(relIcon('on'));
-      rbt.appendChild(relLinks(refinedBy[it.id]));
-      rbt.appendChild(document.createTextNode(refinedBy[it.id].length > 1 ? ' refine this card: your answer here decides whether they still apply.' : ' refines this card: your answer here decides whether it still applies.'));
+      putNode(rbt, Lp('card.refinedBy', refinedBy[it.id].length, { ids: SLOT }), relLinks(refinedBy[it.id]));
       rb.appendChild(rbt); rels.appendChild(rb);
     }
     if (comesAfter[it.id]) {
       var ca = el('div', 'relx'), cat = el('span', 'rt'); ca.appendChild(relIcon('after'));
-      cat.appendChild(relLinks(comesAfter[it.id]));
-      cat.appendChild(document.createTextNode(comesAfter[it.id].length > 1 ? ' come after this' : ' comes after this'));
-      cat.appendChild(document.createTextNode(': this card is their base.'));
+      putNode(cat, Lp('card.comesAfter', comesAfter[it.id].length, { ids: SLOT }), relLinks(comesAfter[it.id]));
       ca.appendChild(cat); rels.appendChild(ca);
     }
     if (rels.childNodes.length) body.appendChild(rels);
     var gap = el('div', 'rel-gap'); body.appendChild(gap);
     // A settled item: the answer first, then who found it and where.
     if (it.kind === 'settled') {
-      var sb = blk(body, 'The answer'); sb.appendChild(inline(el('p', 'answer'), it.answer || ''));
+      var sb = blk(body, L('card.answer')); sb.appendChild(inline(el('p', 'answer'), it.answer || ''));
       if (it.who || it.source) {
-        var fb = el('p', 'found muted'); fb.appendChild(document.createTextNode('Found by ' + (it.who || 'the team') + (it.source ? ' in ' : '')));
-        if (it.source) fb.appendChild(el('code', null, it.source));
+        var fb = el('p', 'found muted'), fwho = it.who || L('card.theTeam');
+        if (it.source) putNode(fb, L('card.foundByIn', { who: fwho, source: SLOT }), el('code', null, it.source));
+        else fb.appendChild(document.createTextNode(L('card.foundBy', { who: fwho })));
         sb.appendChild(fb);
       }
-      if (it.unverified) sb.appendChild(el('p', 'found muted', 'Not verified: ' + it.unverified));
+      if (it.unverified) sb.appendChild(el('p', 'found muted', L('card.unverified', { text: it.unverified })));
     }
     // A question: who asks it and about what. The reviewer sends it or drops it; the author answers.
     if (it.kind === 'question' && (it.who || it.source)) {
-      var qa = el('p', 'found muted'); qa.appendChild(document.createTextNode('Asked by ' + (it.who || 'the team') + (it.source ? ', about ' : '')));
-      if (it.source) qa.appendChild(el('code', null, it.source));
+      var qa = el('p', 'found muted'), qwho = it.who || L('card.theTeam');
+      if (it.source) putNode(qa, L('card.askedByAbout', { who: qwho, source: SLOT }), el('code', null, it.source));
+      else qa.appendChild(document.createTextNode(L('card.askedBy', { who: qwho })));
       body.appendChild(qa);
     }
     if (it.why) {
       var why = it.kind === 'rejected' && typeof it.why === 'string' ? it.why.replace(/^Rejected because:\s*/, '') : it.why;
-      var wb = blk(body, it.kind === 'rejected' ? 'Why it was set aside' : 'What’s at stake');
+      var wb = blk(body, it.kind === 'rejected' ? L('card.whyAside') : L('card.stake'));
       wb.appendChild(typeof why === 'string' && why.indexOf('\n') < 0 ? inline(el('p', 'lead'), why) : rich('prose', why));
     }
-    if (it.detail) blk(body, 'Details').appendChild(rich('prose', it.detail));
+    if (it.detail) blk(body, L('card.details')).appendChild(rich('prose', it.detail));
     if (it.sides && it.sides.length) {
-      var sdb = blk(body, it.sides.length === 2 ? 'The two sides' : 'The sides'), tw = el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''));
+      var sdb = blk(body, it.sides.length === 2 ? L('card.twoSides') : L('card.sides')), tw = el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''));
       it.sides.forEach(function (sd) {
         var box = el('div', 'argcol ten'), h4 = el('h4'), sg = el('span', 'sg');
         sg.appendChild(icon('split')); h4.appendChild(sg); h4.appendChild(document.createTextNode(sd.who));
-        if (sd.recommended) h4.appendChild(el('span', 'rectag', 'Recommended'));
+        if (sd.recommended) h4.appendChild(el('span', 'rectag', L('card.recommended')));
         box.appendChild(h4); box.appendChild(inline(el('p', 'pos'), sd.position)); tw.appendChild(box);
       });
       sdb.appendChild(tw);
     }
     var pros = it.for || [], cons = it.against || [], all = pros.concat(cons), cols = [];
     if (all.length) {
-      var ab = blk(body, 'For and against'), ac = argCols(pros, cons);
+      var ab = blk(body, L('card.forAgainst')), ac = argCols(pros, cons);
       ab.appendChild(ac.node); cols = ac.cols;
       if (lensed) LENSES.forEach(function (l) {
         var other = l === 'business' ? 'tech' : 'business', hid = all.filter(function (e) { return e.lens === other; }).length;
-        if (!all.some(function (e) { return e.lens === l; })) ab.appendChild(el('p', 'lens-none ' + l, 'No ' + l + ' argument raised.'));
+        if (!all.some(function (e) { return e.lens === l; })) ab.appendChild(el('p', 'lens-none ' + l, L('lens.noArgRaised', { lens: LENS_WORD[l] })));
         if (hid) {
           // Shown while the lens is l: says how many arguments of the other lens it hides.
-          var off = el('div', 'lens-off ' + other), both = el('button', 'link', 'Show both');
-          off.appendChild(el('span', null, plural(hid, LENS_NAME[other] + ' argument') + ' hidden by the lens.'));
+          var off = el('div', 'lens-off ' + other), both = el('button', 'link', L('lens.showBoth'));
+          off.appendChild(el('span', null, Lp('lens.hidden', hid, { lens: LENS_NAME[other] })));
           both.type = 'button'; both.addEventListener('click', function () { setLens('both'); });
           off.appendChild(both); ab.appendChild(off);
         }
@@ -1283,11 +1887,11 @@ dialog.zoom p:empty { display: none; }
     }
     // Your choice, pinned under the card: numbered options, the recommended one ringed in amber, then the note.
     var decide = el('div', 'c-decide'), dh = el('div', 'dh'), n = it.options.length;
-    dh.appendChild(el('h3', null, 'Your choice'));
-    dh.appendChild(el('span', 'hint', n > 1 ? 'Press 1–' + Math.min(n, 9) + ' or click' : 'Press 1 or click'));
+    dh.appendChild(el('h3', null, L('card.yourChoice')));
+    dh.appendChild(el('span', 'hint', n > 1 ? L('card.hintMany', { max: Math.min(n, 9) }) : L('card.hintOne')));
     decide.appendChild(dh);
     var mootMsg = el('div', 'mootmsg'); mootMsg.hidden = true; decide.appendChild(mootMsg);
-    var row = el('div', 'options'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Decision for ' + it.id);
+    var row = el('div', 'options'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', L('card.decisionFor', { id: it.id }));
     var buttons = [];
     it.options.forEach(function (o, i) {
       var broken = o.violates && o.violates.length;
@@ -1295,17 +1899,17 @@ dialog.zoom p:empty { display: none; }
       if (i < 9) b.appendChild(el('kbd', 'k', String(i + 1)));
       var ck = el('span', 'ck'); ck.appendChild(icon('check')); b.appendChild(ck);
       b.appendChild(inline(el('span', 'ol'), o.label));
-      if (o.recommended) b.appendChild(el('span', 'rectag', 'Recommended'));
-      if (broken) { b.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', '))); b.title = 'Breaks ' + o.violates.join(', ') + ': choosing it lifts ' + (o.violates.length > 1 ? 'them' : 'it'); }
-      b.appendChild(el('span', 'yc', 'Your choice'));
+      if (o.recommended) b.appendChild(el('span', 'rectag', L('card.recommended')));
+      if (broken) { b.appendChild(el('span', 'lift', L('card.lifts', { ids: o.violates.join(', ') }))); b.title = Lp('card.breaks', o.violates.length, { ids: o.violates.join(', ') }); }
+      b.appendChild(el('span', 'yc', L('card.yourChoice')));
       b.setAttribute('aria-pressed', 'false');
       b.addEventListener('click', function () { choose(it.id, o.value); });
       b.dataset.value = o.value; buttons.push(b); row.appendChild(b);
     });
     decide.appendChild(row);
-    var nw = el('div', 'notewrap'), lab = el('label', null, shareMode ? 'Note ' : 'Note for Claude '), note = el('textarea', 'note');
+    var nw = el('div', 'notewrap'), lab = el('label', null, shareMode ? L('card.note') : L('card.noteClaude')), note = el('textarea', 'note');
     lab.appendChild(el('kbd', null, 'N'));
-    note.id = 'note-' + it.id; lab.htmlFor = note.id; note.placeholder = 'Optional: a note, or an edit to this choice'; note.rows = 1;
+    note.id = 'note-' + it.id; lab.htmlFor = note.id; note.placeholder = L('card.notePlaceholder'); note.rows = 1;
     note.value = (state[it.id] && state[it.id].note) || '';
     note.addEventListener('input', function () { state[it.id] = state[it.id] || {}; state[it.id].note = note.value; save(); rowParts[it.id].nmark.hidden = !note.value.trim(); applyFilters(true); });
     nw.appendChild(lab); nw.appendChild(note); decide.appendChild(nw);
@@ -1339,12 +1943,12 @@ dialog.zoom p:empty { display: none; }
       view.draws.forEach(function (f) { f(v); });
     };
     if (own.length) {
-      var pick = el('div', 'optpick'); pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', 'Show the evidence for');
-      pick.appendChild(el('span', 'pl', 'Evidence for'));
+      var pick = el('div', 'optpick'); pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', L('ev.pickAria'));
+      pick.appendChild(el('span', 'pl', L('ev.pick')));
       own.forEach(function (o) {
         var b = el('button'); b.type = 'button';
-        inline(b, it.kind === 'tension' ? o.label.replace(/^Side with /, '') : o.label);
-        if (o.recommended) b.appendChild(el('span', 'rectag', 'Recommended'));
+        inline(b, o.side != null ? o.side : o.label);
+        if (o.recommended) b.appendChild(el('span', 'rectag', L('card.recommended')));
         b.addEventListener('click', function () { view.shown = o.value; view.draw(); });
         view.picks.push({ value: o.value, b: b }); pick.appendChild(b);
       });
@@ -1352,7 +1956,7 @@ dialog.zoom p:empty { display: none; }
     }
     var kstate = [];
     if (it.bridge && it.bridge.length) {
-      var kg = evGroup('Constraints', it.bridge.map(function (k) { return k.lens; })), kl = el('ul', 'klist ebox');
+      var kg = evGroup(L('ev.constraints'), it.bridge.map(function (k) { return k.lens; })), kl = el('ul', 'klist ebox');
       it.bridge.forEach(function (k) {
         var li = piece(el('li', 'kst'), k.lens), kt = el('div', 'kt');
         if (LENS_NAME[k.lens]) kt.appendChild(lensMark('klens', k.lens));
@@ -1361,7 +1965,7 @@ dialog.zoom p:empty { display: none; }
         if (contested || k.source) {
           var ks = el('div', 'ksrc');
           if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
-          if (k.source) ks.appendChild(el('span', null, 'From ' + k.source));
+          if (k.source) ks.appendChild(el('span', null, L('ev.from', { source: k.source })));
           li.appendChild(ks);
         }
         var stn = el('div', 'ks'); li.appendChild(stn); kl.appendChild(li);
@@ -1373,19 +1977,19 @@ dialog.zoom p:empty { display: none; }
     if (it.options.some(function (o) { return o.tradeoff; })) {
       // A lens no option trades on gets no column: a tech-only card shows only Tech.
       var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
-      var tgp = evGroup('Trade-offs', used.length === 1 ? used : []);
+      var tgp = evGroup(L('ev.tradeoffs'), used.length === 1 ? used : []);
       used.forEach(function (l) { evN[l]++; });
       var table = el('table', 'btable'), thead = el('thead'), hr = el('tr'), tbody = el('tbody');
-      hr.appendChild(el('th', null, 'Option'));
+      hr.appendChild(el('th', null, L('ev.option')));
       used.forEach(function (l) { var th = el('th'); th.appendChild(lensMark('klens', l)); if (lensed) th.dataset.lens = l; hr.appendChild(th); });
       thead.appendChild(hr); table.appendChild(thead);
       it.options.forEach(function (o, i) {
         if (!o.tradeoff && !(o.violates && o.violates.length)) return;
-        var tr = el('tr', o.recommended ? 'pick' : null), name = el('td', 'o'), ot = el('div', 'otags'), mine = el('span', 'mine', 'Your choice');
+        var tr = el('tr', o.recommended ? 'pick' : null), name = el('td', 'o'), ot = el('div', 'otags'), mine = el('span', 'mine', L('card.yourChoice'));
         if (i < 9) name.appendChild(el('kbd', null, String(i + 1)));
         inline(name, o.label);
-        if (o.recommended) ot.appendChild(el('span', 'rectag', 'Recommended'));
-        if (o.violates && o.violates.length) ot.appendChild(el('span', 'lift', 'lifts ' + o.violates.join(', ')));
+        if (o.recommended) ot.appendChild(el('span', 'rectag', L('card.recommended')));
+        if (o.violates && o.violates.length) ot.appendChild(el('span', 'lift', L('card.lifts', { ids: o.violates.join(', ') })));
         mine.hidden = true; ot.appendChild(mine);
         name.appendChild(ot); tr.appendChild(name);
         used.forEach(function (l) { var td = inline(el('td'), (o.tradeoff && o.tradeoff[l]) || '—'); td.setAttribute('data-l', LENS_NAME[l]); if (lensed) td.dataset.lens = l; tr.appendChild(td); });
@@ -1397,22 +2001,22 @@ dialog.zoom p:empty { display: none; }
     var mets = it.metrics || [], metOpts = it.options.filter(function (o) { return o.metrics && o.metrics.length; });
     if (mets.length || metOpts.length) {
       var mls = metOpts.reduce(function (a, o) { return a.concat(o.metrics); }, mets.slice()).map(function (m) { return m.lens; });
-      var mg = evGroup('Numbers', mls), mb = el('div', 'ebox');
+      var mg = evGroup(L('ev.numbers'), mls), mb = el('div', 'ebox');
       mets.forEach(function (m) { mb.appendChild(piece(metricRow(m), m.lens)); });
       metOpts.forEach(function (o) { o.metrics.forEach(function (m) { mb.appendChild(variant(mg, o.value, piece(metricRow(m), m.lens, o.value !== first))); }); });
       mg.appendChild(mb); view.groups.push({ g: mg, always: mets.length });
     }
-    var atText = it.at && it.at.path ? it.at.path + (it.at.line ? ', line ' + it.at.line : '') : '';
-    if (atText) evGroup('Where in the code', []).appendChild(piece(atNode(el('div', 'ebox loc'), it.at), null));
+    var atText = it.at && it.at.path ? it.at.path : '';
+    if (atText) evGroup(L('ev.where'), []).appendChild(piece(atNode(el('div', 'ebox loc'), it.at), null));
     var sug = suggestionOf(it);
     if (sug && sug.s && sug.s.text != null) {
       var stext = String(sug.s.text).replace(/\n$/, ''), sl = sug.s.lines || stext.split('\n').length;
-      evGroup('Suggested change', []).appendChild(piece(codeBox('Replace ' + plural(sl, 'line') + (it.at && it.at.line ? ' from line ' + it.at.line : '') + ' with',
-        sug.opt ? 'if you choose ' + sug.opt.label : '', stext.split('\n'), null, 'add'), null));
+      evGroup(L('ev.suggested'), []).appendChild(piece(codeBox(it.at && it.at.line ? Lp('ev.replaceFrom', sl, { line: it.at.line }) : Lp('ev.replace', sl),
+        sug.opt ? L('ev.ifChoose', { label: sug.opt.label }) : '', stext.split('\n'), null, 'add'), null));
     }
     var coded = it.options.filter(function (o) { return o.code; });
     if (coded.length || (it.code && (it.code.before || it.code.after))) {
-      var cl = it.lenses ? 'tech' : null, cg = evGroup('The code, before and after', cl ? [cl] : []), panes = piece(el('div'), cl);
+      var cl = it.lenses ? 'tech' : null, cg = evGroup(L('ev.codeBoth'), cl ? [cl] : []), panes = piece(el('div'), cl);
       cg.appendChild(panes);
       // An option with code of its own shows its diff against the item's "before"; one without shows "before" alone.
       view.draws.push(function (v) {
@@ -1420,15 +2024,15 @@ dialog.zoom p:empty { display: none; }
         var code = o && o.code ? { before: o.code.before != null ? o.code.before : base.before, after: o.code.after } : coded.length ? { before: base.before } : base;
         panes.textContent = '';
         var ba = String(code.before || '').split('\n'), aa = String(code.after || '').split('\n'), keep = lcsDiff(ba, aa);
-        if (code.before != null) panes.appendChild(codeBox('Before', code.after != null ? 'changed lines in red' : '', ba, code.after != null ? keep.a : ba.map(function () { return true; }), 'del'));
-        if (code.after != null) panes.appendChild(codeBox('After', 'new lines in green', aa, keep.b, 'add'));
-        else if (o) panes.appendChild(inline(el('p', 'nocode muted'), o.label + ': no code change.'));
+        if (code.before != null) panes.appendChild(codeBox(L('ev.before'), code.after != null ? L('ev.changedRed') : '', ba, code.after != null ? keep.a : ba.map(function () { return true; }), 'del'));
+        if (code.after != null) panes.appendChild(codeBox(L('ev.after'), L('ev.newGreen'), aa, keep.b, 'add'));
+        else if (o) panes.appendChild(inline(el('p', 'nocode muted'), L('ev.noCodeChange', { label: o.label })));
       });
     }
     var figOpts = it.options.filter(function (o) { return o.figures && o.figures.length; });
     if (it.figures.length || figOpts.length) {
       var fls = figOpts.reduce(function (a, o) { return a.concat(o.figures); }, it.figures.slice()).map(function (f) { return f.lens; });
-      var fgp = evGroup('Figures', fls);
+      var fgp = evGroup(L('ev.figures'), fls);
       var addFigs = function (list, value) {
         var add = function (n) { fgp.appendChild(value == null ? n : variant(fgp, value, n)); }, quiet = value != null && value !== first;
         if (lensed) LENSES.concat(['']).forEach(function (l) {
@@ -1443,32 +2047,35 @@ dialog.zoom p:empty { display: none; }
     }
     // How it gets done: the shown option's brief, as its coding agent will get it. An option that changes nothing has none.
     if (it.brief || it.options.some(function (o) { return o.brief; })) {
-      var bl = it.lenses ? 'tech' : null, bgp = evGroup('How it gets done', bl ? [bl] : []);
+      var bl = it.lenses ? 'tech' : null, bgp = evGroup(L('ev.howDone'), bl ? [bl] : []);
       var bd = piece(el('details', 'ebox brief'), bl), bsum = el('summary'), bnone = el('p', 'nocode muted');
       var brec = it.options.filter(function (o) { return o.recommended && !o.negative; })[0];
       bd.appendChild(bsum); bgp.appendChild(bd); bgp.appendChild(bnone);
       view.draws.push(function (v) {
         var o = optOf(v) || brec, text = o ? (o.negative ? '' : o.brief || it.brief) : it.brief;
-        var label = o ? (it.kind === 'tension' ? o.label.replace(/^Side with /, '') : o.label) : '';
+        var label = o ? (o.side != null ? o.side : o.label) : '';
         // Only an option that changes nothing says so; one that leads to work without a brief shows no group.
         bgp.hidden = !text && !(o && o.negative); bd.hidden = !text; bnone.hidden = !!text;
-        if (!text) { bnone.textContent = ''; inline(bnone, label + ': nothing to do, so no instructions.'); return; }
+        if (!text) { bnone.textContent = ''; inline(bnone, L('ev.nothingToDo', { label: label })); return; }
         // Approve/Decline needs no name: there is one way to do the work.
         var named = label && hasCustomOptions(it);
-        bsum.textContent = 'Instructions for the coding agent' + (named ? ' — ' : '');
-        if (named) inline(bsum, label);
+        if (named) {
+          var bparts = L('ev.instructionsNamed', { label: SLOT }).split(SLOT);
+          bsum.textContent = bparts[0]; inline(bsum, label);
+          if (bparts[1]) bsum.appendChild(document.createTextNode(bparts[1]));
+        } else bsum.textContent = L('ev.instructions');
         if (bd.lastChild !== bsum) bd.removeChild(bd.lastChild);
         bd.appendChild(briefBox(text));
       });
     }
-    if (!evN.business && !evN.tech && !plain) evb.appendChild(el('p', 'ev-empty', 'No evidence attached: the case is on the card.'));
-    else if (lensed && !plain) LENSES.forEach(function (l) { if (!evN[l]) evb.appendChild(el('p', 'ev-empty lens-none ' + l, 'No ' + l + ' evidence on this card.')); });
+    if (!evN.business && !evN.tech && !plain) evb.appendChild(el('p', 'ev-empty', L('ev.empty')));
+    else if (lensed && !plain) LENSES.forEach(function (l) { if (!evN[l]) evb.appendChild(el('p', 'ev-empty lens-none ' + l, L('lens.noEvidence', { lens: LENS_WORD[l] }))); });
     var tb = null;
     if (lensed) {
       var argN = function (l) { return all.filter(function (a) { return a.lens === l; }).length; };
       tb = lensTabBar(it, { business: argN('business') + evN.business, tech: argN('tech') + evN.tech });
       ev.appendChild(tb.bar);
-    } else { var eh = el('div', 'phead'); eh.appendChild(el('h2', null, 'Evidence')); ev.appendChild(eh); }
+    } else { var eh = el('div', 'phead'); eh.appendChild(el('h2', null, L('ev.title'))); ev.appendChild(eh); }
     ev.appendChild(evb);
     // Accepts: the shown option's cost. One without its own never borrows the recommended one's: that is labelled as such.
     var acc = null, rec = it.options.filter(function (o) { return o.recommended; })[0];
@@ -1478,7 +2085,7 @@ dialog.zoom p:empty { display: none; }
         var o = optOf(v), base = (rec && rec.accepts) || it.accepts, text = o && o.accepts ? o.accepts : base;
         acc.textContent = ''; acc.hidden = !text;
         if (!text) return;
-        acc.appendChild(el('b', null, o && !o.accepts && rec && o !== rec ? 'The recommended option accepts: ' : 'Accepts: '));
+        acc.appendChild(el('b', null, o && !o.accepts && rec && o !== rec ? L('ev.recAccepts') : L('ev.accepts')));
         inline(acc, text);
       });
     }
@@ -1501,14 +2108,14 @@ dialog.zoom p:empty { display: none; }
       var v = chosen || it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
       var opt = it.options.filter(function (o) { return o.value === v; })[0];
       x.node.hidden = !opt || x.o.on.when.indexOf(v) < 0;
-      x.label.textContent = opt ? 'If ' + it.id + ' = ' + opt.label + (chosen ? '' : ' (recommended)') : '';
+      x.label.textContent = opt ? (chosen ? L('sum.ifChosen', { id: it.id, label: opt.label }) : L('sum.ifRec', { id: it.id, label: opt.label })) : '';
     });
   }
   // The summary item: the whole summary, the outcome (today beside the target) and the gate's figures.
   function summaryCard() {
     var c = el('article', 'card wide'), main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll');
-    c.id = 'd-' + SUM; main.setAttribute('aria-label', 'Summary');
-    var h = el('div', 'ch'); h.appendChild(el('h2', 'ctitle', 'Summary')); body.appendChild(h);
+    c.id = 'd-' + SUM; main.setAttribute('aria-label', L('sum.title'));
+    var h = el('div', 'ch'); h.appendChild(el('h2', 'ctitle', L('sum.title'))); body.appendChild(h);
     body.appendChild(el('p', 'sub', data.title));
     if (data.summary && data.summary.length) {
       var grid = el('div', 'sumgrid');
@@ -1526,16 +2133,16 @@ dialog.zoom p:empty { display: none; }
     }
     // Outcome: the human approves a destination, not a list of steps.
     if (data.outcome && data.outcome.length) {
-      var oc = blk(body, 'Outcome');
+      var oc = blk(body, L('sum.outcome'));
       data.outcome.forEach(function (o) {
         var ov = el('div', 'oview'), oh = el('div', 'ohead');
-        oh.appendChild(el('span', 'tag', o.view === 'ui' ? 'Mockup' : 'System'));
-        oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? 'What the user sees' : 'How the system works')));
+        oh.appendChild(el('span', 'tag', o.view === 'ui' ? L('sum.mockup') : L('sum.system')));
+        oh.appendChild(el('b', null, o.title || (o.view === 'ui' ? L('sum.whatSees') : L('sum.howWorks'))));
         if (o.on) { var oif = el('span', 'oif'); oh.appendChild(oif); outViews.push({ o: o, node: ov, label: oif }); }
         ov.appendChild(oh);
         if (o.caption) ov.appendChild(el('p', 'ocap', o.caption));
         var panes = el('div', 'opanes');
-        [['before', 'Today'], ['after', o.before ? 'After' : 'Target']].forEach(function (p) {
+        [['before', L('sum.today')], ['after', o.before ? L('sum.after') : L('sum.target')]].forEach(function (p) {
           if (!o[p[0]]) return;
           var pane = el('div', 'opane ' + p[0]);
           pane.appendChild(el('div', 'olbl', p[1]));
@@ -1546,7 +2153,7 @@ dialog.zoom p:empty { display: none; }
         oc.appendChild(ov);
       });
     }
-    if (data.figures && data.figures.length) blk(body, 'Figures').appendChild(figures(data.figures));
+    if (data.figures && data.figures.length) blk(body, L('ev.figures')).appendChild(figures(data.figures));
     main.appendChild(body); c.appendChild(main);
     cards[SUM] = { it: null, card: c, buttons: [], note: null };
     return c;
@@ -1590,7 +2197,7 @@ dialog.zoom p:empty { display: none; }
     filterN.textContent = String(nf); filterN.hidden = !nf;
     list.classList.toggle('filtering', !!active);
     if (sumRow) sumRow.hidden = !!active;
-    shown.textContent = total + ' of ' + items.length + ' shown';
+    shown.textContent = Lp('filter.shown', total, { total: items.length });
     shownRow.hidden = !active;
     clear.hidden = !active;
     empty.hidden = !!total;
@@ -1631,38 +2238,39 @@ dialog.zoom p:empty { display: none; }
   }
   function undecided(id) { var c = cards[id]; return !!(c && c.it) && !choiceOf(id) && !mootBy(c.it, items, state); }
   function firstOpen() { return order.filter(undecided)[0] || order.filter(function (id) { return id !== SUM; })[0] || order[0]; }
-  function nextOpen() { if (!step(1, undecided)) say('Every card is decided.' + (served ? ' Press S to send.' : ' Press C to copy.')); }
+  function nextOpen() { if (!step(1, undecided)) say(served ? L('toast.allSend') : L('toast.allCopy')); }
   var picker = null; // the Share dialog, built when the page is served
   var help = el('dialog', 'help');
-  help.innerHTML = '<h3>Keyboard keys</h3><table>' + [
-    ['', 'Move around'],
-    ['<kbd>↓</kbd> <kbd>↑</kbd> &nbsp;<kbd>→</kbd> <kbd>←</kbd>', 'Next / previous card (also <kbd>j</kbd> / <kbd>k</kbd>)'],
-    ['<kbd>u</kbd>', 'Next card still to decide'],
-    ['<kbd>z</kbd>', 'The full summary, and back to the card'],
-    ['<kbd>l</kbd>', 'Lens for both panes: both, biz only, tech only'],
-    ['<kbd>b</kbd> / <kbd>t</kbd>', 'Biz / tech lens (again for both)'],
-    ['<kbd>/</kbd>', 'Search; <kbd>Enter</kbd> goes to the first result'],
-    ['<kbd>[</kbd>', 'The list: narrow to a rail, hide, show again'],
-    ['', 'Decide'],
-    ['<kbd>1</kbd> – <kbd>9</kbd>', 'Choose that option; the same key again clears it'],
-    ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', 'Step through the current card\'s options'],
-    ['<kbd>Enter</kbd>', 'Choose the focused option (again to clear)'],
-    ['<kbd>r</kbd>', 'Choose the recommended option'],
-    ['<kbd>n</kbd>', 'Write a note on the current card'],
-    ['<kbd>a</kbd>', 'Accept the recommendation on every card still to decide'],
-    ['', 'Finish'],
-    ['<kbd>s</kbd>', 'Send the decisions to Claude'],
-    ['<kbd>c</kbd>', shareMode ? 'Copy the prompt for your coding agent' : 'Copy the decisions'],
-    ['<kbd>Esc</kbd>', 'Leave the search box, the note or the filter menu'],
-    ['<kbd>?</kbd>', 'This help']
+  help.innerHTML = ['<h3>', L('help.title'), '</h3><table>'].join('') + [
+    ['', L('help.move')],
+    ['<kbd>↓</kbd> <kbd>↑</kbd> &nbsp;<kbd>→</kbd> <kbd>←</kbd>', L('help.nav')],
+    ['<kbd>u</kbd>', L('help.nextOpen')],
+    ['<kbd>z</kbd>', L('help.summary')],
+    ['<kbd>l</kbd>', L('help.lens')],
+    ['<kbd>b</kbd> / <kbd>t</kbd>', L('help.lensBT')],
+    ['<kbd>/</kbd>', L('help.search')],
+    ['<kbd>[</kbd>', L('help.list')],
+    ['', L('help.decide')],
+    ['<kbd>1</kbd> – <kbd>9</kbd>', L('help.choose')],
+    ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', L('help.tabStep')],
+    ['<kbd>Enter</kbd>', L('help.enter')],
+    ['<kbd>r</kbd>', L('help.rec')],
+    ['<kbd>n</kbd>', L('help.noteRow')],
+    ['<kbd>a</kbd>', L('help.acceptAll')],
+    ['', L('help.finish')],
+    ['<kbd>s</kbd>', L('help.send')],
+    ['<kbd>c</kbd>', shareMode ? L('help.copyAgent') : L('help.copyDecisions')],
+    ['<kbd>Esc</kbd>', L('help.esc')],
+    ['<kbd>?</kbd>', L('help.this')],
+    ['<kbd>d</kbd>', L('help.theme')]
   ].filter(function (r) {
     if (r[0].indexOf('<kbd>b</kbd>') >= 0 || r[0] === '<kbd>l</kbd>') return lensed;
     if (r[0] === '<kbd>z</kbd>') return hasSummary;
     if (r[0] === '<kbd>s</kbd>') return served;
     return true;
   }).map(function (r) { return r[0] ? '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>' : '<tr><th colspan="2">' + r[1] + '</th></tr>'; }).join('') + '</table>' +
-    (rlegendHtml ? '<h3 class="sub3">The lines between cards</h3><div class="rlegend">' + rlegendHtml + '</div>' : '') +
-    '<div class="buttons"><span class="muted">The mouse works everywhere: click a card, click an option.</span><button class="btn" type="button" data-close>Close <kbd>Esc</kbd></button></div>';
+    (rlegendHtml ? ['<h3 class="sub3">', L('help.rails'), '</h3><div class="rlegend">', rlegendHtml, '</div>'].join('') : '') +
+    ['<div class="buttons"><span class="muted">', L('help.mouse'), '</span><button class="btn" type="button" data-close>', L('help.close'), '</button></div>'].join('');
   document.body.appendChild(help);
   help.addEventListener('click', function (e) { if (e.target === help || (e.target.closest && e.target.closest('[data-close]'))) help.close(); });
   document.getElementById('keys').addEventListener('click', function () { help.showModal(); });
@@ -1711,6 +2319,7 @@ dialog.zoom p:empty { display: none; }
     else if (k === 'a') { var ra = document.getElementById('recAll'); if (!ra.disabled) ra.click(); }
     else if (k === 's' && served) document.getElementById('send').click();
     else if (k === 'c') document.getElementById('copy').click();
+    else if (k === 'd') viewTheme.toggle();
     else return;
     e.preventDefault();
   });
@@ -1718,18 +2327,18 @@ dialog.zoom p:empty { display: none; }
   document.addEventListener('focusout', function () { setTimeout(legend, 0); });
 
   // The list: open, a slim rail of marks and ids, or hidden. [ steps through them; remembered per gate.
-  var openBtn = el('button', 'btn ghost side-open'); openBtn.type = 'button'; openBtn.title = 'Show the list  ( [ )';
+  var openBtn = el('button', 'btn ghost side-open'); openBtn.type = 'button'; openBtn.title = L('side.show');
   openBtn.appendChild(icon('panel')); openBtn.appendChild(document.createTextNode(listName));
   var topBar = document.getElementById('head'); topBar.insertBefore(openBtn, topBar.firstChild);
-  var sideKey = 'ceo-view:sidebar:' + (data.source || data.title), sideMode = 'open';
+  var sideKey = 'team-view:sidebar:' + (data.source || data.title), sideMode = 'open';
   function setSide(mode) {
     if (mode === true) mode = 'closed'; else if (mode === false) mode = 'open';
     sideMode = mode;
     document.body.classList.toggle('side-closed', mode === 'closed');
     document.body.classList.toggle('side-rail', mode === 'rail');
     openBtn.hidden = mode !== 'closed';
-    narrowBtn.title = mode === 'rail' ? 'Widen the list  ( [ )' : 'Narrow the list to a rail  ( [ )';
-    narrowBtn.setAttribute('aria-label', mode === 'rail' ? 'Widen the list' : 'Narrow the list');
+    narrowBtn.title = mode === 'rail' ? L('side.widenTitle') : L('side.narrowTitle');
+    narrowBtn.setAttribute('aria-label', mode === 'rail' ? L('side.widen') : L('side.narrow'));
     try { localStorage.setItem(sideKey, mode); } catch (e) {}
     if (cur && rowOf(cur) && rowOf(cur).offsetParent) rowOf(cur).scrollIntoView({ block: 'nearest' });
   }
@@ -1742,13 +2351,13 @@ dialog.zoom p:empty { display: none; }
 
   // Phones: one pane at a time, and touch buttons to move
   var tabsEl = document.getElementById('tabs');
-  [['list', listName], ['card', 'Card'], ['ev', 'Evidence']].forEach(function (t) {
+  [['list', listName], ['card', L('tab.card')], ['ev', L('tab.evidence')]].forEach(function (t) {
     var b = el('button', null, t[1]); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.tab = t[0];
     b.addEventListener('click', function () { setTab(t[0]); }); tabsEl.appendChild(b);
   });
   function setTab(t) { layout.dataset.tab = t; [].forEach.call(tabsEl.children, function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === t)); }); }
   var touch = document.getElementById('touchnav');
-  [['Previous', function () { step(-1); }], ['Next to decide', nextOpen], ['Next', function () { step(1); }]].forEach(function (t) {
+  [[L('nav.prev'), function () { step(-1); }], [L('nav.nextOpen'), nextOpen], [L('nav.next'), function () { step(1); }]].forEach(function (t) {
     var b = el('button', null, t[0]); b.type = 'button'; b.addEventListener('click', function () { t[1](); setTab('card'); }); touch.appendChild(b);
   });
 
@@ -1769,7 +2378,12 @@ dialog.zoom p:empty { display: none; }
     state[id].choice = state[id].choice === value ? undefined : value;
     save(); render(); applyFilters(true);
     var it = byIdx[id], o = it && it.options.filter(function (x) { return x.value === value; })[0], open = items.filter(function (x) { return undecided(x.id); }).length;
-    if (o) say((state[id].choice ? id + ': ' + o.label + (o.violates && o.violates.length ? ', lifts ' + o.violates.join(', ') : '') + '. ' : id + ' cleared. ') + (open ? plural(open, 'card') + ' still to decide.' : 'Every card decided.'));
+    if (o) {
+      var cv = { id: id, label: o.label, ids: (o.violates || []).join(', ') }, lifts = o.violates && o.violates.length;
+      if (!state[id].choice) say(open ? Lp('choose.cleared', open, cv) : L('choose.clearedDone', cv));
+      else if (lifts) say(open ? Lp('choose.setLifts', open, cv) : L('choose.setLiftsDone', cv));
+      else say(open ? Lp('choose.set', open, cv) : L('choose.setDone', cv));
+    }
     if (state[id].choice) flash(id);
   }
   function render() {
@@ -1784,42 +2398,41 @@ dialog.zoom p:empty { display: none; }
       c.card.classList.toggle('moot', !!moot);
       c.buttons.forEach(function (b) { b.disabled = !!moot; });
       var miss = opt && !opt.negative && !moot ? missingAfter(it, items, state) : [];
-      c.gap.textContent = miss.length ? miss.join(', ') + " not chosen: you'll be asked before " + it.id + ' runs without ' + (miss.length > 1 ? 'them' : 'it') + '.' : '';
+      c.gap.textContent = miss.length ? Lp('rel.gap', miss.length, { ids: miss.join(', '), id: it.id }) : '';
       // The row: a drawn mark plus a word; a default stays marked as one.
       var preset = !!opt && v === it.default;
       p.m = moot ? 'moot' : !opt ? 'todo' : opt.negative ? 'no' : preset ? 'preset' : 'yes';
       p.stw.className = 'stw ' + p.m;
-      p.stw.textContent = moot ? 'Not needed' : !opt ? 'To decide' : word(opt) + (preset && it.kind === 'decision' ? ' (default)' : '');
+      p.stw.textContent = moot ? L('row.notNeeded') : !opt ? L('row.toDecide') : (preset && it.kind === 'decision' ? L('row.withDefault', { word: word(opt) }) : word(opt));
       if (p.rel) p.rel.hidden = !!moot;
-      p.gapw.textContent = miss.length ? miss.join(', ') + ' not chosen' : '';
+      p.gapw.textContent = miss.length ? Lp('row.notChosen', miss.length, { ids: miss.join(', ') }) : '';
       p.nmark.hidden = !(state[it.id] && state[it.id].note && state[it.id].note.trim());
       chip.classList.toggle('moot', !!moot);
       chip.classList.toggle('gap', miss.length > 0);
-      chip.title = it.id + ' · ' + it.title + (opt ? ' — ' + opt.label : ' — undecided') + (miss.length ? ' — comes after ' + miss.join(', ') + ', not chosen' : '');
+      var ct = { id: it.id, title: it.title, label: opt ? opt.label : '', ids: miss.join(', ') };
+      chip.title = opt ? (miss.length ? L('row.titleChosenGap', ct) : L('row.titleChosen', ct)) : (miss.length ? L('row.titleUndecidedGap', ct) : L('row.titleUndecided', ct));
       if (c.rely) {
         c.rely.textContent = '';
         if (moot) {
           var ml = el('div', 'relx neg'), mt = el('span', 'rt'); ml.appendChild(relIcon(it.on && it.on.id === moot.id ? 'on' : 'after'));
-          mt.appendChild(document.createTextNode('Not needed: ')); mt.appendChild(relLinks([moot.id]));
-          mt.appendChild(document.createTextNode(' = ' + moot.label)); ml.appendChild(mt); c.rely.appendChild(ml);
+          putNode(mt, L('rel.notNeeded', { id: SLOT, label: moot.label }), relLinks([moot.id])); ml.appendChild(mt); c.rely.appendChild(ml);
         }
         else relyLines(it, items, state).forEach(function (r) {
           var type = relyType(it, r.id), ln = el('div', 'relx ' + (r.label === null ? 'wait' : r.negative ? 'neg' : 'ok'));
           var rt = el('span', 'rt'), rs = el('span', 'rs');
           ln.appendChild(relIcon(type === 'refines' ? 'on' : 'after'));
-          rt.appendChild(document.createTextNode(type === 'refines' ? 'Refines ' : 'Comes after '));
-          rt.appendChild(relLinks([r.id]));
-          if (byIdx[r.id]) rt.appendChild(document.createTextNode(' · ' + plainTitle(r.id)));
+          var rv = { id: SLOT, title: byIdx[r.id] ? plainTitle(r.id) : '' };
+          putNode(rt, type === 'refines' ? (byIdx[r.id] ? L('rel.refinesTitle', rv) : L('rel.refines', rv)) : (byIdx[r.id] ? L('rel.afterTitle', rv) : L('rel.after', rv)), relLinks([r.id]));
           ln.appendChild(rt);
           rs.appendChild(svgEl(mark(r.label === null ? 'todo' : r.negative ? 'no' : 'yes')));
-          rs.appendChild(document.createTextNode(r.label === null ? '' : 'chosen: ' + r.label));
-          if (r.label === null) { rs.title = 'answer it first ↑'; rs.appendChild(document.createTextNode('Answer it first')); rs.appendChild(icon('up')); }
+          rs.appendChild(document.createTextNode(r.label === null ? '' : L('rel.chosen', { label: r.label })));
+          if (r.label === null) { rs.title = L('rel.answerTitle'); rs.appendChild(document.createTextNode(L('rel.answerFirst'))); rs.appendChild(icon('up')); }
           ln.appendChild(rs);
           c.rely.appendChild(ln);
         });
       }
       c.mootMsg.hidden = !moot;
-      if (moot) { c.mootMsg.textContent = ''; c.mootMsg.appendChild(icon('lock')); c.mootMsg.appendChild(el('span', null, 'Not needed: ' + moot.id + ' is set to “' + moot.label + '”, so this card no longer applies.')); }
+      if (moot) { c.mootMsg.textContent = ''; c.mootMsg.appendChild(icon('lock')); c.mootMsg.appendChild(el('span', null, L('rel.moot', { id: moot.id, label: moot.label }))); }
       c.trows.forEach(function (r) { r.tr.classList.toggle('chosen', r.value === v); r.mine.hidden = r.value !== v; });
       // A new choice brings the option's own evidence back to it.
       if (c.view.choice !== v) { c.view.choice = v; c.view.shown = null; }
@@ -1831,46 +2444,46 @@ dialog.zoom p:empty { display: none; }
         s.li.classList.toggle('lifted', lifted);
         s.node.textContent = '';
         s.node.appendChild(icon(lifted ? 'lifted' : 'hold'));
-        s.node.appendChild(document.createTextNode(lifted ? 'Lifted by your choice: ' + opt.label : 'Holds' + (by.length ? ' · lifted if you choose ' + by.join(' or ') : '')));
+        s.node.appendChild(document.createTextNode(lifted ? L('card.liftedBy', { label: opt.label }) : by.length ? L('card.holdsLifted', { options: by.join(L('card.or')) }) : L('card.holds')));
       });
       if (v || moot) done++;
     });
     drawOutcomes();
     sections.forEach(function (sec) {
       var n = sec.items.filter(function (it) { return choiceOf(it.id) || mootBy(it, items, state); }).length;
-      sec.count.textContent = n + ' of ' + sec.items.length;
+      sec.count.textContent = L('prog.of', { n: n, total: sec.items.length });
     });
     var ptxt = document.getElementById('ptxt');
-    ptxt.textContent = 'Decided ';
-    ptxt.appendChild(el('b', null, done + ' of ' + items.length));
+    ptxt.textContent = '';
+    putNode(ptxt, L('prog.decided', { done: SLOT }), el('b', null, L('prog.of', { n: done, total: items.length })));
     document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
-    listCount.textContent = items.length - done ? (items.length - done) + ' to decide' : 'All decided';
+    listCount.textContent = items.length - done ? L('list.toDecide', { n: items.length - done }) : L('list.allDecided');
     var allDecided = items.length === done;
     document.getElementById('recAll').disabled = allDecided;
-    document.getElementById('recAll').title = allDecided ? 'Every card already has a choice' : '';
+    document.getElementById('recAll').title = allDecided ? L('bar.allDecided') : '';
     paintRails(); legend();
   }
   // The key legend: what works right now, the current card's options first.
   var legendEl = document.getElementById('legend');
   function legend() {
-    var ae = document.activeElement, L = [];
+    var ae = document.activeElement, keys = [];
     var c = cur && cards[cur] && cards[cur].it ? cards[cur] : null;
-    if (ae && ae.classList && ae.classList.contains('note')) L = [['Esc', 'Leave the note'], ['', 'Saved as you type']];
+    if (ae && ae.classList && ae.classList.contains('note')) keys = [['Esc', L('legend.leaveNote')], ['', L('legend.saved')]];
     else {
-      L.push(['↑↓', 'Move']);
-      if (c && !mootBy(c.it, items, state)) c.it.options.forEach(function (o, i) { if (i < 9) L.push([String(i + 1), o.label, 'ctx']); });
+      keys.push(['↑↓', L('legend.move')]);
+      if (c && !mootBy(c.it, items, state)) c.it.options.forEach(function (o, i) { if (i < 9) keys.push([String(i + 1), o.label, 'ctx']); });
       // Keyboard focus only: on a click, an extra key could wrap the legend to a new line between mousedown and mouseup,
       // move the option away from the pointer, and lose the click.
-      if (ae && ae.classList && ae.classList.contains('opt') && ae.matches(':focus-visible')) L.push(['Enter', 'Choose focused', 'ctx']);
-      L.push(['U', 'Next to decide']);
-      if (c) L.push(['N', 'Note']);
-      if (lensed) L.push(['L', 'Lens: ' + (lensView === 'both' ? 'both' : LENS_NAME[lensView])]);
-      L.push(['A', 'Accept recommended']);
-      L.push(served ? ['S', 'Send'] : ['C', shareMode ? 'Copy prompt' : 'Copy decisions']);
-      L.push(['?', 'All keys']);
+      if (ae && ae.classList && ae.classList.contains('opt') && ae.matches(':focus-visible')) keys.push(['Enter', L('legend.enter'), 'ctx']);
+      keys.push(['U', L('nav.nextOpen')]);
+      if (c) keys.push(['N', L('legend.note')]);
+      if (lensed) keys.push(['L', lensView === 'both' ? L('legend.lensBoth') : L('legend.lens', { lens: LENS_NAME[lensView] })]);
+      keys.push(['A', L('bar.acceptRecommended')]);
+      keys.push(served ? ['S', L('legend.send')] : ['C', shareMode ? L('out.copyPrompt') : L('bar.copy')]);
+      keys.push(['?', L('legend.allKeys')]);
     }
     legendEl.textContent = '';
-    L.forEach(function (k) {
+    keys.forEach(function (k) {
       var s = el('span', k[2] || null);
       if (k[0]) s.appendChild(el('kbd', null, k[0]));
       s.appendChild(document.createTextNode(k[1].replace(/`|\*\*/g, '')));
@@ -2166,7 +2779,7 @@ dialog.zoom p:empty { display: none; }
     return n;
   }
   function decisionsBlock(data, items, state, mode) {
-    var lines = ['CEO DECISIONS — ' + data.title];
+    var lines = ['GATE DECISIONS — ' + data.title];
     if (data.source) lines.push('record: ' + data.source);
     if (mode) lines.push('mode: ' + mode);
     items.forEach(function (it) {
@@ -2217,9 +2830,20 @@ dialog.zoom p:empty { display: none; }
     var lines = decisions.split('\n'), head = ['as: ' + as, 'via: ' + via];
     to = String(to || '').replace(/\s+/g, ' ').trim();
     if (to && via !== 'self') head.push('to: ' + to);
-    return [lines[0].replace(/^CEO DECISIONS/, 'CEO SHARE')].concat(head, lines.slice(1)).join('\n');
+    return [lines[0].replace(/^GATE DECISIONS/, 'GATE SHARE')].concat(head, lines.slice(1)).join('\n');
   }
 /*SHARE-END*/
+  // The Share dialog's own words: the table's where a label or reason is the built-in one; a channel's own text stays as it came.
+  var SHARE_OWN = { what: { file: L('share.whatFile'), link: L('share.whatLink'), review: L('share.whatReview') },
+    where: { self: L('share.whereSelf'), review: L('share.whereReview'), mail: L('share.whereMail'), slack: L('share.whereSlack') } };
+  var SHARE_WHY = { what: { link: L('share.whatLinkWhy'), review: L('share.reviewWhy') }, where: { review: L('share.reviewWhy') } };
+  var SHARE_PH = { review: L('share.phReview'), mail: L('share.phMail'), slack: L('share.phSlack') };
+  function shareText(group, c) {
+    var base = (group === 'what' ? SHARE_WHAT : SHARE_WHERE).filter(function (b) { return b.id === c.id; })[0], own = SHARE_OWN[group][c.id], label = c.label;
+    if (base && c.label === base.label) label = own;
+    else if (base && base.suffix && c.label.indexOf(base.label + ' — ') === 0) label = L('share.withLabel', { base: own, label: c.label.slice(base.label.length + 3) });
+    return { label: label, reason: base && c.reason === base.why && SHARE_WHY[group][c.id] ? SHARE_WHY[group][c.id] : c.reason };
+  }
   function output() { return decisionsBlock(data, items, state); }
   // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm(): an Artifact's sandbox blocks it.
   document.getElementById('reset').addEventListener('click', function () {
@@ -2227,30 +2851,29 @@ dialog.zoom p:empty { display: none; }
     items.forEach(function (it) { cards[it.id].note.value = (state[it.id] && state[it.id].note) || ''; });
     applyDefaults(); save(); render(); applyFilters(true);
     document.getElementById('out').style.display = 'none';
-    document.getElementById('toast').textContent = 'Decisions reset.';
+    document.getElementById('toast').textContent = L('toast.reset');
   });
   document.getElementById('recAll').addEventListener('click', function () {
     var n = acceptRecommended(items, state);
     save(); render(); applyFilters(true);
-    document.getElementById('toast').textContent = n > 0 ? n + ' card' + (n === 1 ? '' : 's') + ' set to the recommended option.' : 'No undecided card has a recommended option.';
+    document.getElementById('toast').textContent = n > 0 ? Lp('toast.accepted', n) : L('toast.noneRecommended');
   });
   if (shareMode) {
-    document.getElementById('copyLabel').textContent = 'Copy prompt';
-    document.getElementById('out').setAttribute('aria-label', 'Prompt to paste into your coding agent');
+    document.getElementById('copyLabel').textContent = L('out.copyPrompt');
+    document.getElementById('out').setAttribute('aria-label', L('out.promptAria'));
   }
   // The copy fallback box closes once the reader leaves it.
   document.getElementById('out').addEventListener('blur', function () { this.style.display = 'none'; });
   document.getElementById('copy').addEventListener('click', function () {
     var text = shareMode ? buildPrompt(data, items, state) : output();
     var out = document.getElementById('out'), toast = document.getElementById('toast');
-    var where = shareMode ? 'your coding agent, on your checkout of the branch' : 'Claude';
-    function fallback() { out.style.display = 'block'; out.value = text; out.focus(); out.select(); toast.textContent = 'Select all and copy, then paste into ' + where; }
+    function fallback() { out.style.display = 'block'; out.value = text; out.focus(); out.select(); toast.textContent = shareMode ? L('copy.selectAgent') : L('copy.selectClaude'); }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { toast.textContent = 'Copied. Paste it into ' + where + '.'; }, fallback);
+      navigator.clipboard.writeText(text).then(function () { toast.textContent = shareMode ? L('copy.copiedAgent') : L('copy.copiedClaude'); }, fallback);
     } else { fallback(); }
   });
   // Served by `render.js --serve`: Send posts the block to the local server, which hands it to Claude and exits;
-  // Share shows on a review gate only; it opens a two-question picker (what the reader gets, where it goes), then posts the block as CEO SHARE with as:/via:/to: lines: Claude builds the share page, pre-filled with it, and delivers it. Opened as a file, or in share mode, only Copy exists.
+  // Share shows on a review gate only; it opens a two-question picker (what the reader gets, where it goes), then posts the block as GATE SHARE with as:/via:/to: lines: Claude builds the share page, pre-filled with it, and delivers it. Opened as a file, or in share mode, only Copy exists.
   if (!shareMode && /^https?:$/.test(location.protocol)) {
     var send = document.getElementById('send'), copy = document.getElementById('copy'), share = document.getElementById('share');
     send.hidden = false;
@@ -2261,7 +2884,7 @@ dialog.zoom p:empty { display: none; }
       var toast = document.getElementById('toast');
       btn.disabled = true;
       fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body }).then(function (r) {
-        if (!r.ok) throw new Error(r.status);
+        if (!r.ok) return r.text().then(function (t) { btn.disabled = false; toast.textContent = serverText(t, failed); });
         toast.textContent = sent;
         // Browsers let a script close a tab that has a single page in its history, as one opened by render.js has.
         // Elsewhere close() does nothing and the toast stays.
@@ -2273,24 +2896,24 @@ dialog.zoom p:empty { display: none; }
     };
     send.addEventListener('click', function () {
       var undecided = items.filter(function (it) { return !choiceOf(it.id); }).length;
-      if (undecided && !confirm(undecided + ' item(s) undecided. Send anyway? Claude will ask about them.')) return;
-      post(output(), 'Sent. Claude has your decisions; you can close this tab.', 'Could not reach Claude. Use Copy decisions and paste instead.', send);
+      if (undecided && !confirm(Lp('send.confirm', undecided))) return;
+      post(output(), L('send.sent'), L('send.failed'), send);
     });
     share.addEventListener('click', function () {
       // A finding left as is reaches its reader: it goes with the reason, or it doesn't go.
       var bare = leftWithoutNote(items, state);
       if (bare.length) {
-        say('Say why you leave ' + bare.join(', ') + ' as is: its reader will see it. Write a note, then share.');
+        say(L('share.needNote', { ids: bare.join(', ') }));
         jump(bare[0]);
         cards[bare[0]].note.focus();
         return;
       }
       picker = el('dialog', 'help share-picker');
-      picker.appendChild(el('h3', null, 'Share this page'));
+      picker.appendChild(el('h3', null, L('share.title')));
       var choices = shareChoices(data.channels), sel = shareDefault(choices), whereById = {};
-      var toRow = el('label', 'chan-to'), toInput = el('input'), shareBtn = el('button', 'btn primary', 'Share'), cancel = el('button', 'btn', 'Cancel');
+      var toRow = el('label', 'chan-to'), toInput = el('input'), shareBtn = el('button', 'btn primary', L('share.submit')), cancel = el('button', 'btn', L('share.cancel'));
       toInput.type = 'text';
-      toRow.appendChild(document.createTextNode('To (optional)'));
+      toRow.appendChild(document.createTextNode(L('share.to')));
       toRow.appendChild(toInput);
       shareBtn.type = 'button';
       cancel.type = 'button';
@@ -2304,7 +2927,7 @@ dialog.zoom p:empty { display: none; }
           r.checked = sel.via === id;
         });
         toRow.hidden = sel.via === 'self';
-        toInput.placeholder = (whereById[sel.via] && whereById[sel.via].placeholder) || '';
+        toInput.placeholder = (whereById[sel.via] && whereById[sel.via].placeholder && SHARE_PH[sel.via]) || (whereById[sel.via] && whereById[sel.via].placeholder) || '';
       };
       var question = function (legend, name, list) {
         var fs = el('fieldset', 'share-q');
@@ -2319,8 +2942,9 @@ dialog.zoom p:empty { display: none; }
           radio.checked = sel[name] === c.id;
           radios[name][c.id] = radio;
           radio.addEventListener('change', function () { sel[name] = c.id; sync(); });
-          text.appendChild(el('b', null, c.label));
-          if (!c.available) text.appendChild(el('small', null, c.reason));
+          var tx = shareText(name === 'as' ? 'what' : 'where', c);
+          text.appendChild(el('b', null, tx.label));
+          if (!c.available) text.appendChild(el('small', null, tx.reason));
           row.appendChild(radio);
           row.appendChild(text);
           fs.appendChild(row);
@@ -2328,8 +2952,8 @@ dialog.zoom p:empty { display: none; }
         picker.appendChild(fs);
       };
       choices.where.forEach(function (c) { whereById[c.id] = c; });
-      question('What the reader gets', 'as', choices.what);
-      question('Where it goes', 'via', choices.where);
+      question(L('share.what'), 'as', choices.what);
+      question(L('share.where'), 'via', choices.where);
       picker.appendChild(toRow);
       sync();
       var buttons = el('div', 'buttons');
@@ -2342,7 +2966,7 @@ dialog.zoom p:empty { display: none; }
       shareBtn.addEventListener('click', function () {
         var toValue = toInput.value;
         picker.close();
-        post(shareBlock(output(), sel.as, sel.via, toValue), 'Sent. Claude is sharing the page; you can close this tab.', 'Could not reach Claude. Ask it in chat to share this gate.', share);
+        post(shareBlock(output(), sel.as, sel.via, toValue), L('share.sent'), L('share.failed'), share);
       });
       document.body.appendChild(picker);
       picker.showModal();

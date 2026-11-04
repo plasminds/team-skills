@@ -5,7 +5,7 @@ description: "Use when code needs refactoring or cleanup, or its structure judge
 
 # team-refactor
 
-A panel of refactoring lenses reviews a scoped piece of code in **isolated contexts**, a KISS/YAGNI gate kills speculative work, the human (CEO) approves a backlog, then execution happens in tiny behavior-preserving steps. Same family as `team-council`: evidence-backed, attributed, recorded under `.council/`.
+A panel of refactoring lenses reviews a scoped piece of code in **isolated contexts**, a KISS/YAGNI gate kills speculative work, the human approves a backlog, then execution happens in tiny behavior-preserving steps. Same family as `team-debate`: evidence-backed, attributed, recorded under `.council/`.
 
 **Core principle:** refactoring changes structure, never behavior. Everything else in this skill protects that line or keeps the refactoring from becoming its own over-engineering.
 
@@ -18,7 +18,7 @@ A panel of refactoring lenses reviews a scoped piece of code in **isolated conte
 3. **One named refactoring per commit.** Structure and behavior never share a commit (Beck, *Tidy First*).
 4. **Red means revert.** A failing gate after a step → `git checkout` the step, shrink it, retry. Never debug forward.
 5. **An abstraction needs a present second case.** Roadmap talk ("we plan to add providers"), TODOs, and "might" are not cases. Two real call sites today, or it doesn't exist.
-6. **Stay inside the approved scope.** No drive-by edits outside the files and steps the CEO approved.
+6. **Stay inside the approved scope.** No drive-by edits outside the files and steps the human approved.
 
 **Violating the letter of these laws is violating their spirit.**
 
@@ -67,7 +67,7 @@ Put this line first in each panelist's *How to work* block: `- Start from the Co
 2. Round 1 (blind) → the panel in parallel (3 or 6) → Finding Cards
 3. Round 2         → Minimalist gate on every card + tension pairs
 4. Synthesis       → Backlog + For-team-review + Rejected + Tensions
-5. CEO gate        → approves steps (auto-accept: no page); record + exec brief
+5. Gate            → approves steps (auto-accept: no page); record + exec brief
    ── fresh session ──
 6. Execute         → from the exec brief: Step 0 safety net, then one Step Batch per fresh executor
 7. Record          → .council/refactors/YYYY-MM-DD-<topic>.md
@@ -93,8 +93,8 @@ Dispatch the panel (§ *Panel size*) in one message. In each prompt, resolve the
 ### 4. Synthesis
 A separate synthesizer agent writes the backlog by `templates.md` § *Synthesis*, caps included.
 
-### 5. CEO gate
-**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. On an auto-accept run no gate writer runs: the synthesis carries every item's options (`team-protocol` § *Auto-accept*). The CEO approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
+### 5. Gate
+**REQUIRED SUB-SKILL:** `team-view`. The gate writer builds and renders the page by § *Gate page*; you serve it and read the decisions block. On an auto-accept run no gate writer runs: the synthesis carries every item's options (`team-protocol` § *Auto-accept*). The human approves steps (all, some, or edits). Suspected bugs are listed for team-review, never decided here.
 
 Then the record writer writes the record and the exec brief, and you hand off (`team-protocol` § *Handoff*) with the prompt `execute the refactor in <exec brief path>`.
 

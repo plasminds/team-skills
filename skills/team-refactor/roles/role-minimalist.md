@@ -55,4 +55,4 @@ You receive every panelist's Finding Cards: {ALL_FINDING_CARDS}. Return one line
 
 Then list **duplicate cards** (same move proposed by several roles) so the synthesizer merges them. Mark a duplicate **independent** only when at least two of its authors cite, in `Evidence`, a line the Code Brief does not quote. Cards that restate a Code Brief finding (its duplication map, its hotspot list) count as one author, however many roles wrote them.
 
-Your `KILL` stands on its own, with one exception: an independent duplicate goes to the CEO as a tension, you against its authors. For each such `KILL`, add one line with your strongest case, since it is what the CEO will read.
+Your `KILL` stands on its own, with one exception: an independent duplicate goes to the human as a tension, you against its authors. For each such `KILL`, add one line with your strongest case, since it is what the human will read.

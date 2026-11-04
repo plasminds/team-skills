@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.24.0 — 2026-11-05
+
+- **Renamed.** `team-ceo-view` is `team-view`, `team-council` is `team-debate`, `team-council-plan` is `team-plan`; "CEO" is now "the human". Old gate files, blocks and env still read: `.ceo.json`, `CEO DECISIONS`, `CEO SHARE`, `kind: "council"`, `CEO_VIEW_EDITOR`.
+- **Light theme.** The gate page has a light theme and a dark one, with a toggle and the key `d`; print is always light. Colors live in `tokens.css`.
+- **French chrome.** The page's chrome and the prompt text follow `lang`: a local gate with `lang: "fr"` shows French.
+
 ## 0.23.0 — 2026-11-04
 
 - **Plans run on team-protocol.** An approved plan executes by `team-protocol` § *Execution*, as reviews and refactors do. A plugin's execution skill (superpowers' subagent-driven-development) runs only when the human names it; the project's own workflow still comes first. The handoff prompt names team-council-plan, and a plan format's own execution line is replaced.

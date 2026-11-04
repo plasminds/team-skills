@@ -5,7 +5,7 @@ description: "Use when a change needs reviewing before it merges — a merge or 
 
 # team-review
 
-A panel of seats (Security among them where the change crosses a trust boundary) reviews a diff, a path or a module in **isolated contexts**, a verifier tries to refute every finding before it reaches the human, and the human (CEO) curates the findings on a gate page: then shares them as a review on the merge/pull request, or has them fixed test-first. Same family as `team-refactor`: evidence-backed, attributed, recorded under `.council/reviews/`.
+A panel of seats (Security among them where the change crosses a trust boundary) reviews a diff, a path or a module in **isolated contexts**, a verifier tries to refute every finding before it reaches the human, and the human curates the findings on a gate page: then shares them as a review on the merge/pull request, or has them fixed test-first. Same family as `team-refactor`: evidence-backed, attributed, recorded under `.council/reviews/`.
 
 **Core principle:** a finding reaches the human only after an agent other than its author tried to prove it wrong. A review that cries wolf gets ignored.
 
@@ -15,8 +15,8 @@ A panel of seats (Security among them where the change crosses a trust boundary)
 
 | Skill | Question | When |
 |-------|----------|------|
-| `team-council` | Which way do we go? | Before the code exists |
-| `team-council-plan` | How do we carry out the decision? | After a council decision, before the code |
+| `team-debate` | Which way do we go? | Before the code exists |
+| `team-plan` | How do we carry out the decision? | After a debate decision, before the code |
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
 | **`team-review`** | Can this change merge as is? | Code exists; fixes change behavior |
 
@@ -92,7 +92,7 @@ The verifier receives each card's title, location, scenario and fix — never it
 2. Round 1 (blind) → 3–4 seats in parallel → Finding Cards │ intake: Recon's HO cards, no seats
 3. Verification    → the verifier tries to refute each high/med card and each settled line
 4. Synthesis       → dedup, rank, cap, verdict, options
-5. Gate            → team-ceo-view page (kind "review") │ auto-accept on own branch or audit: no page
+5. Gate            → team-view page (kind "review") │ auto-accept on own branch or audit: no page
 6. Deliver         → someone else's branch: share a review │ own branch, audit: fix test-first
 ```
 
@@ -100,7 +100,7 @@ The verifier receives each card's title, location, scenario and fix — never it
 - **Scope**: a diff (a branch, an MR/PR), a path or module, the whole repo, or one or more refactor records (§ *Intake*), sized by `team-protocol` § *Code scope*, counting changed lines. To narrow it, Recon ranks zones by churn × complexity × exposure, one option per zone, plus "all of them" (one panel per zone, one page, by `team-protocol` § *Sweep*). Resolve the forge's head first (`glab mr view` / `gh pr view`: the head SHA) and review that commit; when the local branch differs, say so on the first line and offer to align it. Someone else's branch goes in a separate worktree (`git -C <repo> worktree add <path> <branch>`), not by switching the user's checkout; a dirty tree is never stashed or touched.
 - **This conversation wrote or edited code in scope?** Then it does not review it: write the author's note (§ *Separation of Context*), and hand off (`team-protocol` § *Handoff*) with the prompt `team-review <scope>`.
 - **Owner**: `git -C <checkout> log --format=%ae <base>..HEAD | sort -u` against `git -C <checkout> config user.email`. Only yours → own branch; none yours → someone else's; mixed, or a shared account → ask. A path or module → audit.
-- **MR/PR**: take the host from `git -C <checkout> remote get-url origin` (`<origin URL>`). GitHub: `gh pr view <branch> -R <owner/repo> --json number,headRefOid,baseRefName`; GitLab: `glab mr view <branch> -R <origin URL> --output json` (the `iid`). Then get its refs and diff by loading `team-ceo-view` (Skill tool) and using its *Share* → `as: review` → *Refs and diff*, writing the diff to the run folder instead of `$TMPDIR`. Recon reads them from there.
+- **MR/PR**: take the host from `git -C <checkout> remote get-url origin` (`<origin URL>`). GitHub: `gh pr view <branch> -R <owner/repo> --json number,headRefOid,baseRefName`; GitLab: `glab mr view <branch> -R <origin URL> --output json` (the `iid`). Then get its refs and diff by loading `team-view` (Skill tool) and using its *Share* → `as: review` → *Refs and diff*, writing the diff to the run folder instead of `$TMPDIR`. Recon reads them from there.
 - **Profile**: read `.council/project-profile.md` if present; offer `team-scan` if not (not required).
 - **Red tests do not block.** Recon records them; they become a finding.
 
@@ -117,12 +117,12 @@ Strip the cards of their reasoning without reading them: `sh <base directory>/ca
 A separate synthesizer agent writes the review by `templates.md` § *Synthesis*: dedup, rank, cap, verdict.
 
 ### 5. Gate
-**REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; it is share-ready whoever owns the branch. Serve it with `--channels` as team-ceo-view's SKILL.md step 3 says. On an auto-accept run on your own branch or an audit, no gate writer runs: the synthesis carries every finding's options (`team-protocol` § *Auto-accept*).
+**REQUIRED SUB-SKILL:** `team-view`. The gate writer builds and renders the page by § *Gate page*; it is share-ready whoever owns the branch. Serve it with `--channels` as team-view's SKILL.md step 3 says. On an auto-accept run on your own branch or an audit, no gate writer runs: the synthesis carries every finding's options (`team-protocol` § *Auto-accept*).
 
 ### 6. Deliver
-**Someone else's branch.** The human curates on the page (leaves a finding as is with a note saying why — Share refuses one without — and adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A finding left as is gets no thread: the review body lists it under *Left as is* with its stakes and the human's note, beside the verdict, the *Questions for the author* the human kept (right after the verdict), *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder and the author's note.
+**Someone else's branch.** The human curates on the page (leaves a finding as is with a note saying why — Share refuses one without — and adds notes), then clicks **Share → Review**: follow team-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A finding left as is gets no thread: the review body lists it under *Left as is* with its stakes and the human's note, beside the verdict, the *Questions for the author* the human kept (right after the verdict), *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder and the author's note.
 
-**Own branch, audit.** Read the decisions block (team-ceo-view steps 4–5), or on an auto-accept run, the synthesis (`team-protocol` § *Auto-accept*). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-ceo-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes, with the prompt `execute the review fixes in <exec brief path>`.
+**Own branch, audit.** Read the decisions block (team-view steps 4–5), or on an auto-accept run, the synthesis (`team-protocol` § *Auto-accept*). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes, with the prompt `execute the review fixes in <exec brief path>`.
 
 **Execute** by `team-protocol` § *Execution*, from the exec brief, on a clean tree. The steps are the Fix cards; each executor (sonnet) gets its batch's Fix cards and the exec brief's header. Each fix goes test-first (`superpowers:test-driven-development`, or the profile's TDD skill when it lists one), one commit per finding; the executor replies one line per finding: the commit hash, `blocked — <reason>` or `stopped — <the diff guard's hit>`. After each batch, run the exec brief's quality gates: red → `git revert` that fix's commit yourself (a revert is not a patch), report it, and go on with the next batch.
 

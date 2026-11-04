@@ -5,7 +5,7 @@ description: Use when starting a brand-new project or an empty directory, and th
 
 # team-kickoff
 
-New-project bootstrap. Brings the council in before there's any code, so the project's direction and conventions are shaped by the full team rather than defaulted. Reuses `team-council` internally.
+New-project bootstrap. Brings the roles in before there's any code, so the project's direction and conventions are shaped by the full team rather than defaulted. Reuses `team-debate` internally.
 
 **REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, the bridge, structural choices and the handoff.
 
@@ -14,15 +14,15 @@ New-project bootstrap. Brings the council in before there's any code, so the pro
 ```
 1. Gather vision      → ask the user: what, who, why
 2. team-scan          → run on the directory (even if empty — detects global tools)
-3. Dispatch council   → full council with the vision as decision context
+3. Dispatch debate    → full debate with the vision as decision context
 4. PO synthesis       → team input → kickoff record
-5. CEO approval       → present the kickoff record, iterate
+5. Human approval     → present the kickoff record, iterate
 6. Write foundations  → .council/project-profile.md + initial CLAUDE.md
 7. Hand off           → existing project setup / scaffolding workflow
 ```
 
 ### 1. Gather vision
-The council debates the vision you bring back, so get the one the user holds, not the one that sounds right.
+The roles debate the vision you bring back, so get the one the user holds, not the one that sounds right.
 
 1. **Hypothesize.** Write your read of the project in one sentence, plus your confidence in it (a percentage). Below ~70%, ask the user about what is missing first.
 2. **One question at a time, each with your guess attached.** The user corrects a wrong guess faster than they answer from scratch. Wait for the answer before the next question, since it often changes the next one.
@@ -38,19 +38,19 @@ The council debates the vision you bring back, so get the one the user holds, no
    - **Out of scope**: what v1 will not do. Always filled in: half of misalignment is silent disagreement about what is not being built.
 6. **Get an explicit yes.** "Sounds good", "sure" and "whatever you think" are not one: ask which line they would change, or offer two concrete options. Fold corrections in and restate.
 
-The confirmed restate is the council's decision context, and *Out of scope* is its fence. Each of its *Constraints* enters the council's framing as a constraint, `confirmed`, source "CEO, kickoff restate", with a lens (`business` or `tech`; the framing and the gate JSON require one). The Wildcard may contest one; it stays binding unless the CEO lifts it at the gate.
+The confirmed restate is the debate's decision context, and *Out of scope* is its fence. Each of its *Constraints* enters the debate's framing as a constraint, `confirmed`, source "the human, kickoff restate", with a lens (`business` or `tech`; the framing and the gate JSON require one). The Wildcard may contest one; it stays binding unless the human lifts it at the gate.
 
 ### 2. Scan
-Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools. The intended stack is not in the profile yet: step 6 adds it from the council's conclusions.
+Run `team-scan` on the target directory. On an empty directory it still detects globally available skills, agents, and MCP tools. The intended stack is not in the profile yet: step 6 adds it from the roles' conclusions.
 
-### 3. Council on the vision
-Invoke `team-council` with the confirmed restate as its framing and decision context (the user already said yes to it, so skip the council's framing questions), with every role seated and at two-round depth: a vision is open and not cheap to reverse. The roles debate the shape of the project — scope, architecture direction, the initial structure (repo layout, packages or modules, folder conventions; `team-protocol` § *Structural choices*), UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the council through its synthesis but **skip its CEO gate**: step 5 is the single gate for kickoff.
+### 3. Debate on the vision
+Invoke `team-debate` with the confirmed restate as its framing and decision context (the user already said yes to it, so skip the debate's framing questions), with every role seated and at two-round depth: a vision is open and not cheap to reverse. The roles debate the shape of the project — scope, architecture direction, the initial structure (repo layout, packages or modules, folder conventions; `team-protocol` § *Structural choices*), UX principles, first-principles soundness, and ambitious alternatives — before anything is committed. Run the debate through its synthesis but **skip its gate**: step 5 is the single gate for kickoff.
 
 ### 4. Synthesis → kickoff record
-The council's synthesizer writes its *Council Summary* (team-council's `templates.md` § *Synthesis*): the agreed vision, the initial scope, the technical and UX direction. Points it defers past v1 go to the kickoff record's *To revisit* (step 5), not to `tensions`. A gate writer (sonnet, ~15) then sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet. Copy `team-ceo-view`'s `contract.md` and `figures.md` into the run folder first (`team-protocol`); the writer draws by `figures.md` and builds the page by `contract.md` and the mapping in step 5.
+The debate's synthesizer writes its *Debate Summary* (team-debate's `templates.md` § *Synthesis*): the agreed vision, the initial scope, the technical and UX direction. Points it defers past v1 go to the kickoff record's *To revisit* (step 5), not to `tensions`. A gate writer (sonnet, ~15) then sketches v1 into `.council/gates/YYYY-MM-DD-kickoff/`: the `system` view (components, data flow, external services) and, if the project has a UI, the `ui` view (a wireframe of the core screen). Both are `after` only, since nothing exists yet. Copy `team-view`'s `contract.md` and `figures.md` into the run folder first (`team-protocol`); the writer draws by `figures.md` and builds the page by `contract.md` and the mapping in step 5.
 
-### 5. CEO approval
-A record writer (sonnet, ~8) writes the kickoff record to `.council/decisions/YYYY-MM-DD-kickoff.md` in team-council's *Decision record* shape (its `templates.md` § *Decision record*, copied in the council's run folder), so `team-council-plan` reads it like any decision:
+### 5. Human approval
+A record writer (sonnet, ~8) writes the kickoff record to `.council/decisions/YYYY-MM-DD-kickoff.md` in team-debate's *Decision record* shape (its `templates.md` § *Decision record*, copied in the debate's run folder), so `team-plan` reads it like any decision:
 
 ```markdown
 # Kickoff — <project>
@@ -72,44 +72,44 @@ Status: draft
 [The confirmed restate's line]
 
 ## Constraints
-[In team-council's record shape (`bridge.md`): id, lens, text, source, status; the restate's first (source "CEO, kickoff restate"), then those the council added; one the CEO lifted as "K<n> lifted by the CEO, <their words>"]
+[In team-debate's record shape (`bridge.md`): id, lens, text, source, status; the restate's first (source "the human, kickoff restate"), then those the roles added; one the human lifted as "K<n> lifted by the human, <their words>"]
 
 ## Out of scope
 [The confirmed restate's line]
 
-## Council Summary
-[The council's synthesis, as written]
+## Debate Summary
+[The debate's synthesis, as written]
 
 ## Accepted trade-offs
-[The costs of each direction choice the CEO took, with who accepted them and the condition to revisit them]
+[The costs of each direction choice the human took, with who accepted them and the condition to revisit them]
 
 ## To revisit
-[Points the council defers past v1, and its dissenting views worth noting: what, who raised it, what would reopen it. A choice with no majority goes to `tensions`, not here]
+[Points the roles defer past v1, and its dissenting views worth noting: what, who raised it, what would reopen it. A choice with no majority goes to `tensions`, not here]
 
-## CEO decisions
-[Each gate item with its choice and the CEO's note]
+## Human decisions
+[Each gate item with its choice and the human's note]
 ```
 
-**REQUIRED SUB-SKILL:** use `team-ceo-view` (`kind: "kickoff"`, `source` = the kickoff record); the gate writer builds and renders the page. Map it like this:
+**REQUIRED SUB-SKILL:** use `team-view` (`kind: "kickoff"`, `source` = the kickoff record); the gate writer builds and renders the page. Map it like this:
 - `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
-- `settled`: what the restate and the council settled without the CEO.
+- `settled`: what the restate and the roles settled without the human.
 - **Constraints**: onto the cards they bind (`contract.md` § *Bridge fields*), never page level.
 - `outcome`: the v1 sketches from step 4.
 - **Each scope item**: a routine decision with options *In v1 / Later / Out*, and `"lens": "business"`.
-- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the council's alternatives, with the majority's option marked and the roles' arguments in `for`/`against`. Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).
-- **The initial structure**: always on the page, as a direction choice like the ones above (or a tension), so the scaffolding workflow builds a layout the CEO chose instead of inventing one.
+- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the roles' alternatives, with the majority's option marked and the roles' arguments in `for`/`against`. Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).
+- **The initial structure**: always on the page, as a direction choice like the ones above (or a tension), so the scaffolding workflow builds a layout the human chose instead of inventing one.
 - `tensions`: direction choices with no majority, by `counting.md`. *To revisit* stays in the kickoff record, off the page.
 
-Iterate: notes or changed choices → the record writer revises the kickoff record, the gate writer re-renders. The CEO is satisfied when a decisions block comes back with nothing to revise; the record writer then sets `Status: decided YYYY-MM-DD` on the kickoff record.
+Iterate: notes or changed choices → the record writer revises the kickoff record, the gate writer re-renders. The human is satisfied when a decisions block comes back with nothing to revise; the record writer then sets `Status: decided YYYY-MM-DD` on the kickoff record.
 
 ### 6. Write foundations
 A foundations writer (sonnet, ~10) writes both, from the kickoff record and the scan's profile:
-- `.council/project-profile.md` — the profile (from team-scan, enriched by the council's conclusions about intended stack and conventions).
-- `CLAUDE.md` — initial project instructions: quality gates, design context, principles, conventions the council agreed on.
+- `.council/project-profile.md` — the profile (from team-scan, enriched by the roles' conclusions about intended stack and conventions).
+- `CLAUDE.md` — initial project instructions: quality gates, design context, principles, conventions the roles agreed on.
 
 ### 7. Hand off
-Delete the council's run folder (its own handoff was skipped with its gate), then hand off (`team-protocol`) to the project's setup/scaffolding workflow, or to `team-council-plan` on the kickoff record if the next step is planning the first milestone.
+Delete the debate's run folder (its own handoff was skipped with its gate), then hand off (`team-protocol`) to the project's setup/scaffolding workflow, or to `team-plan` on the kickoff record if the next step is planning the first milestone.
 
 ## Notes
-- team-kickoff is the only council skill that expects to run before code exists; the others assume a project.
+- team-kickoff is the only skill that expects to run before code exists; the others assume a project.
 - Everything it writes is a starting point: `team-scan` re-runs as the project matures.

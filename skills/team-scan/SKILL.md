@@ -1,11 +1,11 @@
 ---
 name: team-scan
-description: Use before the first team-council, team-council-plan, team-kickoff, team-refactor or team-review run in a project, when `.council/project-profile.md` is missing, or when the stack, conventions, installed skills or agents have changed since the profile was written.
+description: Use before the first team-debate, team-plan, team-kickoff, team-refactor or team-review run in a project, when `.council/project-profile.md` is missing, or when the stack, conventions, installed skills or agents have changed since the profile was written.
 ---
 
 # team-scan
 
-Produces the project profile that every council skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes`, `## Environment limits`, `## Run preferences` and a user-corrected `## Expected load`, which it keeps (see *Procedure*); git tracks history.
+Produces the project profile that every team-* skill reads. Run it once per project, again when the stack, conventions or skills change. Re-running overwrites `.council/project-profile.md`, except its `## Constraints`, `## Known flakes`, `## Environment limits`, `## Run preferences` and a user-corrected `## Expected load`, which it keeps (see *Procedure*); git tracks history.
 
 ## What to detect
 
@@ -18,11 +18,11 @@ Produces the project profile that every council skill reads. Run it once per pro
    - **Project-specific**: agents, MCP servers and skills that only make sense for this project (a database MCP, a deploy skill)
 
    Leave out what fits no domain (document formats, config helpers). The `team-*` skills and agents are not specialists.
-4. **Other models** — `codex` and `gemini` on PATH (`command -v`), with `--version`. Detect only: never send them a prompt here. The council's off-model seat (`team-protocol`) uses what you find.
+4. **Other models** — `codex` and `gemini` on PATH (`command -v`), with `--version`. Detect only: never send them a prompt here. The debate's off-model seat (`team-protocol`) uses what you find.
 5. **Project phase** — git history depth, existing plans (signal 9), maturity signals.
-6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Council decisions under `.council/decisions/`.
+6. **Decision records** — an existing folder of architecture decisions (`docs/adr/`, `docs/decisions/`, `doc/architecture/decisions/`, or the path in `.adr-dir`): its format (MADR, Nygard, adr-tools), numbering and headings. Debate decisions under `.council/decisions/`.
 7. **Team preferences** — memory files, feedback patterns, design docs, and a standing answer on the off-model seat if the user gave one.
-8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a council record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
+8. **Standing constraints** — the `tech` rules later work must not break (`team-protocol` § *Bridge*): dependency directions and import rules, public contracts, folder conventions, stated in `CLAUDE.md` or `AGENTS.md`, or recorded in the decision records (a debate record's `## Constraints`, the project's ADRs). Only rules that pass "what happens if we break it?"; a style preference is not one.
 9. **Run preferences** — `Commit records: no` when `git check-ignore -q .council/decisions/x` succeeds (source: the `.gitignore` line it prints with `-v`). `Plan location`: a folder that already holds plans (`docs/plans/`, `docs/superpowers/plans/`, or one `CLAUDE.md` names; source: that folder), else `.council/plans/` (source: `default`), so a plan never opens a new folder beside a gitignored `.council/`. The other lines come from the user's answers during runs, never from a guess.
 10. **Expected load** — who runs the code and how many at once: one person running a script or CLI, one server process, or several instances or workers sharing a store, with data sizes where stated. Read the README, the deploy config (Dockerfile, compose, Kubernetes replicas, Procfile, serverless config, queue workers, cron) and the CI. The reviewers judge races and scale against it. Nothing states it → your best read, marked `assumed`.
 11. **Machine tools** — `crapper`, `dryer`, `ast-grep`, `gitleaks` and `osv-scanner`, each by `command -v` and a probe that must succeed: `ast-grep`, `gitleaks` and `osv-scanner` by `--version`; `crapper` and `dryer` have no version command, so by `--help` exiting 0, and are named without a version. Nothing else runs; team-scan records only. A tool that is not on PATH is `not found`; one on PATH whose probe fails is `failing`. A failing tool still counts as absent for use, and is named apart from one never installed only in the summary line, never in the profile. The profile line lists found tools only, as a hint; each seat re-checks. The run recipes sit in `machine-tools.md`, not here. Sources, cited in the summary for a tool not found or failing:
@@ -83,10 +83,10 @@ One line; reviewers judge races and scale against it:
 
 ## Decision Records
 - The project's own: location, format, numbering (e.g. "docs/adr/, MADR, NNNN-title.md"), or "none"
-- Council decisions: count and latest under .council/decisions/
+- Debate decisions: count and latest under .council/decisions/
 
 ## Team Preferences
-- Memory/feedback/design-doc signals worth carrying into council debates
+- Memory/feedback/design-doc signals worth carrying into debates
 - Off-model seat: yes | no | ask (default: ask)
 
 ## Constraints
@@ -116,9 +116,9 @@ Standing answers to questions a run would otherwise ask every time; a run follow
 A project checked out as one worktree per branch, with `.council/` gitignored, holds a profile in some worktrees and none in the others. Before scanning a worktree without one, list the others (`git -C <worktree> worktree list --porcelain`) and copy the newest `.council/project-profile.md` among them (`ls -t <each path>/.council/project-profile.md`), with its `.council/role-overrides/` if present, in one Bash call. Say so in one line (`profile copied from <worktree>`). It stands as this worktree's profile: scan only when no sibling has one, or the user asks.
 
 ## Notes
-- Keep the profile to facts, one line each: it is injected into every council agent's context.
-- If a domain has no specialist, write "none"; the council still runs.
-- `## Constraints` also grows at plan approval (`team-council-plan` appends the new `tech` constraints), and is read by every council framing, the plan reviewers and the gate writers. A constraint lifted at a gate is marked `lifted by <record path>`, never deleted.
+- Keep the profile to facts, one line each: it is injected into every agent's context.
+- If a domain has no specialist, write "none"; the debate still runs.
+- `## Constraints` also grows at plan approval (`team-plan` appends the new `tech` constraints), and is read by every debate framing, the plan reviewers and the gate writers. A constraint lifted at a gate is marked `lifted by <record path>`, never deleted.
 - `## Known flakes` grows at each team-review or team-refactor gate: the record writer appends the flakes its Recon saw. Remove a line only when its test is fixed.
 - `## Run preferences` grows when a run asks one of its questions: the orchestrator writes the user's answer as the line, source `the user, <date>`. A line changes only when the user says otherwise. team-scan never writes the `Dependency scan` line itself: the orchestrator asks and records it before Recon, by `machine-tools.md`, and the line is changed by editing it.
 - The `Machine tools` line lists the found tools with versions (`crapper (no version)` for one without a version command, e.g. `gitleaks 8.30.1, ast-grep 0.51.1, crapper (no version)`), or `none found` when no tool answered its probe; it never names a tool not found or failing (that split is the summary line's only), and never says how to get a tool.
