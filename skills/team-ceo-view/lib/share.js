@@ -41,6 +41,11 @@ function readPreset(file, items, errors) {
       entry.choice = value;
     }
     if (note) entry.note = note;
+    // A finding left as is reaches the reader: it goes with its reason (the page's Share button asks the same).
+    const opt = it.options.find(o => o.value === entry.choice);
+    if (it.kind === 'decision' && opt && opt.negative && !(note && note.trim())) {
+      errors.push(`preset: "${id}" is left as is with no note — its reader sees it: say why in a note`);
+    }
     if (entry.choice || entry.note) out[id] = entry;
   });
   return out;

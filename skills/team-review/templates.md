@@ -41,6 +41,7 @@ At most 5 cards: the cap forces prioritization. Then a *For team-refactor* list 
 - **Severity.** `blocker`: merging it loses money or data, opens a hole, or breaks a main path at the brief's *Expected load*. `major`: wrong behavior on a real path, a swallowed error, new logic with no test. `minor`: names, conventions, a cost with no hot path at that load.
 - **Diff scope.** A caller the diff breaks is a card, `In diff: reach`, with the broken caller in its heading. A defect the diff did not cause is one line under *Not raised*, after *For team-refactor*, never a card.
 - **Author claims.** A line of the brief's *Author's note* explains a choice; it refutes nothing. When your scenario still breaks with the choice made, write the card and name the claim in its *Refutation*. When the choice already weighs your scenario (a trade-off it states, a gap it defers), one line under *Not raised*: `author choice: <the claim> — <the scenario it accepts>`.
+- **Questions.** A question you answered from the code, the ticket or the MR/PR: one line under *Not raised*, `answered: <question> — <answer> — <file:line or source>`; the verifier checks it. One only the author can answer (why a choice, which document, is this trade-off meant): `ask author: <question> — <what hangs on the answer> — <file:line or source>`. Never ask what the code answers.
 
 ## Intake cards (Recon, intake)
 
@@ -52,7 +53,7 @@ For `team-review <refactor record>…`, after the Review Brief: one Finding Card
 
 ## Verdict (verifier)
 
-One block per card in `{CARDS}`, in its order:
+One block per card in `{CARDS}`, then one per settled line (`ST-<n>`), in its order:
 
 ```markdown
 ### <card id>: CONFIRMED | REFUTED | UNSURE
@@ -64,6 +65,7 @@ One block per card in `{CARDS}`, in its order:
 - `CONFIRMED`: the refutation failed; name the scenario you traced or ran.
 - `REFUTED`: name what contradicts the card (the guard, the caller's contract, the type, the test, the framework behavior, the config), with `file:line` or the command's output.
 - `UNSURE`: neither. Say what would settle it.
+- **A settled line** (`ST-<n>`) is a claim about the code, not a defect: `CONFIRMED` when the code does what the line says; `REFUTED` when it does not, and *Found* says what it does instead, in one sentence the synthesis can use as the corrected line; `UNSURE` when neither, with what would settle it. An `author choice:` line is checked on its scenario: does the code accept what the line says it accepts?
 - Never a new finding, even one you are sure of.
 
 ## Synthesis (synthesizer)
@@ -93,9 +95,15 @@ verifier's verdict with its Checked, Found and Scenario lines, and its
 ### Refuted
 [<card id> — one line: what refuted it, from the verdict]
 
+### Questions for the author
+[Someone else's branch only: the seats' `ask author:` lines, merged when two ask the same, each with its seat. Own branch or audit: they go under *Not raised*.]
+
+### Settled
+[The seats' `answered:` and `author choice:` lines, by their ST verdict: `CONFIRMED` as written; `REFUTED` rewritten from the verdict's *Found*, ending `— corrected by the verifier`; `UNSURE` as written, ending `— unverified: <what would settle it>`. Each with its seat.]
+
 ### Not raised
 [One line each: UNSURE cards (now med), low cards, findings over the cap,
-the seats' *Not raised* lines (defects the diff did not cause, `author choice:` lines)]
+the seats' other *Not raised* lines (defects the diff did not cause)]
 
 ### For team-refactor
 [The seats' lines merged, at most ~5, by `team-protocol` § *Lane hand-offs*]
@@ -108,6 +116,7 @@ the seats' *Not raised* lines (defects the diff did not cause, `author choice:` 
 - **Verdict.** **Not mergeable** if any confirmed blocker; **mergeable after fixes** if any confirmed major; else **mergeable**.
 - Copy the cards' fields; don't reword a scenario or re-rate a severity.
 - **Options.** End each finding with its `Options:` line, which the gate writer and, on an auto-accept run, the record writer take as written (`team-protocol` § *Auto-accept*). One fix: `Options: fix (default) | leave`. Two (`(a)` and `(b)` on its *Fix*): `fix-a` and `fix-b`, recommending the one that keeps the behavior and data from before the change (what the base branch accepted, a saved file that still loads), e.g. `Options: fix-b (recommended: keeps 7/32 imports) | fix-a | leave`. When neither keeps them, or both do, recommend none and say why: the human picks, and auto-accept asks. A finding that contradicts what the intent, the author's note or the human stated also gets `Tags: corrects <premise>`.
+- **Settled lines.** Take each settled line from the `## Settled lines` part of `<run folder>/cards.md`, never by recounting the seat files: its `ST-<n>` block carries the line and its seat, and its verdict has the same id. A typed line in a seat's *Not raised* with no `ST` block (written in a form `cards.sh` did not recognise) goes to *Settled* ending `— unverified: not checked`. A refuted `author choice:` that turns out to hide a defect is not a new finding: the verifier never proposes one; it goes to *Settled* corrected, and the human reopens it if it matters.
 
 ## Gate page (gate writer)
 
@@ -119,7 +128,8 @@ Build the page by `team-ceo-view`'s `contract.md`, from the synthesis, `kind: "r
 - `after` from the finding's `Needs:` line.
 - `suggestion`: the card's `Replacement:` line, copied.
 - Threads: every finding whose line is in the diff gets its own.
-- `settled`: author-intent questions on someone else's branch, `who` the seat, `answer` "asked the author"; each *Not raised* `author choice:` line, `who` the seat, `answer` the claim and the scenario it accepts.
+- `questions`: the synthesis's *Questions for the author*, `title` the question, `why` what hangs on the answer, `source` its location or source, `who` the seat. None on your own branch or an audit.
+- `settled`: the synthesis's *Settled* lines, `answer` the answer or, for an author choice, the claim and the scenario it accepts. `who` the seat, `<seat>, corrected by the verifier` for a corrected line. An unverified or unchecked line gets `unverified`: what would settle it, or `not checked by the verifier`; never an ending on `answer`, whose 160-character cap would cut it. The page, the shared prompt and the posted review list such a line apart from the checked ones.
 - Refuted cards stay off the page: the record lists them.
 
 Write the share fields by `contract.md` § *Share fields* on every review gate, whoever owns the branch. The record does not exist yet: the synthesis stands in for the review record that section says to read first. The fix briefs feed the exec brief too, so write each one for an executor who never sees the page. Render the page until it passes.
@@ -127,7 +137,7 @@ Write the share fields by `contract.md` § *Share fields* on every review gate, 
 ## Record and exec brief (record writer)
 
 From the synthesis, the gate JSON's fix briefs, and the decisions block or the share block. On an auto-accept run with no page there is no gate JSON: take the human's chat answer where one was given, else each finding's default, else its recommended option, from its *Options* line, and write each Fix card from the finding's *Fix*.
-- **The record**, `.council/reviews/YYYY-MM-DD-<topic>.md`, for humans and future reviews: scope, owner, intent source, status, the synthesis's *Quality gates*, *Known flakes*, *Expected load* and *Security* lines, every finding with its verifier verdict and the human's decision and note, the refuted cards with what refuted them, *Not raised*, *For team-refactor*. For an audit, each finding left is known debt with its reason, so the next audit does not reopen it.
+- **The record**, `.council/reviews/YYYY-MM-DD-<topic>.md`, for humans and future reviews: scope, owner, intent source, status, the synthesis's *Quality gates*, *Known flakes*, *Expected load* and *Security* lines, every finding with its verifier verdict and the human's decision and note, the refuted cards with what refuted them, *Not raised*, *For team-refactor*. For an audit, each finding left is known debt with its reason, so the next audit does not reopen it. It lists the *Questions for the author* with each one's choice (asked or dropped, and the note), and the *Settled* lines as the synthesis wrote them.
   - Someone else's branch, or any shared gate: from the synthesis and the share block, the human's curation (declined findings with their notes) and the share line from `team-ceo-view`'s *Share*. `Status: shared`. No exec brief.
   - Own branch, audit: `Status: approved, not executed`. An auto-accept run adds *"Auto-accepted: every recommendation taken without opening the page"*.
 - **The exec brief**, `.council/reviews/YYYY-MM-DD-<topic>.exec.md`, by `team-protocol` § *Writers*: its header holds the synthesis's *Quality gates*, *Known flakes* and *Diff guard*; then one Fix card per approved finding, in order: blockers first, and a finding after any finding it `needs`. Each card comes from the finding's brief and the human's note.

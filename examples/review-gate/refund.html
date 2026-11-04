@@ -577,7 +577,7 @@ dialog.zoom p:empty { display: none; }
     <textarea id="out" readonly aria-label="Decisions to paste back"></textarea>
   </footer>
 </div>
-<script type="application/json" id="ceo-data">{"kind":"review","title":"Review — refund route (acme/shop !142)","date":"2026-10-14","source":".council/reviews/2026-10-14-refund-route.md","summary":[{"label":"Verdict","text":"Not mergeable: one confirmed blocker"},{"label":"Blockers","points":["SE-1: any logged-in user can refund any invoice"]},{"label":"Not raised","points":["med, unsure: the gateway may already reject a refund above the captured amount (CR-4)","outside the diff: src/routes/invoices.js has the same missing ownership check"]},{"label":"For team-refactor","points":["refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do"]},{"label":"Recommendation","points":["Request changes"]}],"outcome":[],"figures":[],"items":[{"kind":"decision","id":"SE-1","title":"Any logged-in user can refund any invoice","tags":["security","blocker"],"at":{"path":"src/routes/refunds.js","line":11},"detail":["`loadInvoice(req.params.id)` never compares `invoice.customerId` with `req.user.id`","Scenario: user A posts a refund on user B's invoice id and the gateway pays it out"],"why":"A missing ownership check on a money-moving route.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: check that the invoice belongs to the caller before refunding.\n**Where**: `src/routes/refunds.js`, the handler of `POST /invoices/:id/refund`, right after `loadInvoice`.\n**How**: first add a test: user B refunds user A's invoice and gets 404 (it gets 200 today, so it fails). Then, if `invoice.customerId !== req.user.id`, return the same 404 as for a missing invoice.\n**Leave alone**: the 404 body for a missing invoice.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): refuse refunds on invoices of other customers`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-1","title":"The refund cap ignores earlier refunds","tags":["correctness","major"],"at":{"path":"src/routes/refunds.js","line":17},"detail":["`amount > invoice.paid` compares with the whole paid amount","Scenario: 100 paid, 60 refunded; a second refund of 100 passes the check"],"why":"Refunds can add up to more than was paid.","suggestion":{"lines":1,"text":"  if (amount > invoice.paid - invoice.refunded) {"},"options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: cap a refund at what is still refundable.\n**Where**: `src/routes/refunds.js`, the `if (amount > invoice.paid)` check.\n**How**: first add a test: 100 paid, 60 already refunded, a refund of 50 gets 400 (it gets 200 today, so it fails). Then compare with `invoice.paid - invoice.refunded`.\n**Leave alone**: refunding the full paid amount on an untouched invoice must still work.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): cap a refund at paid minus already refunded`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-2","title":"A gateway failure is answered 200","tags":["error handling","major"],"at":{"path":"src/routes/refunds.js","line":31},"detail":["`catch (e) { log.warn(e.message) }` swallows the error and the handler goes on to `res.status(200).json({ ok: true })`","Scenario: the gateway times out; the customer sees \"ok\" and no money moves"],"why":"The caller is told the refund worked when it did not.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: answer with an error when the gateway call fails.\n**Where**: `src/routes/refunds.js`, the `catch` block of the `try` around `gateway.refund`.\n**How**: first add a test: the stubbed gateway throws, the response is 502 with `{ error: 'refund failed' }` (it is 200 today, so it fails). Then log with `log.error` and return `res.status(502).json({ error: 'refund failed' })` from the `catch`.\n**Leave alone**: the success path.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): answer 502 when the gateway refund fails`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"IN-1","title":"No test for a partial refund","tags":["tests","major"],"at":{"path":"test/routes/refunds.test.js","line":6},"detail":["The only test refunds the full paid amount","Neither a partial refund nor a second refund is covered, which is how CR-1 got through"],"why":"The refund rule has one test and it is the easy case.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: add the partial-refund test.\n**Where**: `test/routes/refunds.test.js`, next to the full-refund test.\n**How**: add `refunds part of the paid amount`: seed an invoice with `paid: 100, refunded: 0`, stub the gateway, post `{ amount: 40 }`, expect 200 and `refunded` equal to 40 after `invoice.reload()`.\n**Leave alone**: the full-refund test.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `test(refunds): cover a partial refund`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CF-1","title":"`data` names a refund receipt","tags":["conventions","minor"],"minor":true,"default":"fix","at":{"path":"src/routes/refunds.js","line":22},"detail":"The rest of the codebase calls a gateway result by what it is (`charge`, `payout`); `data` says nothing.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: rename `data` to `receipt`.\n**Where**: `src/routes/refunds.js`, its declaration (`const data = await gateway.refund(`) and its one use, `data.id`.\n**Verify**: `npm test`, all green.\n**Commit**: `refactor(refunds): rename data to receipt`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-3","title":"`amount` may be a string","tags":["correctness","major"],"at":{"path":"src/routes/refunds.js","line":16},"detail":["`req.body.amount` is compared with `invoice.paid` without a cast","Declined by the reviewer: false positive, `validateRefund` already coerces it to a number"],"why":"Looked like a string comparison; the validator middleware prevents it.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: cast `amount` to a number.\n**Where**: `src/routes/refunds.js`, `const amount = req.body.amount`.\n**How**: wrap it in `Number(...)`.\n**Verify**: `npm test`, all green.\n**Commit**: `fix(refunds): cast amount to a number`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]}],"_rev":"766954105da4"}</script>
+<script type="application/json" id="ceo-data">{"kind":"review","title":"Review — refund route (acme/shop !142)","date":"2026-10-14","source":".council/reviews/2026-10-14-refund-route.md","summary":[{"label":"Verdict","text":"Not mergeable: one confirmed blocker"},{"label":"Blockers","points":["SE-1: any logged-in user can refund any invoice"]},{"label":"Not raised","points":["med, unsure: the gateway may already reject a refund above the captured amount (CR-4)","outside the diff: src/routes/invoices.js has the same missing ownership check"]},{"label":"For team-refactor","points":["refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do"]},{"label":"Recommendation","points":["Request changes"]}],"outcome":[],"figures":[],"items":[{"kind":"decision","id":"SE-1","title":"Any logged-in user can refund any invoice","tags":["security","blocker"],"at":{"path":"src/routes/refunds.js","line":11},"detail":["`loadInvoice(req.params.id)` never compares `invoice.customerId` with `req.user.id`","Scenario: user A posts a refund on user B's invoice id and the gateway pays it out"],"why":"A missing ownership check on a money-moving route.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: check that the invoice belongs to the caller before refunding.\n**Where**: `src/routes/refunds.js`, the handler of `POST /invoices/:id/refund`, right after `loadInvoice`.\n**How**: first add a test: user B refunds user A's invoice and gets 404 (it gets 200 today, so it fails). Then, if `invoice.customerId !== req.user.id`, return the same 404 as for a missing invoice.\n**Leave alone**: the 404 body for a missing invoice.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): refuse refunds on invoices of other customers`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-1","title":"The refund cap ignores earlier refunds","tags":["correctness","major"],"at":{"path":"src/routes/refunds.js","line":17},"detail":["`amount > invoice.paid` compares with the whole paid amount","Scenario: 100 paid, 60 refunded; a second refund of 100 passes the check"],"why":"Refunds can add up to more than was paid.","suggestion":{"lines":1,"text":"  if (amount > invoice.paid - invoice.refunded) {"},"options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: cap a refund at what is still refundable.\n**Where**: `src/routes/refunds.js`, the `if (amount > invoice.paid)` check.\n**How**: first add a test: 100 paid, 60 already refunded, a refund of 50 gets 400 (it gets 200 today, so it fails). Then compare with `invoice.paid - invoice.refunded`.\n**Leave alone**: refunding the full paid amount on an untouched invoice must still work.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): cap a refund at paid minus already refunded`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-2","title":"A gateway failure is answered 200","tags":["error handling","major"],"at":{"path":"src/routes/refunds.js","line":31},"detail":["`catch (e) { log.warn(e.message) }` swallows the error and the handler goes on to `res.status(200).json({ ok: true })`","Scenario: the gateway times out; the customer sees \"ok\" and no money moves"],"why":"The caller is told the refund worked when it did not.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: answer with an error when the gateway call fails.\n**Where**: `src/routes/refunds.js`, the `catch` block of the `try` around `gateway.refund`.\n**How**: first add a test: the stubbed gateway throws, the response is 502 with `{ error: 'refund failed' }` (it is 200 today, so it fails). Then log with `log.error` and return `res.status(502).json({ error: 'refund failed' })` from the `catch`.\n**Leave alone**: the success path.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `fix(refunds): answer 502 when the gateway refund fails`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"IN-1","title":"No test for a partial refund","tags":["tests","major"],"at":{"path":"test/routes/refunds.test.js","line":6},"detail":["The only test refunds the full paid amount","Neither a partial refund nor a second refund is covered, which is how CR-1 got through"],"why":"The refund rule has one test and it is the easy case.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: add the partial-refund test.\n**Where**: `test/routes/refunds.test.js`, next to the full-refund test.\n**How**: add `refunds part of the paid amount`: seed an invoice with `paid: 100, refunded: 0`, stub the gateway, post `{ amount: 40 }`, expect 200 and `refunded` equal to 40 after `invoice.reload()`.\n**Leave alone**: the full-refund test.\n**Verify**: `npm test`, 58 green plus the new test.\n**Commit**: `test(refunds): cover a partial refund`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CF-1","title":"`data` names a refund receipt","tags":["conventions","minor"],"minor":true,"default":"fix","at":{"path":"src/routes/refunds.js","line":22},"detail":"The rest of the codebase calls a gateway result by what it is (`charge`, `payout`); `data` says nothing.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: rename `data` to `receipt`.\n**Where**: `src/routes/refunds.js`, its declaration (`const data = await gateway.refund(`) and its one use, `data.id`.\n**Verify**: `npm test`, all green.\n**Commit**: `refactor(refunds): rename data to receipt`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"kind":"decision","id":"CR-3","title":"`amount` may be a string","tags":["correctness","major"],"at":{"path":"src/routes/refunds.js","line":16},"detail":["`req.body.amount` is compared with `invoice.paid` without a cast","Declined by the reviewer: false positive, `validateRefund` already coerces it to a number"],"why":"Looked like a string comparison; the validator middleware prevents it.","options":[{"value":"fix","label":"Fix","recommended":true,"brief":"**What**: cast `amount` to a number.\n**Where**: `src/routes/refunds.js`, `const amount = req.body.amount`.\n**How**: wrap it in `Number(...)`.\n**Verify**: `npm test`, all green.\n**Commit**: `fix(refunds): cast amount to a number`"},{"value":"leave","label":"Leave","negative":true}],"figures":[]},{"id":"A1","title":"May a manager refund over the cap?","why":"CR-1's fix rejects any refund over the invoice total; an override for managers would change the error it returns.","source":"src/routes/refunds.js:17","who":"Intent","kind":"question","group":"Questions for the author","options":[{"value":"ask","label":"Ask the author","recommended":true},{"value":"drop","label":"Drop","negative":true}],"default":"ask","figures":[]}],"_rev":"83d23f27b893"}</script>
 <script>
 (function () {
   var data = JSON.parse(document.getElementById('ceo-data').textContent);
@@ -870,6 +870,7 @@ dialog.zoom p:empty { display: none; }
   function home(it) { return it.block ? byIdx[it.block] : it; }
   items.filter(function (it) { return home(it).kind === 'decision' && !home(it).minor; }).forEach(function (it) { sectionFor(home(it).group || 'Decisions', false).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'tension'; }).forEach(function (it) { sectionFor('Tensions', false).items.push(it); });
+  items.filter(function (it) { return home(it).kind === 'question'; }).forEach(function (it) { sectionFor('Questions for the author', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'decision' && home(it).minor; }).forEach(function (it) { sectionFor('Minor items', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'settled'; }).forEach(function (it) { sectionFor('Settled without you', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
@@ -1005,7 +1006,7 @@ dialog.zoom p:empty { display: none; }
   var list = el('div', 'list'); side.appendChild(list);
   var empty = el('div', 'empty', 'No item matches these filters.'); empty.hidden = true; side.appendChild(empty);
   var chipsById = {}, rowParts = {}, sumRow = null;
-  var PAST = { approve: 'Approved', decline: 'Declined', fix: 'Fix', leave: 'Leave as is', 'keep-rejected': 'Stays rejected', revive: 'Revived', ok: 'Settled', reopen: 'Reopened', defer: 'Deferred' };
+  var PAST = { approve: 'Approved', decline: 'Declined', fix: 'Fix', leave: 'Leave as is', 'keep-rejected': 'Stays rejected', revive: 'Revived', ok: 'Settled', reopen: 'Reopened', defer: 'Deferred', ask: 'To ask', drop: 'Dropped' };
   function word(o) { return PAST[o.value] || o.label.replace(/^Side with /i, 'Sides with '); }
   function sevOf(it) { return (it.tags || []).filter(function (t) { return /^(blocker|major|minor)$/.test(t); })[0]; }
   function relWord(it) {
@@ -1194,7 +1195,7 @@ dialog.zoom p:empty { display: none; }
     if (dl) r.appendChild(el('span', 'md ' + dc, dl));
     return r;
   }
-  var KIND_NAME = { decision: data.kind === 'review' ? 'Finding' : 'Decision', tension: 'Tension', settled: 'Settled without you', rejected: 'Considered and rejected' };
+  var KIND_NAME = { decision: data.kind === 'review' ? 'Finding' : 'Decision', tension: 'Tension', question: 'Question for the author', settled: 'Settled without you', rejected: 'Considered and rejected' };
   function card(it) {
     var c = el('article', 'card'); c.id = 'd-' + it.id;
     var main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll'), ev = el('section', 'c-ev panel');
@@ -1240,6 +1241,13 @@ dialog.zoom p:empty { display: none; }
         if (it.source) fb.appendChild(el('code', null, it.source));
         sb.appendChild(fb);
       }
+      if (it.unverified) sb.appendChild(el('p', 'found muted', 'Not verified: ' + it.unverified));
+    }
+    // A question: who asks it and about what. The reviewer sends it or drops it; the author answers.
+    if (it.kind === 'question' && (it.who || it.source)) {
+      var qa = el('p', 'found muted'); qa.appendChild(document.createTextNode('Asked by ' + (it.who || 'the team') + (it.source ? ', about ' : '')));
+      if (it.source) qa.appendChild(el('code', null, it.source));
+      body.appendChild(qa);
     }
     if (it.why) {
       var why = it.kind === 'rejected' && typeof it.why === 'string' ? it.why.replace(/^Rejected because:\s*/, '') : it.why;
@@ -1875,6 +1883,9 @@ dialog.zoom p:empty { display: none; }
     en: { todo: 'To do', stake: 'What\'s at stake:', choice: 'Choice: ', left: 'Left as is', none: 'Nothing.',
       leftRule: 'Reviewed and left on purpose: don\'t change them in passing.', reason: 'Reason: ',
       checked: 'Already checked', checkedRule: 'Checked during the review: don\'t redo or reopen them unless the code contradicts them.',
+      asked: 'Questions from the reviewer', askedRule: 'The reviewer asks the branch\'s author these: show them to me before you start, and don\'t answer them for me.',
+      questions: 'Questions for the author', questionsHowTo: 'Answer them in a reply on the merge/pull request.',
+      unverified: 'Not verified', unverifiedRule: 'The review could not confirm these: check the one you rely on before you rely on it.',
       after1: 'Comes after %s, which you did not choose: ask me before doing it without it.', afterN: 'Comes after %s, which you did not choose: ask me before doing it without them.',
       revived: 'Revived — propose first', revivedRule: 'Do not do these yet: propose each one to me first (scope, size, risk) and wait for my answer.',
       open: 'Undecided — ask me first', openRule: 'Ask me before touching any of these.',
@@ -1890,6 +1901,9 @@ dialog.zoom p:empty { display: none; }
     fr: { todo: 'À faire', stake: 'Enjeu :', choice: 'Choix : ', left: 'Laissé tel quel', none: 'Rien.',
       leftRule: 'Relus et laissés exprès : ne les « corrige » pas au passage.', reason: 'Raison : ',
       checked: 'Déjà vérifié', checkedRule: 'Vérifiés pendant la revue : ne les refais pas et ne les rouvre pas, sauf si le code les contredit.',
+      asked: 'Questions du relecteur', askedRule: 'Le relecteur pose ces questions à l\'auteur de la branche : montre-les-moi avant de commencer, et n\'y réponds pas à ma place.',
+      questions: 'Questions pour l\'auteur', questionsHowTo: 'Réponds-y dans une réponse sur la merge/pull request.',
+      unverified: 'Non vérifié', unverifiedRule: 'La revue n\'a pas pu les confirmer : vérifie celui sur lequel tu t\'appuies avant de t\'appuyer dessus.',
       after1: 'Vient après %s, que tu n\'as pas retenu : demande-moi avant de le faire sans.', afterN: 'Vient après %s, que tu n\'as pas retenus : demande-moi avant de le faire sans.',
       revived: 'Idées rejetées relancées — propose d\'abord', revivedRule: 'Ne les fais pas encore : propose-les-moi d\'abord (périmètre, taille, risque) et attends ma réponse.',
       open: 'Non tranché — demande-moi d\'abord', openRule: 'Demande-moi avant de toucher à l\'un de ces points.',
@@ -1947,7 +1961,21 @@ dialog.zoom p:empty { display: none; }
       return !(dep.options || []).some(function (o) { return o.value === c && !o.negative; });
     });
   }
+  // The findings left as is with no note: shared, their reader would see them with no reason. Decisions only:
+  // a tension's sides carry their own case, and settled items and questions are not findings.
+  function leftWithoutNote(items, state) {
+    return items.filter(function (it) {
+      if (it.kind !== 'decision' || mootBy(it, items, state)) return false;
+      var s = state[it.id] || {}, opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
+      return !!(opt && opt.negative) && !(s.note && s.note.trim());
+    }).map(function (it) { return it.id; });
+  }
   // A card's heading: its title, then its "why", so the reader's agent knows what the fix protects.
+  // A "why" on one line: bullets and lines joined with "; ".
+  function oneLine(w) {
+    var parts = Array.isArray(w) ? w : String(w).split('\n').map(function (l) { return l.replace(/^\s*[-•]\s+/, ''); });
+    return parts.map(function (p) { return String(p).trim(); }).filter(Boolean).join('; ');
+  }
   function headLines(it, t) {
     var head = ['### ' + it.id + ' — ' + it.title], w = it.why;
     if (w == null || w === '') return head;
@@ -1957,19 +1985,19 @@ dialog.zoom p:empty { display: none; }
   }
   function buildPrompt(data, items, state) {
     var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
-    var todo = [], left = [], checked = [], revived = [], open = [], notes = [];
+    var todo = [], left = [], checked = [], unverified = [], asked = [], revived = [], open = [], notes = [];
     function line(it, extra) { return '- ' + it.id + ' — ' + it.title + (extra ? ' (' + extra + ')' : ''); }
     function custom(it) { var o = it.options || []; return !(o.length === 2 && o[0].value === 'approve' && o[1].value === 'decline'); }
-    // A "why" on one line: bullets and lines joined with "; ".
-    function oneLine(w) {
-      var parts = Array.isArray(w) ? w : String(w).split('\n').map(function (l) { return l.replace(/^\s*[-•]\s+/, ''); });
-      return parts.map(function (p) { return String(p).trim(); }).filter(Boolean).join('; ');
-    }
     items.forEach(function (it) {
       var s = state[it.id] || {};
       var opt = (it.options || []).filter(function (o) { return o.value === s.choice; })[0];
       if (mootBy(it, items, state)) return;
       var note = s.note && s.note.trim() ? s.note.trim().replace(/\s+/g, ' ') : '';
+      // A question goes to the author unless the reviewer drops it; its note travels with it.
+      if (it.kind === 'question') {
+        if (s.choice !== 'drop') asked.push(line(it, it.source) + (it.why == null ? '' : '\n  ' + t.stake + ' ' + oneLine(it.why)) + (note ? '\n  ' + t.noteOnly + note : ''));
+        return;
+      }
       // A left item carries its note as its reason; every other note goes under "My notes".
       if (opt && opt.negative && it.kind !== 'settled' && it.kind !== 'rejected') {
         var l = [line(it, opt.label)], why = it.why == null ? '' : oneLine(it.why);
@@ -1981,6 +2009,8 @@ dialog.zoom p:empty { display: none; }
       if (note) notes.push('- ' + it.id + ': ' + note);
       if (it.kind === 'settled') {
         if (s.choice === 'reopen') open.push(line(it, it.answer));
+        // A line the verifier could not confirm is something to check, never something already checked.
+        else if (it.unverified) unverified.push('- ' + it.id + ' — ' + it.title + ' → ' + it.answer + (it.who ? ' (' + it.who + ')' : '') + ' — unverified: ' + it.unverified);
         else checked.push('- ' + it.id + ' — ' + it.title + ' → ' + it.answer + (it.who ? ' (' + it.who + ')' : ''));
         return;
       }
@@ -1996,11 +2026,14 @@ dialog.zoom p:empty { display: none; }
       block.push('', opt.brief || it.brief || '');
       todo.push(block.join('\n'));
     });
-    var out = [data.preamble || '', '', '## ' + t.todo, '', todo.length ? todo.join('\n\n') : t.none];
+    var out = [data.preamble || ''];
+    if (asked.length) out.push('', '## ' + t.asked, t.askedRule, asked.join('\n'));
+    out.push('', '## ' + t.todo, '', todo.length ? todo.join('\n\n') : t.none);
     if (left.length) out.push('', '## ' + t.left, t.leftRule, left.join('\n'));
     if (revived.length) out.push('', '## ' + t.revived, t.revivedRule, revived.join('\n'));
     if (open.length) out.push('', '## ' + t.open, t.openRule, open.join('\n'));
     if (checked.length) out.push('', '## ' + t.checked, t.checkedRule, checked.join('\n'));
+    if (unverified.length) out.push('', '## ' + t.unverified, t.unverifiedRule, unverified.join('\n'));
     if (notes.length) out.push('', '## ' + t.notes, notes.join('\n'));
     out.push('', '## ' + t.end, t.endText);
     return out.join('\n');
@@ -2062,17 +2095,36 @@ dialog.zoom p:empty { display: none; }
   // The review: { body, comments: [{ id, path, line, body }] }. inDiff(path, line) says whether a comment can sit on that line.
   function buildReview(data, items, state, inDiff, platform) {
     var t = PROMPT_TEXT[data.lang] || PROMPT_TEXT.en;
-    var comments = [], unanchored = [], minor = [], rejected = [], settled = [], reopened = [], nMajor = 0, nMinor = 0;
+    var comments = [], unanchored = [], minor = [], left = [], rejected = [], settled = [], unverifiedSettled = [], questions = [], reopened = [], nMajor = 0, nMinor = 0;
     items.forEach(function (it) {
+      if (it.kind === 'question') {
+        var qs = state[it.id] || {};
+        // The question, what it is about, what hangs on the answer, then the reviewer's note: the shape of a left line.
+        if (qs.choice !== 'drop') questions.push('- ' + it.id + ' — ' + it.title + (it.source ? ' — `' + it.source + '`' : '') +
+          (it.why == null ? '' : '\n  ' + t.stake + ' ' + oneLine(it.why)) +
+          (qs.note && qs.note.trim() ? '\n  ' + t.noteOnly + qs.note.trim().replace(/\s+/g, ' ') : ''));
+        return;
+      }
       if (it.kind === 'settled') {
         var st = state[it.id] || {};
         if (st.choice === 'reopen') reopened.push('- ' + it.id + ' — ' + it.title + (st.note && st.note.trim() ? ' — ' + st.note.trim().replace(/\s+/g, ' ') : ''));
+        else if (it.unverified) unverifiedSettled.push('- ' + it.id + ' — ' + it.title + ': ' + it.answer + ' (' + it.who + ') — unverified: ' + it.unverified);
         else settled.push('- ' + it.id + ' — ' + it.title + ': ' + it.answer + ' (' + it.who + ')');
         return;
       }
       if (it.kind === 'rejected') { rejected.push('- ' + it.id + ' — ' + it.title + (it.why ? ' (' + (Array.isArray(it.why) ? it.why.join('; ') : it.why) + ')' : '')); return; }
       var chosen = (it.options || []).filter(function (o) { return o.value === (state[it.id] || {}).choice; })[0];
-      if (data.kind === 'review' && chosen && chosen.negative) return; // the reviewer dropped it: not posted
+      // Left as is: no thread, one body line with its stakes and the note, so the author sees the argument.
+      if (chosen && chosen.negative && !mootBy(it, items, state)) {
+        // The option taken, as the prompt names it, unless it is the plain leave or decline the section already says.
+        var named = /^(leave|decline)$/.test(chosen.value) ? '' : ' (' + chosen.label + ')';
+        var ln = '- ' + it.id + ' — ' + it.title + named + (it.at ? ' — `' + it.at.path + ':' + it.at.line + '`' : '');
+        var lw = it.why == null ? '' : oneLine(it.why), lnote = (state[it.id] || {}).note;
+        if (lw) ln += '\n  ' + t.stake + ' ' + lw;
+        if (lnote && lnote.trim()) ln += '\n  ' + t.reason + lnote.trim().replace(/\s+/g, ' ');
+        left.push(ln);
+        return;
+      }
       if (mootBy(it, items, state)) return;
       if (it.minor) nMinor++; else nMajor++;
       // Every card whose line is in the diff gets its own thread, minor or not; the body keeps the rest.
@@ -2094,9 +2146,10 @@ dialog.zoom p:empty { display: none; }
       return '- **' + b.label + '**: ' + b.text;
     });
     if (sum.length) body.push(sum.join('\n'));
+    if (questions.length) body.push('### ' + t.questions + '\n' + t.questionsHowTo + '\n' + questions.join('\n'));
     body.push(t.howTo);
     body.push(t.counts.replace('%m', nMajor).replace('%k', nMinor));
-    [[t.notAnchored, unanchored, '\n\n'], [t.minor, minor, '\n\n'], [t.reopened, reopened, '\n'], [t.settled, settled, '\n'], [t.rejected, rejected, '\n']].forEach(function (sec) {
+    [[t.notAnchored, unanchored, '\n\n'], [t.minor, minor, '\n\n'], [t.left, left, '\n'], [t.reopened, reopened, '\n'], [t.settled, settled, '\n'], [t.unverified, unverifiedSettled, '\n'], [t.rejected, rejected, '\n']].forEach(function (sec) {
       if (sec[1].length) body.push('### ' + sec[0] + '\n' + sec[1].join(sec[2]));
     });
     return { body: body.join('\n\n'), comments: comments };
@@ -2224,6 +2277,14 @@ dialog.zoom p:empty { display: none; }
       post(output(), 'Sent. Claude has your decisions; you can close this tab.', 'Could not reach Claude. Use Copy decisions and paste instead.', send);
     });
     share.addEventListener('click', function () {
+      // A finding left as is reaches its reader: it goes with the reason, or it doesn't go.
+      var bare = leftWithoutNote(items, state);
+      if (bare.length) {
+        say('Say why you leave ' + bare.join(', ') + ' as is: its reader will see it. Write a note, then share.');
+        jump(bare[0]);
+        cards[bare[0]].note.focus();
+        return;
+      }
       picker = el('dialog', 'help share-picker');
       picker.appendChild(el('h3', null, 'Share this page'));
       var choices = shareChoices(data.channels), sel = shareDefault(choices), whereById = {};

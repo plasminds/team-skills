@@ -2,6 +2,13 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.22.0 — 2026-11-04
+
+- **Questions for the author.** A review on someone else's branch asks the author's questions as questions: their own page section (ask or drop), right after the verdict in the shared prompt and in the posted review. They no longer sit under *Settled*.
+- **Settled lines checked.** Seats type the questions they answered (`answered:`) beside `author choice:`; the verifier checks both. A refuted line is corrected, an unsure one marked unverified.
+- **Left as is, still shown.** A finding the reviewer leaves as is gets no thread, but the review body lists it with its stakes and the note. Share and `--preset` refuse one left without a note.
+- **Not verified, not checked.** A settled item can carry `unverified`; the shared prompt and review list it under *Not verified*, not with the lines the agent must not reopen.
+
 ## 0.21.1 — 2026-11-04
 
 - **A fuller shared prompt.** A finding left as is carries its stakes and the reviewer's note as its reason. Settled items are listed under *Already checked*. `--share` no longer asks settled items for a brief.

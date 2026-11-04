@@ -312,15 +312,27 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const where = `settled[${i}]`;
     if (!s.id || !s.title || !s.answer || !s.source || !s.who) errors.push(`${where} needs "id", "title", "answer", "source" and "who"`);
     else if (String(s.answer).length > MAX.why) errors.push(`${where} ("${s.id}").answer is ${String(s.answer).length} characters (max ${MAX.why})`);
+    // unverified: what would settle a line the verifier could not confirm, or never checked.
+    if (s.unverified != null && (typeof s.unverified !== 'string' || !s.unverified.trim())) errors.push(`${where} ("${s.id}").unverified must be a non-empty string`);
     const item = Object.assign({}, s, { kind: 'settled', group: 'Settled without you' });
     if (!item.options || !item.options.length) item.options = [{ value: 'ok', label: 'OK', recommended: true }, { value: 'reopen', label: 'Reopen' }];
     if (item.default == null) item.default = 'ok';
     items.push(finish(item, where));
   });
 
+  // Questions for the branch's author: a shared review asks them, unless the reviewer drops one.
+  (data.questions || []).forEach((q, i) => {
+    const where = `questions[${i}]`;
+    if (!q.id || !q.title || !q.source || !q.who) errors.push(`${where} needs "id", "title", "source" and "who"`);
+    const item = Object.assign({}, q, { kind: 'question', group: 'Questions for the author' });
+    if (!item.options || !item.options.length) item.options = [{ value: 'ask', label: 'Ask the author', recommended: true }, { value: 'drop', label: 'Drop', negative: true }];
+    if (item.default == null) item.default = 'ask';
+    items.push(finish(item, where));
+  });
+
   const ids = new Set();
   items.forEach(it => {
-    if (ids.has(it.id)) errors.push(`duplicate id "${it.id}" (ids must be unique across decisions, tensions, settled and rejected)`);
+    if (ids.has(it.id)) errors.push(`duplicate id "${it.id}" (ids must be unique across decisions, tensions, questions, settled and rejected)`);
     ids.add(it.id);
   });
   items.forEach(it => {
@@ -367,7 +379,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   // An item brief stands for one option that leads to work, never two: the evidence pane and the prompt
   // would pair one choice with the other's fix.
   items.forEach(it => {
-    if (!it.brief || it.kind === 'rejected' || it.kind === 'settled') return;
+    if (!it.brief || it.kind === 'rejected' || it.kind === 'settled' || it.kind === 'question') return;
     const work = it.options.filter(o => !o.negative);
     if (work.length > 1) work.forEach(o => {
       if (!o.brief) errors.push(`"${it.id}" option "${o.value}" has no brief of its own — with ${work.length} options that lead to work, each needs its own "brief"`);
@@ -387,8 +399,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       if (it.brief != null) texts.push([`${it.id}.brief`, it.brief]);
       it.options.forEach(o => {
         if (o.brief != null) texts.push([`${it.id}.options[${o.value}].brief`, o.brief]);
-        // A settled item leads to no work: OK lists it as checked, Reopen as an open question.
-        if (!o.negative && !o.brief && !it.brief && it.kind !== 'settled') {
+        // A settled item or a question leads to no work: the prompt lists it, it never runs.
+        if (!o.negative && !o.brief && !it.brief && it.kind !== 'settled' && it.kind !== 'question') {
           errors.push(`"${it.id}" option "${o.value}" leads to work but has no brief — set "brief" on the item or the option, or mark the option "negative": true`);
         }
       });

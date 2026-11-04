@@ -75,8 +75,8 @@ Checked by hand:
 | Recon | analyst | sonnet | ~30 | scope, profile | *Review Brief* |
 | Recon (intake) | analyst | sonnet | ~30 | the refactor records, profile | *Review Brief*, then *Intake cards* |
 | Seat ×3–4 (R1) | analyst | sonnet | ~15 | role file + Review Brief | *Finding Card* |
-| Verifier | judge | opus (sonnet if all minor) | ~3 per card | `{CARDS}` + read access to the code | *Verdict* |
-| Synthesizer | analyst | sonnet | ~10 | cards + verdicts + the Review Brief | *Synthesis* |
+| Verifier | judge | opus (sonnet if all minor) | ~3 per card | `{CARDS}` (cards, then settled lines) + read access to the code | *Verdict* |
+| Synthesizer | analyst | sonnet | ~10 | cards + `cards.md` (its settled lines) + verdicts + the Review Brief | *Synthesis* |
 | Gate writer (none on an auto-accept run on your own branch or an audit) | maker | sonnet | ~12 | the synthesis | *Gate page* |
 | Record writer | maker | sonnet | ~8 | the synthesis + the gate's fix briefs + the decisions or share block (auto-accept, no page: the synthesis + the chat answers) | *Record and exec brief* |
 | Executor | maker | sonnet | — | **one** batch of Fix cards + the exec brief's header | *Fix card* |
@@ -90,7 +90,7 @@ The verifier receives each card's title, location, scenario and fix — never it
 0. Preconditions   → scope, whose branch, profile
 1. Recon           → Review Brief (one agent)
 2. Round 1 (blind) → 3–4 seats in parallel → Finding Cards │ intake: Recon's HO cards, no seats
-3. Verification    → the verifier tries to refute each high/med card
+3. Verification    → the verifier tries to refute each high/med card and each settled line
 4. Synthesis       → dedup, rank, cap, verdict, options
 5. Gate            → team-ceo-view page (kind "review") │ auto-accept on own branch or audit: no page
 6. Deliver         → someone else's branch: share a review │ own branch, audit: fix test-first
@@ -111,7 +111,7 @@ One agent writes the brief by `templates.md` § *Review Brief*, following the Re
 Dispatch the seats in one message, agent ids `seat-correctness`, `seat-intent`, `seat-craft`, and `seat-security` unless Recon's reply gives *Trust boundaries: none* (§ *Proportionality*). In each prompt, resolve the role template's placeholders: `{PROJECT_PROFILE}` → the profile path (or "none"), `{SCOPE}` inline, `{REVIEW_BRIEF}` → the brief's path, `{FINDING_CARD_FORMAT}` → `templates.md` § *Finding Card*.
 
 ### 3. Verification
-Strip the cards of their reasoning without reading them: `sh <base directory>/cards.sh <run folder>` keeps each `high` and `med` card's title, *Scenario* and *Fix* from the `seat-*.md` files into `<run folder>/cards.md`, drops `low` cards, and prints `cards ok: <n>` or `MISMATCH: …`. On `MISMATCH`, stop: re-dispatch that seat (or a fresh agent to repair its file), then rerun the script. On `cards ok: 0` there is nothing to verify: skip to Synthesis. Otherwise dispatch one verifier for all zones, after the last zone's seats, with `{PROJECT_PROFILE}`, `{SCOPE}` and `{CARDS}` → `cards.md`. It writes one verdict per card by § *Verdict*: `CONFIRMED`, `REFUTED` or `UNSURE`.
+Strip the cards of their reasoning without reading them: `sh <base directory>/cards.sh <run folder>` keeps each `high` and `med` card's title, *Scenario* and *Fix* from the `seat-*.md` files into `<run folder>/cards.md`, drops `low` cards, and prints `cards ok: <n>` (and `settled lines: <m>` when seats wrote any) or `MISMATCH: …`. On `MISMATCH`, stop: re-dispatch that seat (or a fresh agent to repair its file), then rerun the script. On `cards ok: 0` with no `settled lines` line there is nothing to verify: skip to Synthesis. Otherwise dispatch one verifier for all zones, after the last zone's seats, with `{PROJECT_PROFILE}`, `{SCOPE}` and `{CARDS}` → `cards.md`. It writes one verdict per card by § *Verdict*: `CONFIRMED`, `REFUTED` or `UNSURE`.
 
 ### 4. Synthesis
 A separate synthesizer agent writes the review by `templates.md` § *Synthesis*: dedup, rank, cap, verdict.
@@ -120,7 +120,7 @@ A separate synthesizer agent writes the review by `templates.md` § *Synthesis*:
 **REQUIRED SUB-SKILL:** `team-ceo-view`. The gate writer builds and renders the page by § *Gate page*; it is share-ready whoever owns the branch. Serve it with `--channels` as team-ceo-view's SKILL.md step 3 says. On an auto-accept run on your own branch or an audit, no gate writer runs: the synthesis carries every finding's options (`team-protocol` § *Auto-accept*).
 
 ### 6. Deliver
-**Someone else's branch.** The human curates on the page (declines false positives, adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A declined finding is not posted; the review body carries the verdict, *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder and the author's note.
+**Someone else's branch.** The human curates on the page (leaves a finding as is with a note saying why — Share refuses one without — and adds notes), then clicks **Share → Review**: follow team-ceo-view's *Share*. An `auto-accept` run (`team-protocol` § *Auto-accept*) does not change this: the gate still goes to its owner. A finding left as is gets no thread: the review body lists it under *Left as is* with its stakes and the human's note, beside the verdict, the *Questions for the author* the human kept (right after the verdict), *Not raised* and *For team-refactor*. When you tell the human to submit, suggest *Request changes* when the verdict is not mergeable or mergeable after fixes, else *Comment*. The record writer writes the record from the synthesis and the share block, `Status: shared`; no exec brief, no execution. Delete the run folder and the author's note.
 
 **Own branch, audit.** Read the decisions block (team-ceo-view steps 4–5), or on an auto-accept run, the synthesis (`team-protocol` § *Auto-accept*). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-ceo-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes, with the prompt `execute the review fixes in <exec brief path>`.
 

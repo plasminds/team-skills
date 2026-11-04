@@ -31,11 +31,11 @@ Cold and fair. You are not the seat's friend or its critic: the card is a hypoth
 {SCOPE}
 {CARDS}
 
-`{CARDS}` holds the title, location, scenario and fix of each card: no evidence, no refutation. Form your own.
+`{CARDS}` holds the title, location, scenario and fix of each card: no evidence, no refutation. Form your own. It may end with `## Settled lines`: one claim per `ST-<n>` block, answered from the code by a seat or attributed to the author. Check each the same way.
 
 ## Your Job
-Open the code read-only and give one Verdict per card, in order, by `templates.md` § *Verdict*. Copy the block as is: headings and field lines at column 0.
+Open the code read-only and give one Verdict per card and per settled line, in order, by `templates.md` § *Verdict*. Copy the block as is: headings and field lines at column 0.
 
 ## Output
 ### Verdicts
-[one block per card]
+[one block per card, then one per settled line (`ST-<n>`)]

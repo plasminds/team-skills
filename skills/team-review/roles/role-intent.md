@@ -46,4 +46,4 @@ Start from the Review Brief; open code read-only to confirm evidence and to try 
 [≤ 3 lines, by `team-protocol` § *Lane hand-offs*]
 
 ### Not raised
-[one line each: a defect the diff did not cause, or a hunch below med]
+[one line each: a defect the diff did not cause, a hunch below med, or a typed line by `templates.md` § *Finding Card*: `author choice:`, `answered:`, `ask author:`]

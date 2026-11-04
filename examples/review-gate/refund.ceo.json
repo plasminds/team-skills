@@ -219,5 +219,14 @@
         }
       ]
     }
+  ],
+  "questions": [
+    {
+      "id": "A1",
+      "title": "May a manager refund over the cap?",
+      "why": "CR-1's fix rejects any refund over the invoice total; an override for managers would change the error it returns.",
+      "source": "src/routes/refunds.js:17",
+      "who": "Intent"
+    }
   ]
 }

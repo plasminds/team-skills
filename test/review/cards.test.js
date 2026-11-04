@@ -105,3 +105,37 @@ test('no SKILL.md holds text that skill argument substitution rewrites', () => {
     assert.deepStrictEqual(hits.map(([n]) => `${d}/SKILL.md:${n}`), []);
   }
 });
+
+const notRaised = (...lines) => '\n### Not raised\n' + lines.map(l => '- ' + l).join('\n') + '\n';
+
+test('settled lines: author choice and answered lines become ST blocks after the cards', () => {
+  const r = run({
+    'seat-correctness.md': seat(card('CR-1')) + notRaised('author choice: mail failure is only logged — accepts a cancelled flag with no mail', 'pre-existing: x leaks'),
+    'seat-intent.md': seat(card('IN-1')) + notRaised('answered: Is Cars.boxType nullable? — yes, since migration 171 — src/m.ts:11')
+  });
+  assert.strictEqual(r.code, 0);
+  assert.strictEqual(r.out, 'cards ok: 2\nsettled lines: 2');
+  assert.match(r.cards, /\n## Settled lines\n\n### ST-1: author choice: mail failure is only logged — accepts a cancelled flag with no mail\n- Seat: correctness\n\n### ST-2: answered: Is Cars\.boxType nullable\? — yes, since migration 171 — src\/m\.ts:11\n- Seat: intent\n/);
+  assert.ok(r.cards.indexOf('## Settled lines') > r.cards.indexOf('- Fix: IN-1 fix'));
+  assert.doesNotMatch(r.cards, /pre-existing/);
+});
+
+test('settled lines only: no card, still something to verify', () => {
+  const r = run({ 'seat-intent.md': '# Seat\n\n### Finding Cards\n' + notRaised('answered: Q? — A — a.js:1') });
+  assert.strictEqual(r.out, 'cards ok: 0\nsettled lines: 1');
+  assert.match(r.cards, /^## Settled lines\n\n### ST-1: answered: Q\? — A — a\.js:1\n- Seat: intent$/m);
+});
+
+test('a settled line inside a code fence is not taken', () => {
+  const r = run({ 'seat-intent.md': seat(card('IN-1')) + '\n```\n- answered: fake — x — y\n```\n' });
+  assert.strictEqual(r.out, 'cards ok: 1');
+});
+
+test('settled lines: bold, backticked or capitalised labels are taken and written plainly', () => {
+  const r = run({ 'seat-intent.md': seat(card('IN-1')) + '\n### Not raised\n- **answered**: B? — b — b.js:2\n- `answered: C? — c — c.js:3`\n- Answered: D? — d — d.js:4\n- **Author choice:** E — e\n' });
+  assert.strictEqual(r.out, 'cards ok: 1\nsettled lines: 4');
+  assert.match(r.cards, /### ST-1: answered: B\? — b — b\.js:2\n/);
+  assert.match(r.cards, /### ST-2: answered: C\? — c — c\.js:3\n/);
+  assert.match(r.cards, /### ST-3: answered: D\? — d — d\.js:4\n/);
+  assert.match(r.cards, /### ST-4: author choice: E — e\n/);
+});

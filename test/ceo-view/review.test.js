@@ -173,23 +173,33 @@ test('suggestion: a line outside the diff drops the block, keeps the prompt', ()
   assert.strictEqual('startLine' in c, false);
 });
 
-test('a declined finding leaves neither a thread nor a body line', () => {
-  const rv = load().review({ S1: { choice: 'approve' }, F1: { choice: 'ask' } });
+test('a finding left as is gets no thread; the body lists it with its stakes and the note', () => {
+  const g = shareGate(); g.decisions[1].why = 'Changes invoices.';
+  const rv = load({ decisions: g.decisions }).review({ S1: { choice: 'approve' }, F1: { choice: 'ask', note: 'finance said no' } });
   assert.deepStrictEqual(rv.comments.map(c => c.id), ['S1']);
-  assert.doesNotMatch(rv.body, /F1/);
+  assert.match(rv.body, /### Left as is\n- F1 — Rounding rule \(Ask finance\) — `src\/x\.js:99`\n  What's at stake: Changes invoices\.\n  Reason: finance said no/);
 });
 
-test('all findings declined: no comment, the body keeps the summary', () => {
+test('a left line names the option taken, unless it is plain leave or decline', () => {
+  const rv = load().review({ S1: { choice: 'decline' }, T1: { choice: 'defer' } });
+  assert.match(rv.body, /^- T1 — Split module\? \(Defer\)$/m);
+  assert.match(rv.body, /^- S1 — Extract Constant: RATE — `src\/x\.js:10`$/m);
+});
+
+test('all findings left as is: no comment, no count, the body keeps the summary and lists them', () => {
   const rv = load({ summary: [{ label: 'Verdict', text: 'Mergeable' }] }).review({
     S1: { choice: 'decline' }, F1: { choice: 'ask' }, T1: { choice: 'Minimalist' }
   });
   assert.deepStrictEqual(rv.comments, []);
   assert.match(rv.body, /\*\*Verdict\*\*: Mergeable/);
+  assert.match(rv.body, /Findings posted — major: 0, minor: 0\./);
+  ['S1', 'F1', 'T1'].forEach(id => assert.match(rv.body, new RegExp('^- ' + id + ' — ', 'm')));
 });
 
-test('a declined minor finding is not in the body', () => {
+test('a minor finding left as is is listed under Left as is, not Minor', () => {
   const g = shareGate();
   const rv = load({ decisions: g.decisions.concat([{ id: 'Q1', title: 'Misleading name', minor: true, default: 'approve', brief: 'Rename it.' }]) })
     .review({ S1: { choice: 'approve' }, Q1: { choice: 'decline' } });
-  assert.doesNotMatch(rv.body, /Q1/);
+  assert.match(rv.body, /### Left as is\n- Q1 — Misleading name/);
+  assert.doesNotMatch(rv.body, /### Minor/);
 });

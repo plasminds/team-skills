@@ -27,7 +27,7 @@ test('the refactor example renders and is not shareable', () => {
   assert.strictEqual(sides.find(o => o.value === 'Minimalist + Depth').negative, true);
 });
 
-test('the review example renders, shares, and builds a GitHub review without the declined finding', () => {
+test('the review example renders, shares, and builds a GitHub review that lists the left finding in its body', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
   const file = copyTo(dir, 'review-gate/refund.ceo.json');
   const diff = path.join(EX, 'review-gate/refund.diff');
@@ -41,7 +41,8 @@ test('the review example renders, shares, and builds a GitHub review without the
   const payload = JSON.parse(fs.readFileSync(file.replace(/\.ceo\.json$/, '.review.github.json'), 'utf8'));
   const ids = payload.comments.map(c => c.body.match(/^\*\*([A-Z]+-\d+)/)[1]);
   assert.deepStrictEqual(ids.sort(), ['CF-1', 'CR-1', 'CR-2', 'IN-1', 'SE-1']);
-  assert.ok(!JSON.stringify(payload).includes('CR-3'));
+  assert.ok(!payload.comments.some(c => c.body.includes('CR-3')));
+  assert.match(payload.body, /### Left as is\n- CR-3 — /);
   assert.match(payload.comments.find(c => c.body.startsWith('**CR-1')).body, /```suggestion\n/);
 });
 

@@ -1,6 +1,6 @@
 // Linked cards. "on" puts a card in the block of the card it only makes sense within (one relation);
 // "after" and "on" set the answering order: no card renders before what it relies on.
-const UNLINKABLE = ['rejected', 'settled'];
+const UNLINKABLE = ['rejected', 'settled', 'question'];
 
 // Stable topological order: each step takes the first id whose deps are all placed. A loop leaves ids unplaced.
 function order(ids, depsOf) {
@@ -13,14 +13,15 @@ function order(ids, depsOf) {
   return { order: out, loop: null };
 }
 
-// The section a card renders in, as template.html builds them: decision groups, then tensions, minor, settled, rejected.
+// The section a card renders in, as template.html builds them: decision groups, then tensions, questions, minor, settled, rejected.
 function sectionOf(it) {
   if (it.kind === 'tension') return 'Tensions';
+  if (it.kind === 'question') return 'Questions for the author';
   if (it.kind === 'settled') return 'Settled without you';
   if (it.kind === 'rejected') return 'Considered and rejected';
   return it.minor ? 'Minor items' : 'group:' + (it.group || 'Decisions');
 }
-const FIXED = ['Tensions', 'Minor items', 'Settled without you', 'Considered and rejected'];
+const FIXED = ['Tensions', 'Questions for the author', 'Minor items', 'Settled without you', 'Considered and rejected'];
 
 // Validates "on", sets it.block (the root's id) on each linked card, and returns the items in answering order.
 function linkItems(items, errors) {
