@@ -154,22 +154,8 @@ test('$ replacement patterns in a brief or title survive both pages', () => {
   assert.strictEqual(pageData(fs.readFileSync(localOf(file), 'utf8')).title, title);
 });
 
-test('--share --artifact writes the Artifact shape', () => {
+test('--preset needs --share', () => {
   const file = writeGate(shareGate());
-  const r = render(file, '--share', '--artifact');
-  assert.strictEqual(r.code, 0, r.stderr);
-  const out = file.replace(/\.gate\.json$/, '.share.artifact.html');
-  assert.strictEqual(r.stdout.trim().split('\n')[0], out);
-  const html = fs.readFileSync(out, 'utf8');
-  assert.doesNotMatch(html, /<!doctype/i);
-  assert.doesNotMatch(html, /<\/?(html|head|body)\b/i);
-  assert.match(html, /<title>Gate<\/title>/);
-  assert.strictEqual(pageData(html).mode, 'share');
-});
-
-test('--artifact and --preset need --share', () => {
-  const file = writeGate(shareGate());
-  assert.strictEqual(render(file, '--artifact').code, 2);
   assert.strictEqual(render(file, '--preset=x.txt').code, 2);
 });
 
@@ -267,7 +253,7 @@ test('--channels needs --serve', () => {
 test('--channels rejects bad JSON, unknown ids and bad values before anything is written', () => {
   const cases = [
     ['{nope', /not valid JSON/], ['[]', /object/], ['null', /object/], ['{"slack":true}', /slack/],
-    ['{"link":{}}', /link/], ['{"link":3}', /link/], ['{"review":{}}', /review/], ['{"review":""}', /review/]
+    ['{"link":true}', /unknown channel "link"/], ['{"review":{}}', /review/], ['{"review":""}', /review/]
   ];
   cases.forEach(([json, re]) => {
     const file = writeGate(shareGate());
@@ -398,7 +384,6 @@ test('--review argument errors exit 2 before writing', () => {
   bad('--share', '--review=github');
   bad('--share', '--review=github', '--head=zz');
   bad('--share', '--review=gitlab', '--refs=aaaaaaa,bbbbbbb');
-  bad('--share', '--artifact', '--review=github', '--head=' + HEAD);
   bad('--review=github', '--head=' + HEAD);
   bad('--share', '--review=svn', '--head=' + HEAD);
   bad('--share', '--review', '--head=' + HEAD);
@@ -482,4 +467,64 @@ test('--preset gives the same page for a CEO SHARE block as for a GATE SHARE blo
   render(file, '--share', '--preset=' + presetFile('GATE SHARE — Gate\n' + body));
   assert.deepStrictEqual(pageData(fs.readFileSync(shareOf(file), 'utf8')), old);
   assert.ok(old.preset);
+});
+
+test('--page-url puts the uploaded page in the review body, right after the summary; never in the page', () => {
+  const file = writeGate(reviewGate());
+  const url = 'https://gist.github.com/someone/0123abcd';
+  const r = render(file, '--share', '--review=github', '--head=' + HEAD, '--page-url=' + url);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const body = JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
+  const parts = body.split('\n\n');
+  const at = parts.findIndex(p => p.includes('[open the page](' + url + ')'));
+  assert.ok(at > 0, 'the link is in the body');
+  // After the title and the summary (none in this gate), before the how-to.
+  assert.match(parts[at - 1], /^(## |- )/, 'right after the title or the summary');
+  assert.ok(at < parts.findIndex(p => p.startsWith('One thread per card')), 'before the how-to');
+  // Without the flag, no page line.
+  const plain = writeGate(reviewGate());
+  assert.strictEqual(render(plain, '--share', '--review=github', '--head=' + HEAD).code, 0);
+  assert.ok(!fs.readFileSync(plain.replace(/\.gate\.json$/, '.review.github.json'), 'utf8').includes('open the page'));
+  // The page itself never carries the link: render it, then the review with the link; the page file is unchanged.
+  const page = writeGate(reviewGate());
+  assert.strictEqual(render(page, '--share').code, 0);
+  const html = page.replace(/\.gate\.json$/, '.share.html'), before = fs.readFileSync(html, 'utf8');
+  assert.strictEqual(render(page, '--share', '--review=github', '--head=' + HEAD, '--page-url=' + url).code, 0);
+  assert.strictEqual(fs.readFileSync(html, 'utf8'), before);
+  assert.ok(!before.includes(url));
+});
+
+test('--page-url takes a GitLab /uploads/ path, in French too; a link with $ stays as written', () => {
+  const file = writeGate(Object.assign(reviewGate(), { lang: 'fr' }));
+  const up = '/uploads/0123abcdef/g.share.html';
+  assert.strictEqual(render(file, '--share', '--review=gitlab', '--refs=aaaaaaa,bbbbbbb,ccccccc', '--page-url=' + up).code, 0);
+  const note = JSON.parse(fs.readFileSync(path.join(file.replace(/\.gate\.json$/, '.review.gitlab'), '00-body.json'), 'utf8')).note;
+  assert.ok(note.includes('[ouvrir la page](' + up + ')'), note);
+  const odd = writeGate(reviewGate());
+  const dollar = "https://example.com/p?a=$&b=$1";
+  assert.strictEqual(render(odd, '--share', '--review=github', '--head=' + HEAD, '--page-url=' + dollar).code, 0);
+  assert.ok(fs.readFileSync(odd.replace(/\.gate\.json$/, '.review.github.json'), 'utf8').includes('](' + dollar + ')'));
+});
+
+test('--page-url needs --review and a safe link', () => {
+  const file = writeGate(reviewGate());
+  assert.strictEqual(render(file, '--share', '--page-url=https://x.test/p').code, 2);
+  assert.strictEqual(render(file, '--share', '--review=github', '--head=' + HEAD, '--page-url').code, 2);
+  ['http://x.test/p', 'javascript:alert(1)', 'https://x.test/a b', 'https://x.test/a)b', 'uploads/x.html'].forEach(u => {
+    const r = render(file, '--share', '--review=github', '--head=' + HEAD, '--page-url=' + u);
+    assert.strictEqual(r.code, 2, u);
+    assert.match(r.stderr, /--page-url must be an https:\/\/ link or a GitLab \/uploads\/\.\.\. path/, u);
+  });
+});
+
+test('the review summary uses the language\'s colon: a no-break space before it on French gates', () => {
+  const summary = [{ label: 'Verdict', text: 'ok' }, { label: 'Blockers', points: ['None'] }];
+  const body = lang => {
+    const file = writeGate(Object.assign(reviewGate(), { lang, summary }));
+    assert.strictEqual(render(file, '--share', '--review=github', '--head=' + HEAD).code, 0);
+    return JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
+  };
+  const en = body('en'), fr = body('fr');
+  assert.ok(en.includes('- **Verdict**: ok') && en.includes('- **Blockers**:\n  - None'), en);
+  assert.ok(fr.includes('- **Verdict** : ok') && fr.includes('- **Blockers** :\n  - None'), fr);
 });

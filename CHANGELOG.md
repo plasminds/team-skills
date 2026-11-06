@@ -2,6 +2,14 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.25.0 — 2026-11-06
+
+- **French gates.** Every text of a gate is written in its `lang`, summary labels included, and a review's tags (lenses, severities) show translated; the review summary uses the French colon.
+- **The review links the page.** `--page-url` puts the uploaded share page in the review's body, right after the summary.
+- **The shared page shows only the reviewer's picks.** The agents' recommendation no longer shows to the reader: options carry a "Suggested" tag where the reviewer picked one, and Accept takes those picks only.
+- **Next round.** Where the branch owner stands is read from the merge/pull request's threads and the new commits; replies are drafted for the human to post.
+- **Removed.** Sharing as a claude.ai link (`--artifact`): a review is shared as a file or as a review on the merge/pull request.
+
 ## 0.24.0 — 2026-11-05
 
 - **Renamed.** `team-ceo-view` is `team-view`, `team-council` is `team-debate`, `team-council-plan` is `team-plan`; "CEO" is now "the human". Old gate files, blocks and env still read: `.ceo.json`, `CEO DECISIONS`, `CEO SHARE`, `kind: "council"`, `CEO_VIEW_EDITOR`.

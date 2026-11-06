@@ -80,7 +80,7 @@ test('the server still rejects a body that is neither block', async t => {
 });
 
 test('--channels reaches the served page without changing its _rev', async t => {
-  const channels = { review: { label: 'MR !12 (GitLab)' }, link: 'No Artifact tool in this session' };
+  const channels = { review: { label: 'MR !12 (GitLab)' } };
   const file = writeGate(shareGate());
   const plain = pageData(fs.readFileSync(render(file).stdout.trim().split('\n')[0], 'utf8'));
   const child = spawn(process.execPath, [RENDER, file, '--serve', '--no-open', '--channels=' + JSON.stringify(channels)], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -280,16 +280,6 @@ test('the rendered page holds the light rule and html, body keep the ground', ()
   assert.ok(out.includes(':is(html, body)[data-view-theme="light"] {'));
 });
 
-test('an --artifact page sets the theme on the host html and body', () => {
-  const file = writeGate(shareGate());
-  const r = render(file, '--share', '--artifact');
-  assert.strictEqual(r.code, 0);
-  const out = fs.readFileSync(r.stdout.trim().split('\n')[0], 'utf8');
-  assert.ok(!/<body\b/.test(out));
-  const env = runTheme(themeScript(out), { stamp: 'light' });
-  assert.deepStrictEqual(both(env), ['light', 'light']);
-});
-
 test('print is always light, and afterprint restores the theme', () => {
   const html = fs.readFileSync(TEMPLATE, 'utf8');
   assert.match(html, /addEventListener\('beforeprint'/);
@@ -319,9 +309,12 @@ test('the theme toggle leads the actions and d toggles it', () => {
 const chromeRegion = html => /\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1];
 const loadChrome = () => vm.runInNewContext(chromeRegion(fs.readFileSync(TEMPLATE, 'utf8')) + '\n({ CHROME_TEXT: CHROME_TEXT, makeL: makeL })');
 // Strings the same in both languages on purpose.
-const SAME_IN_BOTH = ['title.suffix', 'opt.ok', 'section.tensions', 'lens.count', 'card.vote', 'card.note', 'card.kindTension', 'ev.option', 'row.titleChosen', 'share.withLabel', 'legend.note'];
+const SAME_IN_BOTH = ['title.suffix', 'opt.ok', 'section.tensions', 'lens.count', 'card.vote', 'card.note', 'card.kindTension', 'ev.option', 'row.titleChosen', 'share.withLabel', 'legend.note', 'tag.tests', 'tag.types', 'tag.performance', 'tag.conventions'];
 // Computed lookups go through fixed lists: the gate kinds the top bar names.
 const kinds = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision'];
+// The template's REVIEW_TAGS list and the chrome key each tag looks up (error-handling → tag.errorHandling).
+const reviewTags = html => JSON.parse(/var REVIEW_TAGS = (\[[^\]]*\]);/.exec(html)[1].replace(/'/g, '"'));
+const tagKey = t => 'tag.' + t.replace(/-([a-z])/g, (m, c) => c.toUpperCase());
 
 test('CHROME_TEXT: every key in both languages, and French differs but for a short list', () => {
   const { CHROME_TEXT } = loadChrome();
@@ -478,15 +471,16 @@ test('completeness (a): every L() and Lp() key the template uses exists in en an
     assert.ok(Object.prototype.hasOwnProperty.call(CHROME_TEXT.en, k), 'en lacks ' + k);
     assert.ok(Object.prototype.hasOwnProperty.call(CHROME_TEXT.fr, k), 'fr lacks ' + k);
   });
-  // The one computed lookup goes through the fixed list of gate kinds.
+  // The computed lookups go through fixed lists: the gate kinds, and team-review's tags (REVIEW_TAGS).
   const computed = [...rest.matchAll(/\bLp?\((?!\s*')[^)]*\)/g)].map(m => m[0]);
-  assert.ok(computed.every(c => /^L\('kind\./.test(c)), computed.join(' | '));
+  assert.ok(computed.every(c => /^L\('(kind|tag)\./.test(c)), computed.join(' | '));
 });
 
 test('completeness (b): no key of the table is unused', () => {
   const { CHROME_TEXT } = loadChrome();
   const used = new Set([...templateRest().matchAll(/\bLp?\(\s*'([a-z]+\.[A-Za-z]+)'/g)].map(m => m[1]));
   kinds.forEach(k => used.add('kind.' + k));
+  reviewTags(fs.readFileSync(TEMPLATE, 'utf8')).forEach(t => used.add(tagKey(t)));
   assert.deepStrictEqual(Object.keys(CHROME_TEXT.en).filter(k => !used.has(k)), []);
 });
 
@@ -562,4 +556,25 @@ test('the theme toggle is an icon only, at every width: its name is in aria-labe
   assert.match(btn[0], /aria-label="Switch to light theme"/);
   assert.strictEqual(btn[1].replace(/<kbd>D<\/kbd>/, '').trim(), '');
   assert.doesNotMatch(html, /tword/);
+});
+
+test('review tags show in the page language: each lens and severity of team-review has an en and fr name', () => {
+  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const chrome = require('node:vm').runInNewContext(/\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1] + '\n({ CHROME_TEXT: CHROME_TEXT, makeL: makeL })');
+  const md = fs.readFileSync(path.join(path.dirname(RENDER), '..', 'team-review', 'templates.md'), 'utf8');
+  const list = name => new RegExp('^- ' + name + ': <([^>]+)>', 'm').exec(md)[1].split('|').map(s => s.trim());
+  const values = list('Lens').concat(list('Severity'));
+  assert.ok(values.length >= 11, 'read the lens and severity lists');
+  assert.deepStrictEqual(reviewTags(html), values, 'REVIEW_TAGS follows team-review/templates.md');
+  ['en', 'fr'].forEach(lang => values.forEach(v => {
+    const s = chrome.CHROME_TEXT[lang][tagKey(v)];
+    assert.ok(typeof s === 'string' && s.length, lang + ' ' + tagKey(v));
+  }));
+  assert.strictEqual(chrome.makeL('fr').L(tagKey('error-handling')), 'Gestion des erreurs');
+  // The card's tag chips and the tag filter's options both go through tagName; the filter keeps the raw value.
+  assert.match(html, /function tagName\(t\)/);
+  assert.match(html, /el\('span', 'tag' \+ cls, [^\n]*tagName\(t\)/);
+  assert.match(html, /el\('option', null, tagName\(t\)\); o\.value = t;/);
+  // The card list's severity word too.
+  assert.match(html, /el\('span', 'sevw ' \+ sev, tagName\(sev\)\)/);
 });

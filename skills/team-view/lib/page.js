@@ -15,28 +15,20 @@ function buildPage({ data, items, outcome, preset, channels, share: SHARE }) {
   return page;
 }
 
-function renderHtml(page, template, { share: SHARE, artifact: ARTIFACT, title }) {
+function renderHtml(page, template, { share: SHARE, title }) {
   // Escape "<" so "</script>" or "<!--" inside the data cannot break out of the script element.
   const json = JSON.stringify(page).replace(/</g, '\\u003c');
   let html = template.replace('<!--GATE_DATA-->', () => `<script type="application/json" id="gate-data">${json}</script>`);
-  // <html lang> and <title> at render time; the page's script sets both again where --artifact strips <html>.
+  // <html lang> and <title> at render time.
   // The chrome is English unless the gate says fr; the " · Gate" suffix is the same word in both languages.
   html = html.replace(/<html lang="[^"]*">/, () => `<html lang="${page.lang === 'fr' ? 'fr' : 'en'}">`);
-  return SHARE && ARTIFACT ? artifactShape(html, title) : titled(html, SHARE ? title : title + ' · Gate');
+  return titled(html, SHARE ? title : title + ' · Gate');
 }
 
-// The page names the gate in its <title>: the reader's tab, or the Artifact gallery, shows it.
+// The page names the gate in its <title>: the reader's tab shows it.
 function titled(html, title) {
   const esc = String(title).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   return html.replace(/<title>[^<]*<\/title>/, () => `<title>${esc}</title>`);
-}
-
-// An Artifact wraps the page in its own document: drop ours.
-function artifactShape(html, title) {
-  return titled(html, title)
-    .replace(/<!doctype html>\s*/i, '')
-    .replace(/<meta [^>]*>\s*/gi, '')
-    .replace(/<\/?(?:html|head|body)\b[^>]*>\s*/gi, '');
 }
 
 module.exports = { buildPage, renderHtml };

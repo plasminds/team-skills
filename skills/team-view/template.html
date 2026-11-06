@@ -276,6 +276,8 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .opt[aria-pressed="true"] .yc { display: inline; }
 .opt[aria-pressed="true"] kbd { border-color: var(--green); color: var(--green); }
 .opt:disabled { color: var(--ink-3); border-style: dashed; border-color: var(--line); cursor: default; background: none; box-shadow: none; }
+.share-mode .rectag { display: none; }
+.share-mode .opt .rectag.sug { display: inline-flex; }
 .opt:disabled .rectag { color: var(--ink-3); background: var(--raised); }
 .mootmsg { display: flex; gap: 10px; align-items: center; font-size: 14.5px; color: var(--ink-2); margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: var(--raised); }
 .notewrap { display: flex; align-items: flex-start; gap: 12px; }
@@ -553,7 +555,7 @@ function nextTheme(current, systemTheme) {
   return { theme: theme, store: theme === systemTheme ? null : theme };
 }
 /*THEME-END*/
-// Runs before any content, so the page never flashes the other theme. Under --artifact <html> and <body> are the host's.
+// Runs before any content, so the page never flashes the other theme.
 var viewTheme = (function () {
   var KEY = 'team-view:theme', root = document.documentElement, current = 'dark', listeners = [];
   function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
@@ -621,7 +623,7 @@ const CHROME_TEXT = {
     'title.suffix': ' · Gate',
     'theme.toLight': 'Switch to light theme', 'theme.toDark': 'Switch to dark theme',
     'theme.lightTitle': 'Light theme ( d )', 'theme.darkTitle': 'Dark theme ( d )',
-    'bar.reset': 'Reset', 'bar.acceptRecommended': 'Accept recommended', 'bar.share': 'Share',
+    'bar.reset': 'Reset', 'bar.acceptRecommended': 'Accept recommended', 'bar.acceptSuggestions': 'Accept the suggestions', 'bar.share': 'Share',
     'bar.copy': 'Copy decisions', 'bar.send': 'Send to Claude', 'bar.keys': 'Keys',
     'aria.keyboardKeys': 'Keyboard keys', 'aria.panes': 'Panes', 'aria.cards': 'Cards',
     'aria.keysNow': 'Keys that work now', 'aria.decisionsOut': 'Decisions to paste back',
@@ -668,7 +670,10 @@ const CHROME_TEXT = {
     'card.foundBy': 'Found by {who}', 'card.foundByIn': 'Found by {who} in {source}', 'card.unverified': 'Not verified: {text}',
     'card.askedBy': 'Asked by {who}', 'card.askedByAbout': 'Asked by {who}, about {source}',
     'card.whyAside': 'Why it was set aside', 'card.stake': 'What’s at stake', 'card.details': 'Details',
-    'card.twoSides': 'The two sides', 'card.sides': 'The sides', 'card.recommended': 'Recommended', 'card.forAgainst': 'For and against',
+    'tag.blocker': 'Blocker', 'tag.major': 'Major', 'tag.minor': 'Minor',
+    'tag.correctness': 'Correctness', 'tag.errorHandling': 'Error handling', 'tag.security': 'Security', 'tag.intent': 'Intent',
+    'tag.tests': 'Tests', 'tag.types': 'Types', 'tag.performance': 'Performance', 'tag.conventions': 'Conventions',
+    'card.twoSides': 'The two sides', 'card.sides': 'The sides', 'card.recommended': 'Recommended', 'card.suggested': 'Suggested', 'card.forAgainst': 'For and against',
     'card.yourChoice': 'Your choice', 'card.hintMany': 'Press 1–{max} or click', 'card.hintOne': 'Press 1 or click',
     'card.decisionFor': 'Decision for {id}', 'card.lifts': 'lifts {ids}',
     'card.breaks': { one: 'Breaks {ids}: choosing it lifts it', other: 'Breaks {ids}: choosing it lifts them' },
@@ -712,9 +717,9 @@ const CHROME_TEXT = {
     'help.choose': 'Choose that option; the same key again clears it',
     'help.tabStep': 'Step through the current card\'s options',
     'help.enter': 'Choose the focused option (again to clear)',
-    'help.rec': 'Choose the recommended option',
+    'help.rec': 'Choose the recommended option', 'help.sug': 'Choose the suggested option',
     'help.noteRow': 'Write a note on the current card',
-    'help.acceptAll': 'Accept the recommendation on every card still to decide',
+    'help.acceptAll': 'Accept the recommendation on every card still to decide', 'help.acceptSug': 'Accept the suggestion on every card still to decide',
     'help.send': 'Send the decisions to Claude',
     'help.copyAgent': 'Copy the prompt for your coding agent',
     'help.copyDecisions': 'Copy the decisions',
@@ -827,8 +832,6 @@ const CHROME_TEXT = {
     'toast.allSend': 'Every card is decided. Press S to send.',
     'toast.allCopy': 'Every card is decided. Press C to copy.',
     'share.whatFile': 'The page as a file',
-    'share.whatLink': 'A claude.ai link',
-    'share.whatLinkWhy': 'Needs Claude\'s Artifact tool in this session.',
     'share.whatReview': 'A review on the merge/pull request (you submit it)',
     'share.reviewWhy': 'Not detected: needs the repo host\'s CLI (glab, gh…) logged in and an open merge/pull request for this branch.',
     'share.whereSelf': 'I\'ll send it myself',
@@ -844,7 +847,7 @@ const CHROME_TEXT = {
     'title.suffix': ' · Gate',
     'theme.toLight': 'Passer au thème clair', 'theme.toDark': 'Passer au thème sombre',
     'theme.lightTitle': 'Thème clair ( d )', 'theme.darkTitle': 'Thème sombre ( d )',
-    'bar.reset': 'Réinitialiser', 'bar.acceptRecommended': 'Accepter la recommandation', 'bar.share': 'Partager',
+    'bar.reset': 'Réinitialiser', 'bar.acceptRecommended': 'Accepter la recommandation', 'bar.acceptSuggestions': 'Accepter les suggestions', 'bar.share': 'Partager',
     'bar.copy': 'Copier les décisions', 'bar.send': 'Envoyer à Claude', 'bar.keys': 'Raccourcis',
     'aria.keyboardKeys': 'Raccourcis clavier', 'aria.panes': 'Volets', 'aria.cards': 'Cartes',
     'aria.keysNow': 'Raccourcis actifs maintenant', 'aria.decisionsOut': 'Décisions à recoller',
@@ -891,7 +894,10 @@ const CHROME_TEXT = {
     'card.foundBy': 'Trouvé par {who}', 'card.foundByIn': 'Trouvé par {who} dans {source}', 'card.unverified': 'Non vérifié : {text}',
     'card.askedBy': 'Question de {who}', 'card.askedByAbout': 'Question de {who}, à propos de {source}',
     'card.whyAside': 'Pourquoi c\'est écarté', 'card.stake': 'L’enjeu', 'card.details': 'Détails',
-    'card.twoSides': 'Les deux camps', 'card.sides': 'Les camps', 'card.recommended': 'Recommandé', 'card.forAgainst': 'Pour et contre',
+    'tag.blocker': 'Bloquant', 'tag.major': 'Majeur', 'tag.minor': 'Mineur',
+    'tag.correctness': 'Exactitude', 'tag.errorHandling': 'Gestion des erreurs', 'tag.security': 'Sécurité', 'tag.intent': 'Intention',
+    'tag.tests': 'Tests', 'tag.types': 'Types', 'tag.performance': 'Performance', 'tag.conventions': 'Conventions',
+    'card.twoSides': 'Les deux camps', 'card.sides': 'Les camps', 'card.recommended': 'Recommandé', 'card.suggested': 'Proposé', 'card.forAgainst': 'Pour et contre',
     'card.yourChoice': 'Votre choix', 'card.hintMany': 'Touches 1–{max} ou clic', 'card.hintOne': 'Touche 1 ou clic',
     'card.decisionFor': 'Décision pour {id}', 'card.lifts': 'lève {ids}',
     'card.breaks': { one: 'Rompt {ids} : le choisir le lève', other: 'Rompt {ids} : le choisir les lève' },
@@ -935,9 +941,9 @@ const CHROME_TEXT = {
     'help.choose': 'Choisir cette option ; la même touche une seconde fois l\'efface',
     'help.tabStep': 'Parcourir les options de la carte courante',
     'help.enter': 'Choisir l\'option ciblée (encore une fois pour l\'effacer)',
-    'help.rec': 'Choisir l\'option recommandée',
+    'help.rec': 'Choisir l\'option recommandée', 'help.sug': 'Choisir l\'option proposée',
     'help.noteRow': 'Écrire une note sur la carte courante',
-    'help.acceptAll': 'Accepter la recommandation sur chaque carte restant à décider',
+    'help.acceptAll': 'Accepter la recommandation sur chaque carte restant à décider', 'help.acceptSug': 'Accepter la suggestion sur chaque carte restant à décider',
     'help.send': 'Envoyer les décisions à Claude',
     'help.copyAgent': 'Copier le prompt pour votre agent de code',
     'help.copyDecisions': 'Copier les décisions',
@@ -1050,8 +1056,6 @@ const CHROME_TEXT = {
     'toast.allSend': 'Toutes les cartes sont décidées. Appuyez sur S pour envoyer.',
     'toast.allCopy': 'Toutes les cartes sont décidées. Appuyez sur C pour copier.',
     'share.whatFile': 'La page en fichier',
-    'share.whatLink': 'Un lien claude.ai',
-    'share.whatLinkWhy': 'Nécessite l\'outil Artifact de Claude dans cette session.',
     'share.whatReview': 'Une revue sur la merge/pull request (c\'est vous qui la soumettez)',
     'share.reviewWhy': 'Non détecté : nécessite le CLI de l\'hébergeur du dépôt (glab, gh…) connecté et une merge/pull request ouverte pour cette branche.',
     'share.whereSelf': 'Je l\'enverrai moi-même',
@@ -1090,7 +1094,7 @@ function makeL(lang) {
 (function () {
   var data = JSON.parse(document.getElementById('gate-data').textContent);
   // The page's language: every chrome string goes through L / Lp (CHROME_TEXT). render.js already wrote <html lang> and
-  // the title; set both again for --artifact, where the host owns <html>.
+  // the title; the script sets both again.
   var LANG = data.lang === 'fr' ? 'fr' : 'en';
   var _l = makeL(LANG), L = _l.L, Lp = _l.Lp;
   document.documentElement.lang = LANG;
@@ -1123,6 +1127,16 @@ function makeL(lang) {
   }
   function choiceOf(id) { return state[id] && state[id].choice; }
   function cap(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+  // team-review's lens and severity lists (templates.md): such a tag shows in the page language, any other as written.
+  var REVIEW_TAGS = ['correctness', 'error-handling', 'security', 'intent', 'tests', 'types', 'performance', 'conventions', 'blocker', 'major', 'minor'];
+  function tagName(t) {
+    return REVIEW_TAGS.indexOf(t) >= 0 ? L('tag.' + t.replace(/-([a-z])/g, function (m, c) { return c.toUpperCase(); })) : cap(t);
+  }
+  // The reviewer's own pick, from the share block. The agents' recommendation never shows on a shared page.
+  function reviewerSuggests(data, it) {
+    var p = (data.preset || {})[it.id];
+    return p && p.choice ? p.choice : null;
+  }
   function say(t) { document.getElementById('toast').textContent = t; }
   // Whether a count takes the singular form in the page's language (French: 0 and 1), for keys picked by hand.
   function isOne(n) { return LANG === 'fr' ? Math.abs(n) < 2 : n === 1; }
@@ -1138,6 +1152,7 @@ function makeL(lang) {
 
   // Share mode: the page someone else decides on alone (render.js --share); its reader copies a prompt, nothing comes back.
   var shareMode = data.mode === 'share';
+  if (shareMode) document.querySelector('.layout').classList.add('share-mode');
   document.title = shareMode ? data.title : data.title + L('title.suffix');
   // The page shell: its static English labels, in the page's language.
   [['reset', L('bar.reset')], ['recAllLabel', L('bar.acceptRecommended')], ['share', L('bar.share')], ['copyLabel', L('bar.copy')],
@@ -1569,7 +1584,7 @@ function makeL(lang) {
   items.forEach(function (it) { (it.tags || []).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
   var tagSel = el('select'); tagSel.setAttribute('aria-label', L('filter.byTag'));
   var t0 = el('option', null, L('filter.allTags')); t0.value = ''; tagSel.appendChild(t0);
-  tags.sort().forEach(function (t) { var o = el('option', null, t); o.value = t; tagSel.appendChild(o); });
+  tags.sort().forEach(function (t) { var o = el('option', null, tagName(t)); o.value = t; tagSel.appendChild(o); });
   tagSel.addEventListener('change', function () { filters.tag = tagSel.value; applyFilters(); });
   if (tags.length) fgroup(L('filter.tag'), tagSel);
   var shownRow = el('div', 'shown-row'), shown = el('span'), clear = el('button', 'link', L('filter.clear')); clear.type = 'button';
@@ -1602,7 +1617,7 @@ function makeL(lang) {
     row.appendChild(l1);
     var l2 = el('span', 'l2'), stw = el('span', 'stw'), sev = sevOf(it), rw = relWord(it), gapw = el('span', 'gapw');
     l2.appendChild(stw);
-    if (sev) l2.appendChild(el('span', 'sevw ' + sev, cap(sev)));
+    if (sev) l2.appendChild(el('span', 'sevw ' + sev, tagName(sev)));
     if (rw) l2.appendChild(rw);
     l2.appendChild(gapw);
     if (it.lenses) { var lm = el('span', 'lm'); it.lenses.forEach(function (l) { lm.appendChild(lensMark('lp', l)); }); l2.appendChild(lm); }
@@ -1783,7 +1798,7 @@ function makeL(lang) {
     if (it.on) tg.appendChild(el('span', 'tag rel-kind refines', L('card.refines', { id: it.on.id })));
     (it.tags || []).forEach(function (t) {
       var cls = t === 'blocker' ? ' blocker' : /behavio|risk|money|breaking/i.test(t) ? ' warn' : '';
-      tg.appendChild(el('span', 'tag' + cls, /^\d+\s*[–-]\s*\d+$/.test(t) ? L('card.vote', { t: t }) : cap(t)));
+      tg.appendChild(el('span', 'tag' + cls, /^\d+\s*[–-]\s*\d+$/.test(t) ? L('card.vote', { t: t }) : tagName(t)));
     });
     if (it.lenses) {
       var lc = el('span', 'lens-chips');
@@ -1863,14 +1878,15 @@ function makeL(lang) {
     decide.appendChild(dh);
     var mootMsg = el('div', 'mootmsg'); mootMsg.hidden = true; decide.appendChild(mootMsg);
     var row = el('div', 'options'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', L('card.decisionFor', { id: it.id }));
-    var buttons = [];
+    var buttons = [], sugV = shareMode ? reviewerSuggests(data, it) : null;
     it.options.forEach(function (o, i) {
-      var broken = o.violates && o.violates.length;
-      var b = el('button', 'opt' + (o.negative ? ' neg' : '') + (o.recommended ? ' is-rec' : '')); b.type = 'button';
+      var broken = o.violates && o.violates.length, rec = shareMode ? sugV != null && o.value === sugV : o.recommended;
+      var b = el('button', 'opt' + (o.negative ? ' neg' : '') + (rec ? ' is-rec' : '')); b.type = 'button';
       if (i < 9) b.appendChild(el('kbd', 'k', String(i + 1)));
       var ck = el('span', 'ck'); ck.appendChild(icon('check')); b.appendChild(ck);
       b.appendChild(inline(el('span', 'ol'), o.label));
-      if (o.recommended) b.appendChild(el('span', 'rectag', L('card.recommended')));
+      if (shareMode) { if (rec) b.appendChild(el('span', 'rectag sug', L('card.suggested'))); }
+      else if (o.recommended) b.appendChild(el('span', 'rectag', L('card.recommended')));
       if (broken) { b.appendChild(el('span', 'lift', L('card.lifts', { ids: o.violates.join(', ') }))); b.title = Lp('card.breaks', o.violates.length, { ids: o.violates.join(', ') }); }
       b.appendChild(el('span', 'yc', L('card.yourChoice')));
       b.setAttribute('aria-pressed', 'false');
@@ -1902,7 +1918,8 @@ function makeL(lang) {
     var briefs = it.options.filter(function (o) { return o.brief; });
     var briefed = briefs.length > 1 || (briefs.length === 1 && !briefs[0].recommended);
     var own = it.options.filter(function (o) { return o.code || (o.metrics && o.metrics.length) || (o.figures && o.figures.length) || o.accepts || (briefed && o.brief); });
-    var first = (own.filter(function (o) { return o.recommended; })[0] || own[0] || {}).value;
+    var sugFirst = shareMode ? reviewerSuggests(data, it) : null;
+    var first = (own.filter(function (o) { return shareMode ? o.value === sugFirst : o.recommended; })[0] || own[0] || {}).value;
     var view = { shown: null, choice: undefined, picks: [], parts: [], groups: [], draws: [] };
     function optOf(v) { return it.options.filter(function (o) { return o.value === v; })[0]; }
     function variant(g, value, node) { view.parts.push({ g: g, value: value, node: node }); return node; }
@@ -2053,10 +2070,10 @@ function makeL(lang) {
     if (it.accepts || own.some(function (o) { return o.accepts; })) {
       acc = el('div', 'accfoot'); ev.appendChild(acc);
       view.draws.push(function (v) {
-        var o = optOf(v), base = (rec && rec.accepts) || it.accepts, text = o && o.accepts ? o.accepts : base;
+        var o = optOf(v), base = (!shareMode && rec && rec.accepts) || it.accepts, text = o && o.accepts ? o.accepts : base;
         acc.textContent = ''; acc.hidden = !text;
         if (!text) return;
-        acc.appendChild(el('b', null, o && !o.accepts && rec && o !== rec ? L('ev.recAccepts') : L('ev.accepts')));
+        acc.appendChild(el('b', null, !shareMode && o && !o.accepts && rec && rec.accepts && o !== rec ? L('ev.recAccepts') : L('ev.accepts')));
         inline(acc, text);
       });
     }
@@ -2225,9 +2242,9 @@ function makeL(lang) {
     ['<kbd>1</kbd> – <kbd>9</kbd>', L('help.choose')],
     ['<kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>', L('help.tabStep')],
     ['<kbd>Enter</kbd>', L('help.enter')],
-    ['<kbd>r</kbd>', L('help.rec')],
+    ['<kbd>r</kbd>', shareMode ? L('help.sug') : L('help.rec')],
     ['<kbd>n</kbd>', L('help.noteRow')],
-    ['<kbd>a</kbd>', L('help.acceptAll')],
+    ['<kbd>a</kbd>', shareMode ? L('help.acceptSug') : L('help.acceptAll')],
     ['', L('help.finish')],
     ['<kbd>s</kbd>', L('help.send')],
     ['<kbd>c</kbd>', shareMode ? L('help.copyAgent') : L('help.copyDecisions')],
@@ -2283,7 +2300,11 @@ function makeL(lang) {
     else if (k === '?') help.showModal();
     else if (k === 'z' && hasSummary) toggleSummary();
     else if (/^[1-9]$/.test(k) && c) { var o = c.it.options[Number(k) - 1]; if (o && !moot) choose(cur, o.value); else return; }
-    else if (k === 'r' && c) { var rec = c.it.options.filter(function (x) { return x.recommended; })[0]; if (rec && !moot && choiceOf(cur) !== rec.value) choose(cur, rec.value); else return; }
+    else if (k === 'r' && c) {
+      // Shared: the reviewer's suggestion; local: the recommended option.
+      var rv = shareMode ? reviewerSuggests(data, c.it) : (c.it.options.filter(function (x) { return x.recommended; })[0] || {}).value;
+      if (rv != null && !moot && choiceOf(cur) !== rv) choose(cur, rv); else return;
+    }
     else if (k === 'n' && c) { if (narrowQ.matches) setTab('card'); c.note.focus(); }
     else if ((e.key === 'b' || e.key === 't') && c && c.tabs) { var bt = e.key === 'b' ? 'business' : 'tech'; setCardLens(c, lensView === bt ? 'both' : bt); }
     else if (k === 'l' && lensed) setLens({ both: 'business', business: 'tech', tech: 'both' }[lensView]);
@@ -2449,7 +2470,7 @@ function makeL(lang) {
       keys.push(['U', L('nav.nextOpen')]);
       if (c) keys.push(['N', L('legend.note')]);
       if (lensed) keys.push(['L', lensView === 'both' ? L('legend.lensBoth') : L('legend.lens', { lens: LENS_NAME[lensView] })]);
-      keys.push(['A', L('bar.acceptRecommended')]);
+      keys.push(['A', shareMode ? L('bar.acceptSuggestions') : L('bar.acceptRecommended')]);
       keys.push(served ? ['S', L('legend.send')] : ['C', shareMode ? L('out.copyPrompt') : L('bar.copy')]);
       keys.push(['?', L('legend.allKeys')]);
     }
@@ -2479,6 +2500,8 @@ function makeL(lang) {
       suggestionLabel: 'Suggested change (apply in one click):', suggestionFor: 'Suggested change for «%s» (apply in one click):',
       prompt: 'Correction prompt', promptFor: 'Correction prompt — ',
       howTo: 'One thread per card. To act on one, open its correction prompt, copy it and paste it into your coding agent on the branch.',
+      colon: ': ',
+      page: 'The whole review as a page, with one prompt for your coding agent: [open the page](%s) (if it shows as code, download it and open it in a browser).',
       counts: 'Findings posted — major: %m, minor: %k.', reopened: 'Reopened — to discuss', settled: 'Settled without a question',
       notAnchored: 'Not anchored in the diff', minor: 'Minor', rejected: 'Considered and rejected',
       endText: "Read the repo's agent instructions (AGENTS.md, CLAUDE.md or similar), check the baseline is green, then work through «To do» in order. Stop and ask if a step needs a behavior change it does not list." },
@@ -2497,6 +2520,8 @@ function makeL(lang) {
       suggestionLabel: 'Modification suggérée (applicable en un clic) :', suggestionFor: 'Modification suggérée pour « %s » (applicable en un clic) :',
       prompt: 'Prompt de correction', promptFor: 'Prompt de correction — ',
       howTo: 'Un fil par carte. Pour en traiter une, ouvre son prompt de correction, copie-le et colle-le dans ton agent de code, sur la branche.',
+      colon: '\u00a0: ',
+      page: 'Toute la revue sous forme de page, avec un seul prompt pour ton agent de code : [ouvrir la page](%s) (si elle s\'affiche en code, télécharge-la et ouvre-la dans un navigateur).',
       counts: 'Constats publiés — majeurs : %m, mineurs : %k.', reopened: 'Rouvert — à discuter', settled: 'Réglé sans question',
       notAnchored: 'Hors du diff', minor: 'Mineurs', rejected: 'Envisagés et écartés',
       endText: 'Lis les instructions pour agents du repo (AGENTS.md, CLAUDE.md ou équivalent), vérifie que la base est verte, puis traite « À faire » dans l\'ordre. Arrête-toi et demande si une étape exige un changement de comportement non listé.' }
@@ -2726,10 +2751,11 @@ function makeL(lang) {
     var body = ['## ' + data.title];
     var sum = (data.summary || []).map(function (b) {
       if (typeof b === 'string') return '- ' + b;
-      if (b.points && b.points.length) return '- **' + b.label + '**:\n' + b.points.map(function (p) { return '  - ' + p; }).join('\n');
-      return '- **' + b.label + '**: ' + b.text;
+      if (b.points && b.points.length) return '- **' + b.label + '**' + t.colon.replace(/ $/, '') + '\n' + b.points.map(function (p) { return '  - ' + p; }).join('\n');
+      return '- **' + b.label + '**' + t.colon + b.text;
     });
     if (sum.length) body.push(sum.join('\n'));
+    if (data.pageUrl) body.push(t.page.replace('%s', function () { return data.pageUrl; }));
     if (questions.length) body.push('### ' + t.questions + '\n' + t.questionsHowTo + '\n' + questions.join('\n'));
     body.push(t.howTo);
     body.push(t.counts.replace('%m', nMajor).replace('%k', nMinor));
@@ -2740,11 +2766,12 @@ function makeL(lang) {
   }
   // Accept recommended: every card without a choice takes its default, else its recommended option. Returns how many it set.
   // render.js --accept-recommended runs this and decisionsBlock with node:vm, so its block is the one this page would send.
-  function acceptRecommended(items, state) {
+  function acceptRecommended(items, state, pick) {
     var n = 0;
     items.forEach(function (it) {
       if ((state[it.id] || {}).choice || mootBy(it, items, state)) return;
-      var rec = it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
+      // pick: a shared page takes the reviewer's picks only, never the agents' recommendation.
+      var rec = pick ? pick(it) : it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
       if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec; n++; }
     });
     return n;
@@ -2768,10 +2795,9 @@ function makeL(lang) {
   }
 /*PROMPT-END*/
 /*SHARE-START*/
-  // The Share dialog: what the reader gets, and where it goes. render.js --channels says which of link/review are available.
+  // The Share dialog: what the reader gets, and where it goes. render.js --channels says whether review is available.
   var SHARE_WHAT = [
     { id: 'file', label: 'The page as a file' },
-    { id: 'link', label: 'A claude.ai link', why: 'Needs Claude\'s Artifact tool in this session.' },
     { id: 'review', label: 'A review on the merge/pull request (you submit it)', suffix: true, why: 'Not detected: needs the repo host\'s CLI (glab, gh…) logged in and an open merge/pull request for this branch.' }
   ];
   var SHARE_WHERE = [
@@ -2805,9 +2831,9 @@ function makeL(lang) {
   }
 /*SHARE-END*/
   // The Share dialog's own words: the table's where a label or reason is the built-in one; a channel's own text stays as it came.
-  var SHARE_OWN = { what: { file: L('share.whatFile'), link: L('share.whatLink'), review: L('share.whatReview') },
+  var SHARE_OWN = { what: { file: L('share.whatFile'), review: L('share.whatReview') },
     where: { self: L('share.whereSelf'), review: L('share.whereReview'), mail: L('share.whereMail'), slack: L('share.whereSlack') } };
-  var SHARE_WHY = { what: { link: L('share.whatLinkWhy'), review: L('share.reviewWhy') }, where: { review: L('share.reviewWhy') } };
+  var SHARE_WHY = { what: { review: L('share.reviewWhy') }, where: { review: L('share.reviewWhy') } };
   var SHARE_PH = { review: L('share.phReview'), mail: L('share.phMail'), slack: L('share.phSlack') };
   function shareText(group, c) {
     var base = (group === 'what' ? SHARE_WHAT : SHARE_WHERE).filter(function (b) { return b.id === c.id; })[0], own = SHARE_OWN[group][c.id], label = c.label;
@@ -2816,7 +2842,7 @@ function makeL(lang) {
     return { label: label, reason: base && c.reason === base.why && SHARE_WHY[group][c.id] ? SHARE_WHY[group][c.id] : c.reason };
   }
   function output() { return decisionsBlock(data, items, state); }
-  // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm(): an Artifact's sandbox blocks it.
+  // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm().
   document.getElementById('reset').addEventListener('click', function () {
     state = JSON.parse(JSON.stringify(data.preset || {}));
     items.forEach(function (it) { cards[it.id].note.value = (state[it.id] && state[it.id].note) || ''; });
@@ -2825,12 +2851,13 @@ function makeL(lang) {
     document.getElementById('toast').textContent = L('toast.reset');
   });
   document.getElementById('recAll').addEventListener('click', function () {
-    var n = acceptRecommended(items, state);
+    var n = acceptRecommended(items, state, shareMode ? function (it) { return reviewerSuggests(data, it); } : null);
     save(); render(); applyFilters(true);
     document.getElementById('toast').textContent = n > 0 ? Lp('toast.accepted', n) : L('toast.noneRecommended');
   });
   if (shareMode) {
     document.getElementById('copyLabel').textContent = L('out.copyPrompt');
+    document.getElementById('recAllLabel').textContent = L('bar.acceptSuggestions');
     document.getElementById('out').setAttribute('aria-label', L('out.promptAria'));
   }
   // The copy fallback box closes once the reader leaves it.

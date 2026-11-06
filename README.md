@@ -46,7 +46,7 @@ Everything a run produces is plain Markdown in your project, under `.council/` e
 │   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution
 ├── runs/<run>/                 # agent outputs during a run, deleted at its gate; execution gets a fresh one
 ├── plans/YYYY-MM-DD-*.md       # team-plan: the plan (or the profile's Plan location)
-├── gates/                      # team-view: each gate's JSON, page and what it leaves beside them (list: its SKILL.md, Gate artifacts)
+├── gates/                      # team-view: each gate's JSON, page and what it leaves beside them (list: its SKILL.md, Gate files)
 └── role-overrides/role-*.md    # optional: override any role per project
 ```
 
@@ -123,7 +123,7 @@ node skills/team-view/render.js examples/refactor-gate/invoice.gate.json --accep
 
 ![A debate gate: card D1 current with Biz and Tech marks, its arguments tagged by lens, and in the evidence pane the Both | Biz | Tech switch, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/debate-gate.png)
 
-[`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send, or with `--artifact` for a claude.ai Artifact.
+[`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send.
 
 ![The Share dialog with "A review on the merge/pull request" selected](docs/review-share.png)
 

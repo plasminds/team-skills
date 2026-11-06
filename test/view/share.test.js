@@ -10,23 +10,19 @@ const src = html.slice(html.indexOf('/*SHARE-START*/'), html.indexOf('/*SHARE-EN
 const { shareChoices, shareBlock, shareDefault } = vm.runInNewContext(src + '\n({ shareChoices: shareChoices, shareBlock: shareBlock, shareDefault: shareDefault })');
 const all = g => { const c = shareChoices(g); return Object.fromEntries(c.what.concat(c.where).map(x => [x.id, x])); };
 
-test('shareChoices: link and review are unavailable until detected', () => {
+test('shareChoices: review is unavailable until detected', () => {
   const c = all({});
   ['file', 'self', 'mail', 'slack'].forEach(id => assert.strictEqual(c[id].available, true, id));
-  assert.strictEqual(c.link.available, false);
-  assert.match(c.link.reason, /Artifact tool/);
+  assert.strictEqual(c.link, undefined);
   assert.strictEqual(c.review.available, false);
   assert.match(c.review.reason, /glab, gh/);
 });
 
 test('shareChoices: detection sets availability, label and reason', () => {
-  let c = all({ review: { label: 'MR !12 (GitLab)' }, link: 'No Artifact tool in this session' });
+  let c = all({ review: { label: 'MR !12 (GitLab)' } });
   assert.strictEqual(c.review.available, true);
   assert.strictEqual(c.review.label, 'MR !12 (GitLab)');
-  assert.strictEqual(c.link.available, false);
-  assert.strictEqual(c.link.reason, 'No Artifact tool in this session');
-  c = all({ link: true, review: 'gh is not logged in: run gh auth login' });
-  assert.strictEqual(c.link.available, true);
+  c = all({ review: 'gh is not logged in: run gh auth login' });
   assert.strictEqual(c.review.available, false);
   assert.strictEqual(c.review.reason, 'gh is not logged in: run gh auth login');
   c = all({ mail: 'x' });
@@ -36,7 +32,7 @@ test('shareChoices: detection sets availability, label and reason', () => {
 test('shareBlock retitles the block and adds as, via and to after the title', () => {
   const d = 'GATE DECISIONS — T\nrecord: x\nS1 = approve';
   assert.strictEqual(shareBlock(d, 'file', 'mail', '  marc@example.com \n '), 'GATE SHARE — T\nas: file\nvia: mail\nto: marc@example.com\nrecord: x\nS1 = approve');
-  assert.strictEqual(shareBlock(d, 'link', 'slack', ''), 'GATE SHARE — T\nas: link\nvia: slack\nrecord: x\nS1 = approve');
+  assert.strictEqual(shareBlock(d, 'file', 'slack', ''), 'GATE SHARE — T\nas: file\nvia: slack\nrecord: x\nS1 = approve');
   assert.strictEqual(shareBlock(d, 'file', 'self', 'marc'), 'GATE SHARE — T\nas: file\nvia: self\nrecord: x\nS1 = approve');
 });
 

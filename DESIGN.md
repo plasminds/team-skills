@@ -258,7 +258,7 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 **Interface Font:** the platform system sans (system-ui, falling back through Segoe UI Variable, Noto Sans, Cantarell, Helvetica Neue, Arial)
 **Mono Font:** the platform monospace (ui-monospace, falling back through SF Mono, Cascadia Mono, JetBrains Mono, Menlo, Consolas)
 
-**Character:** Native and quiet: the gate must render offline inside an Artifact sandbox with no font fetch, so it speaks in the reader's own system face and earns hierarchy through weight (400, 550, 600, 650) and the neutral ladder rather than through a typeface.
+**Character:** Native and quiet: the gate must render offline, as a file sent to someone, with no font fetch, so it speaks in the reader's own system face and earns hierarchy through weight (400, 550, 600, 650) and the neutral ladder rather than through a typeface.
 
 ### Hierarchy
 - **Headline** (650, 27px, 1.25, -0.012em, balanced, max 36ch): the current card's title. 22px on phones.

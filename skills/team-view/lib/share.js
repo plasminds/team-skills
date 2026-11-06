@@ -1,7 +1,7 @@
 // Share presets and the Share dialog's channel availability.
 const fs = require('fs');
 
-const CHANNEL_IDS = ['link', 'review'];
+const CHANNEL_IDS = ['review'];
 
 // usage: the CLI usage text, appended to the argument error.
 function parseChannels(text, USAGE) {
@@ -14,9 +14,7 @@ function parseChannels(text, USAGE) {
     const v = c[id];
     const isStr = typeof v === 'string' && v !== '';
     const isLabel = v && typeof v === 'object' && !Array.isArray(v) && typeof v.label === 'string' && v.label !== '';
-    const ok = id === 'link' ? (v === true || isStr) : (v === true || isStr || isLabel);
-    if (!ok) bad(id === 'link' ? 'channel "link" must be true or a non-empty string'
-      : 'channel "review" must be true, { "label": "..." } or a non-empty string');
+    if (!(v === true || isStr || isLabel)) bad('channel "review" must be true, { "label": "..." } or a non-empty string');
   });
   return c;
 }

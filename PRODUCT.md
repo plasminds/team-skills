@@ -9,7 +9,7 @@ web
 ## Users
 
 - **The human**: the developer who ran a team-* skill (debate, plan, refactor, review) and must now decide on what the agent team recommends. They open the gate page in a browser, alone, between terminal sessions. Reviews and refactors are quick triage (2–5 minutes: skim, take the recommendations, fix a few, send); debates and plans get a deep read (15+ minutes over arguments, trade-offs and code).
-- **The branch owner**: a colleague who receives a shared review gate (standalone file or claude.ai Artifact) and decides on the findings alone, then copies a prompt to their own agent.
+- **The branch owner**: a colleague who receives a shared review gate (a standalone file) and decides on the findings alone, then copies a prompt to their own agent.
 
 ## Product Purpose
 
@@ -21,13 +21,13 @@ Not a dashboard of agent output: a decision instrument. Agents recommend, the hu
 
 ## Operating Context
 
-- Rendered by `skills/team-view/render.js` from a gate JSON (`contract.md`) into one self-contained HTML page; served locally (`--serve`, Send to Claude posts the decisions back), or rendered standalone/Artifact for sharing.
+- Rendered by `skills/team-view/render.js` from a gate JSON (`contract.md`) into one self-contained HTML page; served locally (`--serve`, Send to Claude posts the decisions back), or rendered standalone for sharing.
 - Gate kinds: debate, plan, refactor, review. Sections: decisions, tensions, minor items, settled without you, considered and rejected; linked cards (`on`, refines) render as one block; `after` orders the work.
 - 5 to ~15 cards per gate; a sweep can hold more.
 
 ## Capabilities and Constraints
 
-- Single self-contained HTML file: inline CSS and JS, no network fetches, no external fonts or libraries (it must work offline and inside an Artifact sandbox; `confirm()` is blocked there).
+- Single self-contained HTML file: inline CSS and JS, no network fetches, no external fonts or libraries (it must work offline, as a file sent to someone; `confirm()` is not used).
 - The tests in `test/view/` drive the template's DOM and script; ids, data attributes and the decisions-block format they rely on are contract.
 - Must keep: the keyboard flow (←/→ cards, number keys and Enter to choose, `u` next undecided, `n` note, `?` help), an overview of all cards and their status at once, evidence beside the choice (not behind clicks), and the share page for the branch owner.
 - Dark by default, light on request: the page follows the system or the viewer, a toggle (or `d`) overrides it, shared pages included. The light theme is warm paper, never white.

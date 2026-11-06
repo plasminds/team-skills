@@ -175,7 +175,7 @@ The reader is someone else, typically the owner of the branch the review looked 
 - The checkout's agent instructions (`AGENTS.md`, `CLAUDE.md` or similar) and contributing docs, for the commit convention and the test commands. Don't assume the reader's agent is Claude.
 - The CI config (`.gitlab-ci.yml`, `.github/workflows/`, or similar): lint and type-check commands are the CI's, flags included, never a laxer local variant.
 
-**`lang`**: `"fr"` or `"en"`, the conversation's language. It was a share field and now drives every gate: every chrome string of the page, the prompt text of a local gate as well as a shared one; absent, the page is in English. An older local gate carrying `lang: "fr"` now shows French. Write `preamble` and every brief in it.
+**`lang`**: `"fr"` or `"en"`, the conversation's language. It was a share field and now drives every gate: every chrome string of the page, the prompt text of a local gate as well as a shared one; absent, the page is in English. An older local gate carrying `lang: "fr"` now shows French. Write every text of the gate in it: `title`, `preamble`, every brief, and the `summary` labels too. The skills name those labels in English (*Verdict*, *Blockers*, *Not raised*, *For team-refactor*…); on a `"fr"` gate, translate them (*Verdict*, *Bloquants*, *Non relevé*, *Pour team-refactor*…).
 
 **`preamble`** (Markdown), in this order:
 - Put in it only what holds whatever the reader chooses; a rule about one finding ("run the Docker test for F3") goes in that finding's brief, or in `after`.
