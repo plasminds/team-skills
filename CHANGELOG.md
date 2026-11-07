@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.25.1 — 2026-11-07
+
+- **Fewer permission prompts.** An execution session copies its skill files into a fresh run folder before reading any; a skill file not copied is copied, never read in place. Agents keep working files in the run folder, pass commit messages inline, run `gh` and `glab` alone, and run the diff guard without saving it to a script.
+
 ## 0.25.0 — 2026-11-06
 
 - **French gates.** Every text of a gate is written in its `lang`, summary labels included, and a review's tags (lenses, severities) show translated; the review summary uses the French colon.

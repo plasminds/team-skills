@@ -14,7 +14,7 @@ The rules every team-* skill shares. Each caller owns its roles, rounds and gate
 - **Agents return async.** Send every agent of a round in one message. Each completion wakes you for a turn that re-reads the whole run: until the round's last agent is back, answer a notice in one line under 10 words — no tool call, no Read, no summary of the reply. Then read the replies once and take the next step.
 - **Pass the model and budget** from the caller's table to every dispatch.
 - **Seat agent.** Dispatch each agent as its type: the caller's `Type` column, or outside a table `maker` if it writes a project file or code, `judge` if it weighs other agents' output on opus, else `analyst`. Use `team-skills:team-<type>` if the session lists it, else `team-<type>`, else `general-purpose`, said once in one line before the first dispatch. Pass the model either way.
-- **Skill files go into the run folder first.** The skill's base directory (`~/.claude/skills/…` or the plugin cache) is outside the project: a Read there waits on a permission prompt. Once the caller's preconditions pass, create the run folder; the run's first action copies, in one Bash call, every skill file an agent will Read: the caller's `templates.md` and role files; this skill's `counting.md`, `bridge.md`, `scope.md`, `execution.md`, `auto-accept.md`, `lane-handoffs.md`, `machine-tools.md` and `reachability.md`, and its `SKILL.md` as `team-protocol.md` when `templates.md` points to a `team-protocol` section; `team-view`'s `contract.md` and `figures.md` for an agent that builds a page or draws a sketch. E.g. `cp <base directory>/{templates.md,roles/role-*.md} <base directory>/../team-protocol/{counting.md,bridge.md,scope.md,execution.md,auto-accept.md,lane-handoffs.md,machine-tools.md,reachability.md} <base directory>/../team-view/{contract.md,figures.md} <run folder>/ && cp <base directory>/../team-protocol/SKILL.md <run folder>/team-protocol.md`. Check overrides with `[ -d .council/role-overrides ] && ls .council/role-overrides` (a bare `ls` fails on a missing folder). team-kickoff has neither templates.md nor roles/ (its debate run copies team-debate's). Point each agent to its copy; a pointer to a `team-protocol` section means that section of `team-protocol.md`. Scripts run through Bash (`render.js`, `cards.sh`) and project overrides need no copy. **You read the copies too:** until the copy, no skill file but the SKILL.md the Skill tool loaded; then sections from the copy (`grep -n '^## ' <run folder>/templates.md` first), never from the base directory.
+- **Skill files go into the run folder first.** The skill's base directory (`~/.claude/skills/…` or the plugin cache) is outside the project: a Read there waits on a permission prompt. Once the caller's preconditions pass, create the run folder; the run's first action copies, in one Bash call, every skill file you or an agent will Read (`team-view`'s two only for an agent building a page or sketch): `cp <base directory>/{templates.md,roles/role-*.md} <base directory>/../team-protocol/{counting.md,bridge.md,scope.md,execution.md,auto-accept.md,lane-handoffs.md,machine-tools.md,reachability.md,off-model.md} <base directory>/../team-view/{contract.md,figures.md} <run folder>/ && cp <base directory>/../team-protocol/SKILL.md <run folder>/team-protocol.md`. Check overrides with `[ -d .council/role-overrides ] && ls .council/role-overrides` (a bare `ls` fails on a missing folder). team-kickoff has neither templates.md nor roles/ (its debate run copies team-debate's). Point each agent to its copy; a pointer to a `team-protocol` section means that section of `team-protocol.md`. Scripts run through Bash (`render.js`, `cards.sh`) and project overrides need no copy. **You read the copies too:** before the copy, only the SKILL.md the Skill tool loaded; after, sections from the copy (`grep -n '^## ' <run folder>/templates.md` first). A file not copied: copy it then, never Read it in place.
 - **Role overrides.** Templates live in the caller's `roles/`. A project may override any of them with `.council/role-overrides/role-<name>.md`; the project file wins. `<name>` is the role's file name.
 - **Roles are lenses.** A role is named after what it looks at, never after a person. This holds for built-in roles, ad-hoc specialists and project overrides.
 - **Ad-hoc specialists.** When you summon one, write it 3–5 tests, no names.
@@ -30,7 +30,7 @@ Writers keep the orchestrator short. Gate JSON, decision, refactor and review re
 
 ## Off-model seat
 
-The caller names the seat that can go off-model. Before the roster line that seats it, read `off-model.md` in this skill's base directory: why, when to offer it, and how to run it.
+The caller names the seat that can go off-model. Before the roster line that seats it, read `off-model.md` (copied to the run folder): why, when to offer it, and how to run it.
 
 ## Run folder
 
@@ -43,7 +43,7 @@ Append this block to every dispatch prompt, with the budget, run folder and agen
 ```markdown
 ## How to work
 - Budget: about <N> tool calls. Put several searches in one Bash call; Read a file once, whole.
-- Read run-folder files with the Read tool, several in one message; never `cat` them through Bash or copy them to `$TMPDIR`.
+- Read run-folder files with the Read tool, several in one message, never through `cat`. Working files (diffs, lists, scripts) go in <run folder>, never `$TMPDIR` or `/tmp`; commit messages inline (`git commit -F - <<'EOF'`); `gh` and `glab` alone in their Bash call.
 - Tool rules: <the user's standing tool rules from CLAUDE.md, e.g. "absolute paths, never `cd`">
 - Only a command's output counts, never IDE diagnostics (they can come from stale buffers). Run each gate command exactly as your brief writes it, with no pipe, redirect or prefix added.
 - Write your full output to <run folder>/<agent id>.md.
@@ -61,13 +61,13 @@ An agent whose job is not to change the project (a role, a reviewer, an evidence
 
 ## Counting positions
 
-Every question the roles disagree on is settled by `counting.md` in this skill's base directory: the count goes in `tags` (`3–1`). The synthesizer and the writers apply it from their copy.
+Every question the roles disagree on is settled by `counting.md` (copied to the run folder): the count goes in `tags` (`3–1`). The synthesizer and the writers apply it from their copy.
 
 **Confidence.** `counting.md` § *Confidence* is the only definition of `high`, `med` and `low`; agents apply it from their copy.
 
 ## Bridge
 
-How business and tech meet on one decision is set by `bridge.md` in this skill's base directory: lenses, constraints and trade-offs. A caller that follows it names it in its REQUIRED BACKGROUND line; its role agents, synthesizer and writers apply it from their copy.
+How business and tech meet on one decision is set by `bridge.md` (copied to the run folder): lenses, constraints and trade-offs. A caller that follows it names it in its REQUIRED BACKGROUND line; its role agents, synthesizer and writers apply it from their copy.
 
 ## Structural choices
 
@@ -121,7 +121,7 @@ Say it runs alone, to open from the session history or `/resume`. The handoff bl
 
 ## Execution
 
-At execution, read `execution.md` (copied to the run folder).
+At execution, first (nothing is copied yet): `mkdir -p <run folder> && cp <base directory>/templates.md <base directory>/../team-protocol/{execution.md,scope.md} <run folder>/ && cp <base directory>/../team-protocol/SKILL.md <run folder>/team-protocol.md`. Then read `execution.md` there.
 
 ## Weakened checks
 
@@ -129,7 +129,7 @@ Read `## Weakened checks` in `execution.md` (copied to the run folder). A caller
 
 ## Sweep
 
-For a sweep of zones: read `## Sweep` in `execution.md`.
+For a sweep of zones: read `## Sweep` in `execution.md` (copied to the run folder).
 
 ## Auto-accept
 
@@ -160,7 +160,6 @@ Only on an `auto-accept` run: read `auto-accept.md` (copied to the run folder).
 - Starting the next phase in the session that ran the gate
 - An external model CLI called without a yes on record
 - A gate auto-accepted in a run the human did not invoke with `auto-accept`
-- A template pointing an agent to a `team-protocol` section, with no `team-protocol.md` in its run folder
 - A structural choice that reached the human only as a routine step, or not at all
 - A commit made without its brief's *Diff guard* run
 - A hand-off line with no scenario

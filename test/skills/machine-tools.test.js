@@ -16,7 +16,6 @@ test("machine-tools.md is in team-protocol's copy list", () => {
     .filter(l => l.includes('Skill files go into the run folder first'));
   assert.equal(lines.length, 1, 'one copy-list bullet');
   const line = lines[0];
-  assert.match(line, /`machine-tools\.md`/, 'named in the prose list');
   const braces = [...line.matchAll(/\{([^}]*)\}/g)].map(m => m[1]);
   assert.ok(braces.some(b => b.split(',').includes('machine-tools.md')), 'named in the cp brace group');
 });
