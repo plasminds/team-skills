@@ -20,6 +20,8 @@ function mentions(page) {
     if (m && m[1] !== '..' && m[1] !== '.') found.push({ path: m[1], line: m[2] ? Number(m[2]) : null });
   }));
   (page.items || []).forEach(it => { if (it.at && typeof it.at.path === 'string') found.push({ path: it.at.path, line: it.at.line || null }); });
+  // An acceptance case's technical part lists its files as plain paths.
+  (page.items || []).forEach(it => { if (it.tech && Array.isArray(it.tech.files)) it.tech.files.forEach(f => { if (typeof f === 'string') found.push({ path: f, line: null }); }); });
   return found;
 }
 

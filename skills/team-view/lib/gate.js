@@ -23,6 +23,12 @@ const LANGS = ['en', 'fr'];
 const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.council\//;
 // A commit id: 7-40 hex characters with at least one letter and one digit (not a date).
 const SHA = /\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/;
+// kind "acceptance": a page that presents a pushed branch case by case. Nothing on it is decided.
+const ACCEPTANCE_TOP = ['decisions', 'tensions', 'questions', 'settled', 'rejected', 'outcome', 'preamble', 'preset'];
+const CASE_KEYS = ['id', 'group', 'title', 'steps', 'expected', 'figures', 'unshown', 'tech'];
+const TECH_KEYS = ['how', 'files', 'data'];
+const REPO_PATH = /^(?!\.{1,2}\/)[\w.@+-]+(?:\/(?!\.{1,2}(?:\/|$))[\w.@+-]+)*$/;
+const COMMIT = /^[0-9a-f]{7,40}$/i;
 
 // Reads and validates the gate JSON. Every problem accumulates into `errors` (the caller prints them).
 function loadGate(src, { share: SHARE, preset: PRESET }) {
@@ -30,7 +36,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   const baseDir = path.dirname(path.resolve(src));
   const errors = [];
   if (!data.title) errors.push('missing "title"');
-  if (!Array.isArray(data.decisions) || !data.decisions.length) errors.push('"decisions" must be a non-empty array');
+  const ACCEPTANCE = data.kind === 'acceptance';
+  if (!ACCEPTANCE && (!Array.isArray(data.decisions) || !data.decisions.length)) errors.push('"decisions" must be a non-empty array');
   if (data.summary != null) {
     if (!Array.isArray(data.summary)) errors.push('"summary" must be an array of bullets — strings or { "label", "text" | "points" } — not a paragraph');
     else data.summary.forEach((b, i) => {
@@ -125,6 +132,43 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     checkBridge(item, where);
     concerns(item);
     return item;
+  }
+
+  // kind "acceptance": the cases to present, each with its screenshots (or why there are none) and a technical part.
+  function acceptanceCases() {
+    ACCEPTANCE_TOP.forEach(k => { if (data[k] != null) errors.push(`kind "acceptance" takes no "${k}": the page presents a branch, nothing on it is decided`); });
+    if (typeof data.branch !== 'string' || !data.branch.trim()) errors.push('kind "acceptance" needs "branch": the presented branch');
+    if (typeof data.commit !== 'string' || !COMMIT.test(data.commit)) errors.push('kind "acceptance" needs "commit": the presented head, 7-40 hex characters');
+    if (data.lang != null && !LANGS.includes(data.lang)) errors.push(`"lang" must be one of ${LANGS.join(', ')}`);
+    if (!Array.isArray(data.cases) || !data.cases.length) { errors.push('kind "acceptance" needs "cases": a non-empty array'); return []; }
+    return data.cases.map((c, i) => {
+      const where = `cases[${i}]`;
+      if (!c || typeof c !== 'object' || Array.isArray(c)) { errors.push(`${where} must be an object`); return { kind: 'case', id: where, title: '', steps: [], expected: '', figures: [], options: [] }; }
+      const name = c.id ? `${where} ("${c.id}")` : where;
+      Object.keys(c).filter(k => !CASE_KEYS.includes(k)).forEach(k => errors.push(`${name} has "${k}": a case takes only ${CASE_KEYS.join(', ')} — nothing on this page is decided`));
+      if (typeof c.id !== 'string' || !c.id || typeof c.title !== 'string' || !c.title) errors.push(`${where} needs "id" and "title"`);
+      if (!Array.isArray(c.steps) || !c.steps.length || c.steps.some(s => typeof s !== 'string' || !s.trim())) errors.push(`${name} needs "steps": a non-empty array of strings`);
+      if (typeof c.expected !== 'string' || !c.expected.trim()) errors.push(`${name} needs "expected": the expected result`);
+      if (c.group != null && (typeof c.group !== 'string' || !c.group.trim())) errors.push(`${name}.group must be a non-empty string`);
+      if (c.figures != null && !Array.isArray(c.figures)) errors.push(`${name}.figures must be an array`);
+      const figures = Array.isArray(c.figures) ? c.figures : [];
+      if (c.unshown != null && (typeof c.unshown !== 'string' || !c.unshown.trim())) errors.push(`${name}.unshown must be a non-empty string: why the case could not be shown`);
+      if (!figures.length && !c.unshown) errors.push(`${name} needs "figures" (its screenshots) or "unshown" (why it could not be shown)`);
+      figures.forEach((f, j) => embed(f, `${name}.figures[${j}]`));
+      if (c.tech != null) {
+        const t = c.tech;
+        if (!t || typeof t !== 'object' || Array.isArray(t)) errors.push(`${name}.tech must be { "how", "files", "data" }`);
+        else {
+          Object.keys(t).filter(k => !TECH_KEYS.includes(k)).forEach(k => errors.push(`${name}.tech has "${k}": it takes only ${TECH_KEYS.join(', ')}`));
+          ['how', 'data'].forEach(k => { if (t[k] != null && (typeof t[k] !== 'string' || !t[k].trim())) errors.push(`${name}.tech.${k} must be a non-empty string`); });
+          if (t.files != null) {
+            if (!Array.isArray(t.files)) errors.push(`${name}.tech.files must be an array of repo-relative paths`);
+            else t.files.forEach((f, j) => { if (typeof f !== 'string' || !REPO_PATH.test(f) || LOCAL_PATH.test(f)) errors.push(`${name}.tech.files[${j}] "${f}" is not a repo-relative path`); });
+          }
+        }
+      }
+      return Object.assign({}, c, { kind: 'case', figures, options: [] });
+    });
   }
 
   // code: { before, after } on the item; when the options change the code differently, each option carries its own
@@ -329,6 +373,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (item.default == null) item.default = 'ask';
     items.push(finish(item, where));
   });
+
+  if (ACCEPTANCE) acceptanceCases().forEach(it => items.push(it));
 
   const ids = new Set();
   items.forEach(it => {

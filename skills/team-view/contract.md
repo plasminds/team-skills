@@ -66,7 +66,7 @@ The gate JSON file is `<topic>.gate.json`; an older `.ceo.json` is still read. `
 
 ```json
 {
-  "kind": "refactor | debate | plan | kickoff | review",
+  "kind": "refactor | debate | plan | kickoff | review | acceptance",
   "title": "Refactoring backlog — src/invoice.js",
   "date": "2026-09-26",
   "source": ".council/refactors/2026-09-26-invoice.md",
@@ -112,7 +112,7 @@ The gate JSON file is `<topic>.gate.json`; an older `.ceo.json` is still read. `
 ```
 
 ## Field rules
-- Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`. Ids are unique across decisions, tensions, questions, settled and rejected items, stable from the synthesis to the record, never reused.
+- Only `title` and `decisions` (each with `id` and `title`) are required, plus `outcome` for `plan` and `kickoff`; an acceptance page takes `cases` instead (*Acceptance pages*). Ids are unique across decisions, tensions, questions, settled and rejected items, stable from the synthesis to the record, never reused.
 - `summary` is a list of bullets, never a paragraph. Each bullet is a string or a `{ "label", "text" }` / `{ "label", "points": [...] }` object. Aim for 3–5 labelled bullets; end with the recommendation. It never counts cards: the renderer counts a review's findings. The renderer rejects a string summary.
 - **Every item** (decision, tension, rejected, settled) accepts `detail`, `why`, `tags`, `for`, `against`, `metrics`, `code`, `figures`, `options`, `default` and the bridge fields `lens`, `constraints` and `accepts` (*Bridge fields*).
 - `for` / `against`: the arguments, each attributed to the role that made it, as `{ "who", "point" }`, one concrete sentence each. Give a weighty item both columns. An empty `against` shows as "No argument raised", which is itself information. Use only arguments the panel made.
@@ -205,3 +205,27 @@ The reader is someone else, typically the owner of the branch the review looked 
 - **No customer data.** No names, emails, phone numbers, amounts tied to a person or tokens in any brief, code pane, figure or screenshot. When the review touched such data, describe it ("a customer's email") instead.
 
 **Checks.** `render.js --share` rejects a `kind` other than `review`, a missing preamble, a preamble without a commit SHA, an option that leads to work without a brief, an item-level brief standing in for two options that lead to work, a local path, an unknown `lang`, and an `at` that is not repo-relative. Fix the JSON and re-run until it passes. Never edit the `.html`.
+
+## Acceptance pages
+
+`kind: "acceptance"`, written by team-acceptance: a page that presents a pushed branch case by case. Nothing on it is decided: no options, no note, no progress, no Copy or Send; it opens on the Business lens. It is rendered and opened, never served: `render.js` refuses `--serve`, `--accept-recommended` and `--share`, and prints the page's size after its path.
+
+```json
+{ "kind": "acceptance", "title": "Acceptance — invoice CSV export", "date": "2026-11-09", "lang": "en",
+  "branch": "feat-invoice-export", "commit": "9b1e4c7a2f",
+  "summary": [ { "label": "What the branch brings", "text": "…" }, { "label": "Environment", "text": "…" } ],
+  "cases": [
+    { "id": "C1", "group": "Export", "title": "Export the invoices of a month",
+      "steps": ["Open Invoices", "Pick October 2026", "Click **Export CSV**"],
+      "expected": "A CSV downloads, one line per invoice of October.",
+      "figures": [ { "src": "export/c1-bouton.png", "caption": "The Export CSV button" } ],
+      "tech": { "how": "…", "files": ["src/invoices/export.js"], "data": "…" } },
+    { "id": "C3", "group": "Limits", "title": "…", "steps": ["…"], "expected": "…", "unshown": "Why it could not be shown" } ] }
+```
+
+- `branch` and `commit` (the presented head, 7–40 hex characters) are required; the header shows them. `summary` as on any gate: what the branch brings, the environment and its test data, what could not be shown.
+- A case takes only `id` (unique), `group` (optional; its list section: the business rule; absent → *Cases*), `title`, `steps` (non-empty array), `expected`, `figures` (its screenshots, `src` relative to the JSON) or `unshown` (why it could not be shown; one of the two is required), and, optionally, `tech` (`how`, `files` as repo-relative paths, `data`). Any other key is refused, options included.
+- Screenshots show under the Business lens, `tech` under the Technical one. Text fields take the page's inline marks; `tech.files` link like any file the page names.
+- The renderer also refuses `decisions`, `tensions`, `questions`, `settled`, `rejected`, `outcome` and `preamble` on this kind.
+
+Example: `examples/acceptance/export.acceptance.json`.

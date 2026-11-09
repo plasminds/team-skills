@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 424" font-size="12" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 512" font-size="12" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
   <style>
     .bg { fill: #ffffff; stroke: #d1d9e0; }
     .mask, .box, .accent { fill: #ffffff; }
@@ -21,10 +21,10 @@
       .sub, .head { fill: #a3a299; }
     }
   </style>
-  <rect class="bg" x="0.5" y="0.5" width="859" height="423" rx="10"/>
+  <rect class="bg" x="0.5" y="0.5" width="859" height="511" rx="10"/>
 
   <!-- zone -->
-  <rect class="zone" x="212" y="28" width="420" height="368" rx="8"/>
+  <rect class="zone" x="212" y="28" width="420" height="456" rx="8"/>
   <rect class="mask" x="220" y="20" width="354" height="16"/>
   <text x="228" y="32" class="sub"><tspan class="mono">team-protocol</tspan> · shared rules: dispatch, counting, handoff</text>
 
@@ -55,6 +55,11 @@
   <path class="head" d="M236 333 L244 338 L236 343 Z"/>
   <path class="wire" d="M404 350 H672"/>
   <path class="head" d="M672 345 L680 350 L672 355 Z"/>
+  <!-- team-acceptance: profile in, page out (nothing to decide) -->
+  <path class="wire" d="M99 338 V418 Q99 426 107 426 H236"/>
+  <path class="head" d="M236 421 L244 426 L236 431 Z"/>
+  <path class="wire" d="M404 438 H672"/>
+  <path class="head" d="M672 433 L680 438 L672 443 Z"/>
   <!-- dashed: refactor <-> review hand-off, plan -> review -->
   <path class="dash" d="M364 276 V304"/>
   <path class="head" d="M359 304 L364 312 L369 304 Z"/>
@@ -66,10 +71,11 @@
   <text class="sub" x="372" y="305">→ intake</text>
   <text class="sub" x="292" y="291">structure</text>
   <text class="sub" x="292" y="305">→ intake</text>
-  <text x="228" y="388" class="sub"><tspan class="mono">sweep</tspan> · review → refactor where asked → intake review</text>
+  <text x="228" y="476" class="sub"><tspan class="mono">sweep</tspan> · review → refactor where asked → intake review</text>
   <text class="sub" x="516" y="214" text-anchor="end">offered after</text>
   <text class="sub" x="516" y="228" text-anchor="end">execution</text>
   <text class="sub" x="624" y="344" text-anchor="end">Share → owner</text>
+  <text class="sub" x="624" y="432" text-anchor="end">page · nothing to decide</text>
 
   <!-- boxes -->
   <rect class="box" x="24" y="136" width="150" height="52" rx="6"/>
@@ -96,8 +102,12 @@
   <text class="name" x="324" y="334" text-anchor="middle">team-review</text>
   <text class="sub" x="324" y="352" text-anchor="middle">panel → verified findings</text>
 
-  <rect class="accent" x="680" y="56" width="156" height="308" rx="6"/>
-  <text class="name" x="758" y="196" text-anchor="middle">team-view</text>
-  <text class="sub" x="758" y="216" text-anchor="middle">Gate:</text>
-  <text class="sub" x="758" y="232" text-anchor="middle">you decide</text>
+  <rect class="box" x="244" y="400" width="160" height="52" rx="6"/>
+  <text class="name" x="324" y="422" text-anchor="middle">team-acceptance</text>
+  <text class="sub" x="324" y="440" text-anchor="middle">cases → screenshots</text>
+
+  <rect class="accent" x="680" y="56" width="156" height="396" rx="6"/>
+  <text class="name" x="758" y="240" text-anchor="middle">team-view</text>
+  <text class="sub" x="758" y="260" text-anchor="middle">Gate:</text>
+  <text class="sub" x="758" y="276" text-anchor="middle">you decide</text>
 </svg>

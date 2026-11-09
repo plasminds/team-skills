@@ -278,6 +278,14 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .opt:disabled { color: var(--ink-3); border-style: dashed; border-color: var(--line); cursor: default; background: none; box-shadow: none; }
 .share-mode .rectag { display: none; }
 .share-mode .opt .rectag.sug { display: inline-flex; }
+/* An acceptance page presents: no progress, no choice, no block to copy or send; its rows hold one line */
+.acceptance-mode .progress, .acceptance-mode #reset, .acceptance-mode #recAll, .acceptance-mode #copy, .acceptance-mode #send, .acceptance-mode #share { display: none !important; }
+.acceptance-mode .row:not(.sumrow) .l2 { display: none; }
+.steps { margin: 0; padding-left: 1.4em; font-size: 16px; line-height: 1.5; max-width: 62ch; }
+.steps li + li { margin-top: 6px; }
+.steps li::marker { color: var(--ink-3); }
+.unshown { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; color: var(--ink-2); }
+.ebox.loc .fref, .ebox.loc code { display: block; }
 .opt:disabled .rectag { color: var(--ink-3); background: var(--raised); }
 .mootmsg { display: flex; gap: 10px; align-items: center; font-size: 14.5px; color: var(--ink-2); margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: var(--raised); }
 .notewrap { display: flex; align-items: flex-start; gap: 12px; }
@@ -629,6 +637,10 @@ const CHROME_TEXT = {
     'aria.keysNow': 'Keys that work now', 'aria.decisionsOut': 'Decisions to paste back',
     'kind.debate': 'Debate gate', 'kind.plan': 'Plan gate', 'kind.refactor': 'Refactor gate', 'kind.review': 'Review gate',
     'kind.kickoff': 'Kickoff gate', 'kind.decision': 'Decision gate', 'kind.other': '{kind} gate',
+    'kind.acceptance': 'Acceptance', 'list.cases': 'Cases', 'section.cases': 'Cases', 'list.caseCount': { one: '{n} case', other: '{n} cases' },
+    'meta.branch': 'Branch {branch} · commit {commit}', 'card.kindCase': 'Case',
+    'case.steps': 'What we do', 'case.expected': 'Expected result', 'case.screens': 'Screenshots', 'case.unshown': 'Not shown',
+    'case.how': 'How it works', 'case.files': 'Files', 'case.data': 'Data used',
     'list.findings': 'Findings', 'list.decisions': 'Decisions', 'list.cards': 'Cards',
     'section.decisions': 'Decisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions for the author',
     'section.minor': 'Minor items', 'section.settled': 'Settled without you', 'section.rejected': 'Considered and rejected',
@@ -853,6 +865,10 @@ const CHROME_TEXT = {
     'aria.keysNow': 'Raccourcis actifs maintenant', 'aria.decisionsOut': 'Décisions à recoller',
     'kind.debate': 'Gate de débat', 'kind.plan': 'Gate de plan', 'kind.refactor': 'Gate de refactorisation', 'kind.review': 'Gate de revue',
     'kind.kickoff': 'Gate de lancement', 'kind.decision': 'Gate de décision', 'kind.other': 'Gate {kind}',
+    'kind.acceptance': 'Recette', 'list.cases': 'Cas', 'section.cases': 'Cas', 'list.caseCount': { one: '{n} cas', other: '{n} cas' },
+    'meta.branch': 'Branche {branch} · commit {commit}', 'card.kindCase': 'Cas',
+    'case.steps': 'Ce qu\'on fait', 'case.expected': 'Résultat attendu', 'case.screens': 'Captures d\'écran', 'case.unshown': 'Non montré',
+    'case.how': 'Comment c\'est fait', 'case.files': 'Fichiers', 'case.data': 'Données utilisées',
     'list.findings': 'Constats', 'list.decisions': 'Décisions', 'list.cards': 'Cartes',
     'section.decisions': 'Décisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions pour l\'auteur',
     'section.minor': 'Points mineurs', 'section.settled': 'Réglé sans vous', 'section.rejected': 'Envisagé et rejeté',
@@ -1150,10 +1166,20 @@ function makeL(lang) {
     return parent;
   }
 
+/*MODE-START*/
+  // What a page of this kind lets its reader do. An acceptance page presents a branch: nothing to choose, note, copy or
+  // send, and it opens on the business lens. Self-contained, so tests load it with node:vm.
+  function pageMode(kind) {
+    if (kind !== 'acceptance') return { decide: true, lens: 'both', blocked: [] };
+    return { decide: false, lens: 'business', blocked: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Tab', 'Enter', 'u', 'r', 'n', 'a', 'c', 's'] };
+  }
+/*MODE-END*/
+  var mode = pageMode(data.kind);
+  if (!mode.decide) document.querySelector('.layout').classList.add('acceptance-mode');
   // Share mode: the page someone else decides on alone (render.js --share); its reader copies a prompt, nothing comes back.
   var shareMode = data.mode === 'share';
   if (shareMode) document.querySelector('.layout').classList.add('share-mode');
-  document.title = shareMode ? data.title : data.title + L('title.suffix');
+  document.title = shareMode || !mode.decide ? data.title : data.title + L('title.suffix');
   // The page shell: its static English labels, in the page's language.
   [['reset', L('bar.reset')], ['recAllLabel', L('bar.acceptRecommended')], ['share', L('bar.share')], ['copyLabel', L('bar.copy')],
     ['sendLabel', L('bar.send')], ['keysLabel', L('bar.keys')]].forEach(function (p) { document.getElementById(p[0]).textContent = p[1]; });
@@ -1421,16 +1447,18 @@ function makeL(lang) {
   }
   function lensMark(cls, l) { var s = el('span', cls + ' l-' + l); s.appendChild(lensIcon(l)); s.appendChild(document.createTextNode(LENS_NAME[l])); return s; }
   var LENSES = ['business', 'tech'];
-  var lensed = items.some(function (it) { return it.lenses; });
+  // An acceptance page always has both lenses: the case for the business reader, how it is done for the developer.
+  var lensed = !mode.decide || items.some(function (it) { return it.lenses; });
 
   // Top bar: the gate's name, kind and date, its record, and what a share page arrived with.
   head.appendChild(el('h1', null, data.title));
   var meta = el('div', 'meta');
   // The kind label: one key per kind the skills write (kind.<kind>), else the kind's own name.
-  var GATE_KINDS = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision'];
+  var GATE_KINDS = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision', 'acceptance'];
   var gateKind = data.kind || 'decision';
   var kindLabel = GATE_KINDS.indexOf(gateKind) >= 0 ? L('kind.' + gateKind) : L('kind.other', { kind: cap(gateKind) });
   meta.appendChild(el('span', null, [kindLabel, data.date].filter(Boolean).join(' · ')));
+  if (data.branch) meta.appendChild(el('span', null, L('meta.branch', { branch: data.branch, commit: data.commit })));
   if (data.source) { var s = el('span', 'srcm'); s.appendChild(document.createTextNode(L('meta.record'))); s.appendChild(codeOrFile(data.source)); meta.appendChild(s); }
   if (data.preset) {
     var pc = 0, pn = 0;
@@ -1446,7 +1474,7 @@ function makeL(lang) {
   // Sections, in page order: weighty decision groups, tensions, minor items, settled, rejected.
   var sections = [];
   // A section's name is its id (filters match on it); the list shows its label: a built-in section's in the page's language.
-  var SECTION_LABEL = { 'Decisions': L('section.decisions'), 'Tensions': L('section.tensions'), 'Questions for the author': L('section.questions'),
+  var SECTION_LABEL = { 'Cases': L('section.cases'), 'Decisions': L('section.decisions'), 'Tensions': L('section.tensions'), 'Questions for the author': L('section.questions'),
     'Minor items': L('section.minor'), 'Settled without you': L('section.settled'), 'Considered and rejected': L('section.rejected') };
   function sectionFor(name, folded) {
     for (var i = 0; i < sections.length; i++) if (sections[i].name === name) return sections[i];
@@ -1462,6 +1490,7 @@ function makeL(lang) {
   items.filter(function (it) { return home(it).kind === 'decision' && home(it).minor; }).forEach(function (it) { sectionFor('Minor items', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'settled'; }).forEach(function (it) { sectionFor('Settled without you', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'rejected'; }).forEach(function (it) { sectionFor('Considered and rejected', true).items.push(it); });
+  items.filter(function (it) { return it.kind === 'case'; }).forEach(function (it) { sectionFor(it.group || 'Cases', false).items.push(it); });
 
   // Rails: inside a section a card hangs under the card it refines, else under the first card it comes after,
   // so the list reads as the work order. Solid elbow = refines, dashed = needs it first.
@@ -1533,7 +1562,7 @@ function makeL(lang) {
   }
 
   // List pane: its head, search and the filter menu
-  var LIST_NAME = { review: L('list.findings'), debate: L('list.decisions'), plan: L('list.decisions') };
+  var LIST_NAME = { review: L('list.findings'), debate: L('list.decisions'), plan: L('list.decisions'), acceptance: L('list.cases') };
   var listName = Object.prototype.hasOwnProperty.call(LIST_NAME, data.kind) ? LIST_NAME[data.kind] : L('list.cards');
   var sideHead = document.getElementById('sideHead'), find = document.getElementById('find');
   sideHead.appendChild(el('h2', null, listName));
@@ -1575,11 +1604,11 @@ function makeL(lang) {
   if (items.some(function (it) { return it.kind === 'rejected'; })) kinds.push(['rejected', L('filter.rejected')]);
   var kindPills = pills(L('filter.type'), 'kind', kinds); if (kinds.length > 2) fgroup(L('filter.type'), kindPills);
   var statusPills = pills(L('filter.status'), 'status', [['all', L('filter.anyStatus')], ['open', L('filter.undecided')], ['done', L('filter.decided')], ['note', L('filter.withNote')]]);
-  fgroup(L('filter.status'), statusPills);
+  if (mode.decide) fgroup(L('filter.status'), statusPills);
   // Lens: hide the cards that don't concern it, and turn both panes to it.
   var lensPills = pills(L('filter.lens'), 'lens', [['all', L('filter.anyLens')], ['business', L('lens.business')], ['tech', L('lens.tech')]], function (l) { setLens(l === 'all' ? 'both' : l); });
   [].forEach.call(lensPills.children, function (b) { if (LENS_PATHS[b.dataset.v]) b.insertBefore(lensIcon(b.dataset.v), b.firstChild); });
-  if (lensed) fgroup(L('filter.lens'), lensPills);
+  if (lensed && mode.decide) fgroup(L('filter.lens'), lensPills);
   var tags = [];
   items.forEach(function (it) { (it.tags || []).forEach(function (t) { if (tags.indexOf(t) < 0) tags.push(t); }); });
   var tagSel = el('select'); tagSel.setAttribute('aria-label', L('filter.byTag'));
@@ -1624,7 +1653,8 @@ function makeL(lang) {
     row.appendChild(l2);
     row.addEventListener('click', function () { pick(it.id); });
     chipsById[it.id] = row;
-    rowParts[it.id] = { rails: rails, stw: stw, nmark: nmark, rel: rw, gapw: gapw, m: 'todo' };
+    // A case is not decided: it carries the summary's document mark, never a status ring.
+    rowParts[it.id] = { rails: rails, stw: stw, nmark: nmark, rel: rw, gapw: gapw, m: mode.decide ? 'todo' : 'doc' };
     return row;
   }
   if (hasSummary) {
@@ -1708,7 +1738,7 @@ function makeL(lang) {
     return s;
   }
   // The lens is one view for both panes: Both, Biz only, Tech only. Hidden arguments are counted, never silent.
-  var lensView = 'both';
+  var lensView = mode.lens;
   function setLens(l) {
     lensView = l;
     Object.keys(cards).forEach(function (id) {
@@ -1786,8 +1816,48 @@ function makeL(lang) {
     if (dl) r.appendChild(el('span', 'md ' + dc, dl));
     return r;
   }
+  // An acceptance case: what we do and what we expect in the centre; the screenshots (business) and how it is done
+  // (tech) as evidence. No choice, no note.
+  function caseCard(it) {
+    var c = el('article', 'card'); c.id = 'd-' + it.id;
+    if (lensView !== 'both') c.dataset.lens = lensView;
+    var main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll'), ev = el('section', 'c-ev panel');
+    main.setAttribute('aria-label', it.id + ': ' + plainTitle(it.id)); ev.setAttribute('aria-label', L('card.evidenceFor', { id: it.id }));
+    var h = el('div', 'ch'); h.appendChild(el('span', 'cid', it.id)); h.appendChild(inline(el('h2', 'ctitle'), it.title)); body.appendChild(h);
+    var tg = el('div', 'tags'); tg.appendChild(el('span', 'tag', L('card.kindCase')));
+    if (it.group) tg.appendChild(inline(el('span', 'tag'), it.group));
+    body.appendChild(tg);
+    var steps = el('ol', 'steps');
+    it.steps.forEach(function (s) { steps.appendChild(inline(el('li'), s)); });
+    blk(body, L('case.steps')).appendChild(steps);
+    blk(body, L('case.expected')).appendChild(inline(el('p', 'lead'), it.expected));
+    main.appendChild(body);
+    var evb = el('div', 'ev-scroll scroll'), biz = el('div', 'evb'), nBiz = 0, nTech = 0;
+    biz.dataset.lens = 'business';
+    if (it.figures.length) { biz.appendChild(el('h3', 'eh', L('case.screens'))); biz.appendChild(figures(it.figures)); nBiz++; }
+    if (it.unshown) { biz.appendChild(el('h3', 'eh', L('case.unshown'))); biz.appendChild(inline(el('p', 'unshown'), it.unshown)); nBiz++; }
+    evb.appendChild(biz);
+    var t = it.tech || {}, tech = el('div', 'evb');
+    tech.dataset.lens = 'tech';
+    if (t.how) { tech.appendChild(el('h3', 'eh', L('case.how'))); tech.appendChild(rich('prose', t.how)); nTech++; }
+    if (t.files && t.files.length) {
+      var fb = el('div', 'ebox loc');
+      t.files.forEach(function (f) { fb.appendChild(codeOrFile(f)); });
+      tech.appendChild(el('h3', 'eh', L('case.files'))); tech.appendChild(fb); nTech++;
+    }
+    if (t.data) { tech.appendChild(el('h3', 'eh', L('case.data'))); tech.appendChild(rich('prose', t.data)); nTech++; }
+    evb.appendChild(tech);
+    if (!nTech) evb.appendChild(el('p', 'ev-empty lens-none tech', L('lens.noEvidence', { lens: LENS_WORD.tech })));
+    var tb = lensTabBar(it, { business: nBiz, tech: nTech });
+    ev.appendChild(tb.bar); ev.appendChild(evb);
+    c.appendChild(main); c.appendChild(ev);
+    var hay = [it.id, it.title, it.group || '', it.steps.join(' '), it.expected, it.unshown || '', t.how || '', (t.files || []).join(' '), t.data || ''].join(' ').toLowerCase();
+    cards[it.id] = { it: it, card: c, buttons: [], note: null, hay: hay, tabs: tb.tabs, cols: [] };
+    return c;
+  }
   var KIND_NAME = { decision: data.kind === 'review' ? L('card.kindFinding') : L('card.kindDecision'), tension: L('card.kindTension'), question: L('card.kindQuestion'), settled: L('card.kindSettled'), rejected: L('card.kindRejected') };
   function card(it) {
+    if (it.kind === 'case') return caseCard(it);
     var c = el('article', 'card'); c.id = 'd-' + it.id;
     var main = el('section', 'c-main panel'), body = el('div', 'c-scroll scroll'), ev = el('section', 'c-ev panel');
     main.setAttribute('aria-label', it.id + ': ' + plainTitle(it.id)); ev.setAttribute('aria-label', L('card.evidenceFor', { id: it.id }));
@@ -2252,6 +2322,10 @@ function makeL(lang) {
     ['<kbd>?</kbd>', L('help.this')],
     ['<kbd>d</kbd>', L('help.theme')]
   ].filter(function (r) {
+    // An acceptance page: no Decide or Finish heading, no row whose key does nothing there.
+    if (!mode.decide && !r[0] && (r[1] === L('help.decide') || r[1] === L('help.finish'))) return false;
+    var hk = /<kbd>([^<]+)<\/kbd>/.exec(r[0]);
+    if (hk && mode.blocked.indexOf(hk[1]) >= 0) return false;
     if (r[0].indexOf('<kbd>b</kbd>') >= 0 || r[0] === '<kbd>l</kbd>') return lensed;
     if (r[0] === '<kbd>z</kbd>') return hasSummary;
     if (r[0] === '<kbd>s</kbd>') return served;
@@ -2280,6 +2354,7 @@ function makeL(lang) {
     var c = cur && cards[cur] && cards[cur].it ? cards[cur] : null;
     var moot = c && mootBy(c.it, items, state);
     var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (mode.blocked.indexOf(k) >= 0) return; // a key this kind of page has no use for: the browser's own behaviour
     if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'j') step(1);
     else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'k') step(-1);
     else if (k === 'Tab' && c && !moot && (onOpt || ae === document.body)) {
@@ -2349,7 +2424,7 @@ function makeL(lang) {
   });
   function setTab(t) { layout.dataset.tab = t; [].forEach.call(tabsEl.children, function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === t)); }); }
   var touch = document.getElementById('touchnav');
-  [[L('nav.prev'), function () { step(-1); }], [L('nav.nextOpen'), nextOpen], [L('nav.next'), function () { step(1); }]].forEach(function (t) {
+  [[L('nav.prev'), function () { step(-1); }], mode.decide ? [L('nav.nextOpen'), nextOpen] : null, [L('nav.next'), function () { step(1); }]].filter(Boolean).forEach(function (t) {
     var b = el('button', null, t[0]); b.type = 'button'; b.addEventListener('click', function () { t[1](); setTab('card'); }); touch.appendChild(b);
   });
 
@@ -2379,6 +2454,13 @@ function makeL(lang) {
     if (state[id].choice) flash(id);
   }
   function render() {
+    // Nothing to decide: each section counts its cases, the list its total.
+    if (!mode.decide) {
+      sections.forEach(function (sec) { sec.count.textContent = String(sec.items.length); });
+      listCount.textContent = Lp('list.caseCount', items.length);
+      paintRails(); legend();
+      return;
+    }
     var done = 0;
     items.forEach(function (it) {
       var c = cards[it.id], v = choiceOf(it.id);
@@ -2461,6 +2543,11 @@ function makeL(lang) {
     var ae = document.activeElement, keys = [];
     var c = cur && cards[cur] && cards[cur].it ? cards[cur] : null;
     if (ae && ae.classList && ae.classList.contains('note')) keys = [['Esc', L('legend.leaveNote')], ['', L('legend.saved')]];
+    else if (!mode.decide) {
+      keys.push(['↑↓', L('legend.move')]);
+      keys.push(['L', lensView === 'both' ? L('legend.lensBoth') : L('legend.lens', { lens: LENS_NAME[lensView] })]);
+      keys.push(['?', L('legend.allKeys')]);
+    }
     else {
       keys.push(['↑↓', L('legend.move')]);
       if (c && !mootBy(c.it, items, state)) c.it.options.forEach(function (o, i) { if (i < 9) keys.push([String(i + 1), o.label, 'ctx']); });
@@ -2845,7 +2932,7 @@ function makeL(lang) {
   // Reset returns to the page's starting choices (the sharer's, on a share page). No confirm().
   document.getElementById('reset').addEventListener('click', function () {
     state = JSON.parse(JSON.stringify(data.preset || {}));
-    items.forEach(function (it) { cards[it.id].note.value = (state[it.id] && state[it.id].note) || ''; });
+    items.forEach(function (it) { if (cards[it.id].note) cards[it.id].note.value = (state[it.id] && state[it.id].note) || ''; });
     applyDefaults(); save(); render(); applyFilters(true);
     document.getElementById('out').style.display = 'none';
     document.getElementById('toast').textContent = L('toast.reset');

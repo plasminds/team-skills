@@ -1,0 +1,30 @@
+{
+  "kind": "acceptance",
+  "title": "Acceptance — invoice CSV export",
+  "date": "2026-11-09",
+  "lang": "en",
+  "branch": "feat-invoice-export",
+  "commit": "9b1e4c7a2f",
+  "summary": [
+    { "label": "What the branch brings", "text": "Invoices can be exported as a CSV file from the invoice list, filtered by period." },
+    { "label": "Environment", "text": "Staging, with three test invoices created for this page." },
+    { "label": "Not shown", "points": ["C3: the export of more than 10,000 invoices needs a data set staging does not have."] }
+  ],
+  "cases": [
+    { "id": "C1", "group": "Export", "title": "Export the invoices of a month",
+      "steps": ["Open Invoices", "Pick the period October 2026", "Click **Export CSV**"],
+      "expected": "A file `invoices-2026-10.csv` downloads, one line per invoice of October.",
+      "figures": [ { "src": "export/c1-bouton.png", "caption": "The Export CSV button beside the period filter" },
+                   { "src": "export/c1-fichier.png", "caption": "The downloaded file opened in a spreadsheet: three lines" } ],
+      "tech": { "how": "A new `GET /invoices/export?from&to` streams the CSV; the button builds the URL from the filter.", "files": ["src/invoices/export.js", "src/invoices/InvoiceList.vue"], "data": "Three invoices dated 3, 12 and 28 October 2026, created by the seed script." } },
+    { "id": "C2", "group": "Export", "title": "Export an empty period",
+      "steps": ["Open Invoices", "Pick the period January 2020", "Click **Export CSV**"],
+      "expected": "No file downloads; a message says there is no invoice to export for this period.",
+      "figures": [ { "src": "export/c1-bouton.png", "caption": "The filter and the Export CSV button, before the click" } ],
+      "tech": { "how": "The endpoint answers 204 on an empty period; the button shows the message instead of downloading." } },
+    { "id": "C3", "group": "Limits", "title": "Export more than 10,000 invoices",
+      "steps": ["Pick a period holding more than 10,000 invoices", "Click **Export CSV**"],
+      "expected": "The file downloads without the page freezing.",
+      "unshown": "Staging holds 3 invoices; a data set this large exists only in production." }
+  ]
+}

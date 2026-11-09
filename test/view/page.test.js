@@ -21,7 +21,7 @@ test('the template has a hidden Share button and no blocking confirm on reset', 
   assert.doesNotMatch(html, /post\(output\(\)\.replace\(\/\^GATE DECISIONS\/, 'GATE SHARE'\)/);
   assert.match(html, /JSON\.parse\(JSON\.stringify\(data\.preset \|\| \{\}\)\)/);
   assert.match(html, /Pre-filled by the reviewer: /);
-  assert.match(html, /state = JSON\.parse\(JSON\.stringify\(data\.preset \|\| \{\}\)\);\s*items\.forEach\(function \(it\) \{ cards\[it\.id\]\.note\.value = \(state\[it\.id\] && state\[it\.id\]\.note\) \|\| ''; \}\);/);
+  assert.match(html, /state = JSON\.parse\(JSON\.stringify\(data\.preset \|\| \{\}\)\);\s*items\.forEach\(function \(it\) \{ if \(cards\[it\.id\]\.note\) cards\[it\.id\]\.note\.value = \(state\[it\.id\] && state\[it\.id\]\.note\) \|\| ''; \}\);/);
   assert.match(html, /var p = data\.preset\[id\]; if \(!p \|\| typeof p !== 'object'\) return;/);
   assert.match(html, /p\.choice !== defaultOf\(id\)/);
   assert.doesNotMatch(html, /Confirm reset/);
@@ -311,7 +311,7 @@ const loadChrome = () => vm.runInNewContext(chromeRegion(fs.readFileSync(TEMPLAT
 // Strings the same in both languages on purpose.
 const SAME_IN_BOTH = ['title.suffix', 'opt.ok', 'section.tensions', 'lens.count', 'card.vote', 'card.note', 'card.kindTension', 'ev.option', 'row.titleChosen', 'share.withLabel', 'legend.note', 'tag.tests', 'tag.types', 'tag.performance', 'tag.conventions'];
 // Computed lookups go through fixed lists: the gate kinds the top bar names.
-const kinds = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision'];
+const kinds = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision', 'acceptance'];
 // The template's REVIEW_TAGS list and the chrome key each tag looks up (error-handling → tag.errorHandling).
 const reviewTags = html => JSON.parse(/var REVIEW_TAGS = (\[[^\]]*\]);/.exec(html)[1].replace(/'/g, '"'));
 const tagKey = t => 'tag.' + t.replace(/-([a-z])/g, (m, c) => c.toUpperCase());

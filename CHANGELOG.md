@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.26.0 — 2026-11-09
+
+- **team-acceptance.** An acceptance page (recette) of a pushed branch: cases with their steps, expected result and screenshots taken on a running environment, a Business view and a Technical one. Nothing to decide.
+- **Acceptance pages in team-view.** `kind: "acceptance"` renders cases with no decision controls and opens on the Business lens.
+
 ## 0.25.2 — 2026-11-09
 
 - **Removed.** team-view § *Next round* (reading the branch owner's answers from the merge/pull request's threads and drafting replies).

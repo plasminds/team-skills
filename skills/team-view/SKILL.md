@@ -84,5 +84,8 @@ For a team-review gate. On someone else's branch, Share hands the review to the 
 | `team-plan` | Plan approval | its `templates.md` § *Gate page* |
 | `team-kickoff` | Kickoff record (the single kickoff gate) | its step 5 |
 | `team-review` | Review findings (fix or leave each) | its `templates.md` § *Gate page* |
+| `team-acceptance` | Acceptance page (nothing to decide) | its `templates.md` § *Acceptance page* |
 
 Each caller owns *what* goes on the page; this skill owns *how* it's rendered and returned.
+
+team-acceptance's page decides nothing: render it (step 2) and open the `.html`; steps 3–5 don't apply (`contract.md` § *Acceptance pages*).

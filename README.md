@@ -14,6 +14,7 @@
 | [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → debate → brief, profile, `CLAUDE.md`. |
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
+| [`team-acceptance`](skills/team-acceptance/SKILL.md) | Acceptance page (recette) of a pushed branch: each case with its steps, expected result and screenshots taken on a running env, a business view and a technical one. Nothing to decide. |
 | [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Biz or Tech, your choice), and its evidence (trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
@@ -27,12 +28,13 @@
 | `team-plan` | How do we carry out the decision? | After a debate decision, before the code |
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
 | `team-review` | Can this change merge as is? | Code exists; fixes change behavior |
+| `team-acceptance` | What does this branch do, shown case by case? | Branch pushed; the change shows in the app |
 
 The fix decides the lane ([the full rule](skills/team-review/SKILL.md#lanes)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision, and the other skill takes the list in from the record: `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, and `/team-refactor <review record>` refactors what a review flagged. To review and refactor a whole branch, ask for a sweep: every zone is reviewed, and only the zones a review flags are refactored.
 
 ## How they fit together
 
-![team-scan writes the project profile that team-debate, team-refactor and team-review read. team-kickoff runs team-scan, then team-debate, and team-debate's decision feeds team-plan. team-refactor and team-review hand each other work in both directions, and each takes the other's list in from the record: suspected bugs go to a review intake, structure to a refactor intake. A sweep runs them in order: review, refactor where a review asks, then one intake review. team-plan offers team-review after its plan is executed. All five skills run under team-protocol's shared rules, and each ends at a gate rendered by team-view, where you decide; only team-review's gate has Share, to the branch owner.](docs/how-they-fit.svg)
+![team-scan writes the project profile that team-debate, team-refactor and team-review read. team-kickoff runs team-scan, then team-debate, and team-debate's decision feeds team-plan. team-refactor and team-review hand each other work in both directions, and each takes the other's list in from the record: suspected bugs go to a review intake, structure to a refactor intake. A sweep runs them in order: review, refactor where a review asks, then one intake review. team-plan offers team-review after its plan is executed. These skills run under team-protocol's shared rules, and each ends at a gate rendered by team-view, where you decide; team-acceptance also reads the profile and renders its page through team-view, with nothing to decide; only team-review's gate has Share, to the branch owner.](docs/how-they-fit.svg)
 
 Everything a run produces is plain Markdown in your project, under `.council/` except the plan, so it can be committed and diffed:
 
@@ -44,6 +46,7 @@ Everything a run produces is plain Markdown in your project, under `.council/` e
 │   └── *.exec.md               # the executors' brief, deleted after execution
 ├── reviews/YYYY-MM-DD-*.md     # team-review: the record
 │   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution
+├── acceptance/<topic>/         # team-acceptance: its capture script, screenshots and page
 ├── runs/<run>/                 # agent outputs during a run, deleted at its gate; execution gets a fresh one
 ├── plans/YYYY-MM-DD-*.md       # team-plan: the plan (or the profile's Plan location)
 ├── gates/                      # team-view: each gate's JSON, page and what it leaves beside them (list: its SKILL.md, Gate files)
@@ -138,6 +141,8 @@ node skills/team-view/render.js examples/review-gate/refund.gate.json --share --
 ```
 
 Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `l` / `b` / `t` switch the evidence between both lenses, Biz and Tech, `/` searches, `[` narrows or hides the list, `z` opens the full summary, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut.
+
+[`examples/acceptance/`](examples/acceptance) holds an acceptance page: `export.acceptance.json` and the page it renders, with nothing to decide (`node skills/team-view/render.js examples/acceptance/export.acceptance.json`).
 
 ## Changelog
 

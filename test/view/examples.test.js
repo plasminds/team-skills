@@ -79,3 +79,17 @@ test('a .ceo.json copy of an example still renders to <name>.html', () => {
   assert.strictEqual(render(file).code, 0);
   assert.ok(fs.existsSync(path.join(dir, 'export.html')));
 });
+
+test('the acceptance example renders, prints its size, and refuses to be served', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const file = copyTo(dir, 'acceptance/export.acceptance.json');
+  fs.cpSync(path.join(EX, 'acceptance', 'export'), path.join(dir, 'export'), { recursive: true });
+  const r = render(file);
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.match(r.stdout, /\nsize: \d/);
+  const data = pageData(fs.readFileSync(file.replace(/\.json$/, '.html'), 'utf8'));
+  assert.strictEqual(data.kind, 'acceptance');
+  assert.ok(data.items.length >= 2 && data.items.every(it => it.kind === 'case'));
+  assert.ok(data.items.some(it => it.unshown), 'the example shows a case that could not be shown');
+  assert.notStrictEqual(render(file, '--serve', '--no-open').code, 0);
+});

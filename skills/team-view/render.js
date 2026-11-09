@@ -16,6 +16,7 @@
 // --review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head> (with --share):
 // instead of the page, write a ready-to-post review: <gate>.review.github.json, or the folder <gate>.review.gitlab/.
 // --page-url=<https link | /uploads/... path> (with --review): the review body links the shared page, uploaded first.
+// kind "acceptance" (team-acceptance): a page that presents a branch; rendered only (no --serve, --accept-recommended, --share), it prints its size after its path.
 // Cards with "at" inside the diff become comments; --diff=<unified diff file> says which lines are in it (default: all).
 // Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server), accept.js (--accept-recommended), files.js (project files the page names: IDE and remote links).
 const fs = require('fs');
@@ -66,6 +67,7 @@ if (CHANNELS_ARG !== undefined) {
 }
 
 const { data, items, outcome, errors, preset } = loadGate(src, { share: SHARE, preset: PRESET });
+if (data.kind === 'acceptance' && (flags.has('--serve') || ACCEPT)) errors.push('kind "acceptance" is a page to read, not a gate: --serve and --accept-recommended do not apply (nothing comes back from it)');
 if (errors.length) { console.error('invalid gate JSON:\n- ' + errors.join('\n- ')); process.exit(1); }
 
 const page = buildPage({ data, items, outcome, preset, channels, share: SHARE });
@@ -97,6 +99,11 @@ const html = renderHtml(page, template, { share: SHARE, title: data.title });
 const out = outArg || src.replace(/(\.(ceo|gate))?\.json$/, '') + (SHARE ? '.share.html' : '.html');
 fs.writeFileSync(out, html);
 console.log(out);
+// An acceptance page embeds its screenshots: its size says whether it goes as an attachment.
+if (data.kind === 'acceptance') {
+  const bytes = Buffer.byteLength(html);
+  console.log('size: ' + (bytes < 1048576 ? Math.ceil(bytes / 1024) + ' KB' : (bytes / 1048576).toFixed(1) + ' MB'));
+}
 
 if (ACCEPT) {
   const block = acceptedBlock(page, template);

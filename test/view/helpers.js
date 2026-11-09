@@ -49,4 +49,29 @@ function pageData(html) {
   return JSON.parse(html.match(/<script type="application\/json" id="gate-data">([\s\S]*?)<\/script>/)[1]);
 }
 
-module.exports = { RENDER, shareGate, writeGate, render, pageData };
+// A valid 1x1 PNG, for gates whose figures must exist on disk.
+const TINY_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGM4UWEDAAOIAX3sK7CeAAAAAElFTkSuQmCC', 'base64');
+
+// A small acceptance page: one case with a screenshot and a technical part, one that could not be shown.
+function acceptanceGate(overrides) {
+  return Object.assign({
+    kind: 'acceptance', title: 'Recette — export', date: '2026-11-09', lang: 'fr',
+    branch: 'feat-export', commit: '4c3ebf618',
+    summary: [{ label: 'Ce que la branche apporte', text: 'Un export CSV des factures.' }],
+    cases: [
+      { id: 'C1', group: 'Exporter', title: 'Exporter les factures', steps: ['Ouvrir Factures', 'Cliquer sur Exporter'],
+        expected: 'Un fichier CSV se télécharge.', figures: [{ src: 'shot.png', caption: 'Le bouton Exporter' }],
+        tech: { how: 'Un endpoint GET renvoie le CSV.', files: ['src/export.js'], data: 'Trois factures de test.' } },
+      { id: 'C2', group: 'Exporter', title: 'Exporter sans facture', steps: ['Filtrer sur une période vide'],
+        expected: 'Un message dit qu’il n’y a rien à exporter.', unshown: 'Aucun environnement sans facture.' }
+    ]
+  }, overrides || {});
+}
+
+function writeAcceptance(gate) {
+  const file = writeGate(gate);
+  fs.writeFileSync(path.join(path.dirname(file), 'shot.png'), TINY_PNG);
+  return file;
+}
+
+module.exports = { RENDER, shareGate, writeGate, render, pageData, TINY_PNG, acceptanceGate, writeAcceptance };

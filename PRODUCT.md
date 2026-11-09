@@ -10,6 +10,7 @@ web
 
 - **The human**: the developer who ran a team-* skill (debate, plan, refactor, review) and must now decide on what the agent team recommends. They open the gate page in a browser, alone, between terminal sessions. Reviews and refactors are quick triage (2–5 minutes: skim, take the recommendations, fix a few, send); debates and plans get a deep read (15+ minutes over arguments, trade-offs and code).
 - **The branch owner**: a colleague who receives a shared review gate (a standalone file) and decides on the findings alone, then copies a prompt to their own agent.
+- **The acceptance reader**: a business person (PO, customer) or a developer who receives an acceptance page and reads what a branch does, case by case, in the Business view or the Technical one. They decide nothing on it.
 
 ## Product Purpose
 
