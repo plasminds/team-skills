@@ -75,16 +75,6 @@ For a team-review gate. On someone else's branch, Share hands the review to the 
 4. **Record:** the line goes to the review record, through team-review's record writer: `Shared YYYY-MM-DD as <file|review> via <route> (<destination>). Decisions left to the branch owner.` For a review: `Shared YYYY-MM-DD as review via review (pending on !<iid>).`
 5. **Tell the human**, in their language: what you did or prepared (the path, the link, the posted comment's URL, or the pending review on `!<iid> / #<n>` to submit, the mail link, the Slack message), what the reader does next, and the briefs that say "ask me first", by finding id.
 
-## Next round
-
-For a shared team-review gate, when the human asks where the branch owner stands ("what did they answer?", "round 2"). Nothing comes back through the page: the answers are in the merge/pull request's threads, in what the human pastes from mail or Slack, and in the new commits.
-
-1. **Read the answers.** On a merge/pull request, GitHub: `gh api --paginate repos/<owner>/<repo>/pulls/<n>/comments` (inline threads) and `gh api --paginate repos/<owner>/<repo>/issues/<n>/comments` (general); GitLab: `glab api --hostname <host> --paginate projects/<owner%2Frepo>/merge_requests/<iid>/discussions`. A finding's thread starts with the review's comment `**<id> — <title>**`; findings left as is are in the review body. Shared another way: ask the human to paste what the owner said.
-2. **Check the code.** Diff the reviewed head against the branch's current head (`git -C <checkout> fetch`, then `git -C <checkout> diff <reviewed head>..origin/<branch>`): the reviewed head is the review's commit (GitHub: `gh api repos/<owner>/<repo>/pulls/<n>/reviews`, its `commit_id`; GitLab: the first comment's `position.head_sha`), else the branch head on the share date. Look at each finding's files and lines. Offer a full team-review run on the new head when the change is large; a new problem it finds goes out as a new review of that head (a new gate, then § *Share*), never as a reply here.
-3. **Sum up per finding**, one line each: fixed (the commit), kept on purpose (the owner's reason), disputed (what is at issue), no answer. The code wins over a word: "fixed" with no change at the finding's lines reads "said fixed, unchanged".
-4. **Draft the replies** for the kept and disputed findings, in the conversation's language. Post each in its thread after the human's yes: GitHub `gh api repos/<owner>/<repo>/pulls/<n>/comments/<comment id>/replies -f body=<reply>`; GitLab `glab api --hostname <host> --method POST projects/<owner%2Frepo>/merge_requests/<iid>/discussions/<discussion id>/notes -f body=<reply>`. A finding in the review body has no thread of its own: on GitHub, answer all of them in one general comment naming their ids (`gh pr comment <n> -R <owner/repo> --body <reply>`); on GitLab, reply in the body's discussion. Resolve a thread only when the human says so. Never post a second review.
-5. **Record:** through team-review's record writer, `Round N YYYY-MM-DD: <k> fixed, <k> kept, <k> disputed, <k> no answer.`
-
 ## Who calls this
 
 | Skill | Gate | Mapping lives in |

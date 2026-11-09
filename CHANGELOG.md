@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.25.2 — 2026-11-09
+
+- **Removed.** team-view § *Next round* (reading the branch owner's answers from the merge/pull request's threads and drafting replies).
+
 ## 0.25.1 — 2026-11-07
 
 - **Fewer permission prompts.** An execution session copies its skill files into a fresh run folder before reading any; a skill file not copied is copied, never read in place. Agents keep working files in the run folder, pass commit messages inline, run `gh` and `glab` alone, and run the diff guard without saving it to a script.
