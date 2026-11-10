@@ -1,0 +1,24 @@
+<style>
+.scr { background: var(--surface); border: 1px solid currentColor; border-radius: 8px; padding: 20px 24px 20px; font-size: 13px; min-width: 640px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.top b { font-size: 15px; }
+.ctl { display: inline-block; padding: 6px 14px; background: var(--surface-2); border: 1px solid var(--ink-2); border-radius: 6px; }
+.bar { display: flex; gap: 12px; align-items: center; }
+.exp { background: var(--surface); border: 1.8px solid var(--accent); color: var(--accent); font-weight: 700; }
+.tbl { display: grid; grid-template-columns: 1.4fr 1.6fr 1fr 1fr .5fr; margin-top: 18px; }
+.tbl > span { padding: 7px 8px 7px 0; white-space: nowrap; border-bottom: 0.6px solid var(--ink-2); }
+.tbl > .h { font-size: 12px; color: var(--ink-2); border-bottom-color: var(--ink-2); }
+.tbl > .n { font-family: var(--mono); }
+.foot { margin: 28px 0 0; font-size: 12px; color: var(--ink-2); }
+</style>
+<div class="scr">
+  <div class="top"><b>Billing › Invoices</b><span class="bar"><span class="ctl">October 2026 ▾</span><span class="ctl exp">Export CSV</span></span></div>
+  <div class="tbl">
+    <span class="h">Number</span><span class="h">Customer</span><span class="h">Date</span><span class="h">Amount</span><span class="h">File</span>
+    <span class="n">INV-2026-1412</span><span>Atelier Nord</span><span>31/10/2026</span><span>1 240,00 €</span><span>PDF</span>
+    <span class="n">INV-2026-1411</span><span>Studio Lune</span><span>31/10/2026</span><span>86,40 €</span><span>PDF</span>
+    <span class="n">INV-2026-1410</span><span>Garage Brun et Fils</span><span>30/10/2026</span><span>3 905,10 €</span><span>PDF</span>
+    <span class="n">INV-2026-1409</span><span>Cabinet Morel</span><span>30/10/2026</span><span>412,00 €</span><span>PDF</span>
+  </div>
+  <p class="foot">2,000 invoices in October · page 1 of 80</p>
+</div>

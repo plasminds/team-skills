@@ -17,7 +17,7 @@ const LENSES = ['business', 'tech'];
 const STATUSES = ['confirmed', 'assumed', 'contested'];
 const MAX_BRIDGE = { tradeoff: 80, accepts: 160 };
 // What a tension side passes on to the option that sides with it.
-const SIDE_KEYS = ['brief', 'suggestion', 'tradeoff', 'violates', 'code', 'metrics', 'figures', 'accepts'];
+const SIDE_KEYS = ['brief', 'suggestion', 'tradeoff', 'violates', 'code', 'metrics', 'examples', 'figures', 'accepts'];
 // --share: the reader has neither this machine nor the .council/ folder.
 const LANGS = ['en', 'fr'];
 const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.council\//;
@@ -50,7 +50,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   // Images are embedded as data URIs so the page is one self-contained file.
   // src must be relative to the JSON, so the gate folder holds its own evidence and re-renders later.
   function embed(fig, where) {
-    if (!fig.svg && !fig.src) { errors.push(`${where} needs "svg" or "src"`); return; }
+    if (!fig.svg && !fig.src && fig.html === undefined) { errors.push(`${where} needs "svg", "html" or "src"`); return; }
+    if (fig.html !== undefined) checkHtml(fig.html, where);
     if (!fig.src || /^data:/.test(fig.src)) return;
     if (path.isAbsolute(fig.src) || /^[a-z]+:\/\//i.test(fig.src)) {
       errors.push(`${where}.src "${fig.src}" must be relative to the JSON — copy the file into the gate folder`);
@@ -63,10 +64,42 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       delete fig.src;
       return;
     }
+    if (path.extname(file).toLowerCase() === '.html') {
+      if (!fs.existsSync(file)) { errors.push(`${where}.src "${fig.src}" not found (resolved to ${file})`); return; }
+      fig.html = fs.readFileSync(file, 'utf8');
+      delete fig.src;
+      checkHtml(fig.html, where);
+      return;
+    }
     const mime = MIME[path.extname(file).toLowerCase()];
     if (!mime) { errors.push(`${where}.src "${fig.src}" is not a supported image type`); return; }
     if (!fs.existsSync(file)) { errors.push(`${where}.src "${fig.src}" not found (resolved to ${file})`); return; }
     fig.src = `data:${mime};base64,${fs.readFileSync(file).toString('base64')}`;
+  }
+
+  // An html figure is a static screen mockup: no script, form or external resource.
+  const HTML_RULES = [
+    [/<script/i, 'a <script> tag'],
+    [/\son[a-z]+\s*=/i, 'an inline event handler attribute'],
+    [/javascript:/i, 'a javascript: URL'],
+    [/<link/i, 'a <link> tag'],
+    [/@import/i, 'an @import rule'],
+    [/<iframe/i, 'an <iframe>'],
+    [/<object/i, 'an <object>'],
+    [/<embed/i, 'an <embed>'],
+    [/<form/i, 'a <form>'],
+    [/https?:\/\//i, 'an http(s) URL'],
+    [/(^|[\s"'(=,])\/\/[^\s"')]+/, 'a protocol-relative URL']
+  ];
+  function checkHtml(html, where) {
+    if (typeof html !== 'string' || !html.trim()) { errors.push(`${where}.html must be a non-empty string`); return; }
+    if (Buffer.byteLength(html) > 60 * 1024) {
+      errors.push(`${where}.html is larger than 60 KB — a screen mockup is static: no script, form or external resource`);
+      return;
+    }
+    HTML_RULES.forEach(([re, what]) => {
+      if (re.test(html)) errors.push(`${where}.html contains ${what} — a screen mockup is static: no script, form or external resource`);
+    });
   }
 
   function checkOptions(opts, where) {
@@ -186,10 +219,29 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     }
   }
 
-  // An option's own evidence, shown while it is chosen (else recommended) or picked: metrics, figures, and what it accepts.
+  // examples: given / when / then rows, one line each, on an item or an option.
+  function checkExamples(list, where) {
+    if (list == null) return;
+    if (!Array.isArray(list)) { errors.push(`${where}.examples must be an array of { "given", "when", "then" }`); return; }
+    if (list.length > 8) errors.push(`${where}.examples has ${list.length} rows (max 8)`);
+    list.forEach((r, j) => {
+      const at = `${where}.examples[${j}]`;
+      if (!r || typeof r !== 'object' || Array.isArray(r)) { errors.push(`${at} must be { "given", "when", "then" }`); return; }
+      ['given', 'when', 'then'].forEach(k => {
+        const v = r[k];
+        if (typeof v !== 'string' || !v.trim()) errors.push(`${at} needs "${k}": a non-empty one-line string`);
+        else if (/[\r\n]/.test(v)) errors.push(`${at}.${k} must be one line`);
+        else if (v.length > 120) errors.push(`${at}.${k} is ${v.length} characters (max 120)`);
+      });
+    });
+  }
+
+  // An option's own evidence, shown while it is chosen (else recommended) or picked: metrics, examples, figures, and what it accepts.
   function checkOwnEvidence(item, where) {
+    checkExamples(item.examples, `${where} ("${item.id}")`);
     item.options.forEach(o => {
       const at = `${where} ("${item.id}") option "${o.value}"`;
+      checkExamples(o.examples, at);
       ['metrics', 'figures'].forEach(k => { if (o[k] != null && !Array.isArray(o[k])) errors.push(`${at}.${k} must be an array`); });
       if (Array.isArray(o.figures)) o.figures.forEach((f, j) => embed(f, `${at}.figures[${j}]`));
       if (o.accepts == null) return;
@@ -231,8 +283,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
         entries.push({ e, at: `${base}.${k}[${j}]` });
       });
     };
-    ['for', 'against', 'metrics', 'figures'].forEach(k => collect(item, k, where));
-    item.options.forEach(o => ['metrics', 'figures'].forEach(k => collect(o, k, `${where} option "${o.value}"`)));
+    ['for', 'against', 'metrics', 'examples', 'figures'].forEach(k => collect(item, k, where));
+    item.options.forEach(o => ['metrics', 'examples', 'figures'].forEach(k => collect(o, k, `${where} option "${o.value}"`)));
     if (item.lens == null && !entries.some(x => x.e.lens != null)) return;
     // Every entry lands in one tab: its own lens, else the item's.
     entries.forEach(({ e, at }) => {
@@ -249,7 +301,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
   function concerns(item) {
     const found = new Set();
     if (LENSES.includes(item.lens)) found.add(item.lens);
-    [item].concat(item.options).forEach(h => ['for', 'against', 'metrics', 'figures'].forEach(k => {
+    [item].concat(item.options).forEach(h => ['for', 'against', 'metrics', 'examples', 'figures'].forEach(k => {
       if (Array.isArray(h[k])) h[k].forEach(e => { if (e && LENSES.includes(e.lens)) found.add(e.lens); });
     }));
     item.options.forEach(o => {
@@ -472,6 +524,21 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (!o.caption) errors.push(`${where} needs "caption": one line saying what to look at`);
     if (!o.after) errors.push(`${where} needs "after": the target state`);
     ['before', 'after'].forEach(k => { if (o[k]) embed(o[k], `${where}.${k}`); });
+    if (o.states != null) {
+      if (!Array.isArray(o.states)) errors.push(`${where}.states must be an array of { "label", "svg" | "src", "caption" }`);
+      else {
+        if (o.states.length > 6) errors.push(`${where}.states has ${o.states.length} entries (max 6)`);
+        o.states.forEach((st, j) => {
+          const at = `${where}.states[${j}]`;
+          if (!st || typeof st !== 'object' || Array.isArray(st)) { errors.push(`${at} must be { "label", "svg" | "src", "caption" }`); return; }
+          if (typeof st.label !== 'string' || !st.label.trim()) errors.push(`${at} needs "label": a non-empty string`);
+          else if (st.label.length > 40) errors.push(`${at}.label is ${st.label.length} characters (max 40)`);
+          if (typeof st.caption !== 'string' || !st.caption.trim()) errors.push(`${at} needs "caption": what differs from "after"`);
+          if (!st.svg && !st.src && st.html === undefined) errors.push(`${at} needs "svg", "html" or "src": the figure of the state`);
+          else embed(st, at);
+        });
+      }
+    }
     // on: { id, when }: a destination that holds only for some answers of one card, shown while that answer is chosen or recommended.
     if (o.on == null) return;
     const target = o.on && items.find(it => it.id === o.on.id);

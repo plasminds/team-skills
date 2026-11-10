@@ -410,6 +410,9 @@ a.fref:hover .forge, .fref .ext:hover .forge { color: var(--ink); }
 .figure { margin: 12px 0 0; }
 .figure .ftitle { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
 .figure .svgwrap { overflow-x: auto; color: var(--ink-2); }
+.figure .htmlwrap { display: block; overflow-x: auto; max-width: 100%; color: var(--ink); margin: 8px 0;
+  --surface: var(--panel); --surface-2: var(--raised); --accent: var(--ink); --ink-2: var(--ink-3); }
+.oview .figure .htmlwrap { --surface: var(--ground); --surface-2: var(--panel); }
 /* The figure palette (figures.md), mapped onto the page's: unfilled marks take the text colour, not SVG's default black;
    box fills and label masks are the ground the figure sits on; the focus is told by brightness alone, a step above
    ink-2 text, sublabels a step below. */
@@ -434,7 +437,9 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .ohead .oif { font-size: 13px; color: var(--ink-3); }
 .opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
 .opane { min-width: 0; }
-.opane .olbl { font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
+.ostates { margin-top: 14px; }
+.ostrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; margin-top: 6px; }
+.opane .olbl, .ostates > .olbl { font-size: 13.5px; font-weight: 650; color: var(--ink-2); }
 .opane .figure, .opane .shots { margin-top: 4px; }
 .opane .shots { grid-template-columns: 1fr; }
 .opane .shots img { max-height: 420px; }
@@ -720,7 +725,7 @@ const CHROME_TEXT = {
     'card.breaks': { one: 'Breaks {ids}: choosing it lifts it', other: 'Breaks {ids}: choosing it lifts them' },
     'card.note': 'Note ', 'card.noteClaude': 'Note for Claude ', 'card.notePlaceholder': 'Optional: a note, or an edit to this choice',
     'ev.pickAria': 'Show the evidence for', 'ev.pick': 'Evidence for', 'ev.title': 'Evidence', 'ev.constraints': 'Constraints', 'ev.from': 'From {source}',
-    'ev.tradeoffs': 'Trade-offs', 'ev.option': 'Option', 'ev.numbers': 'Numbers', 'ev.where': 'Where in the code',
+    'ev.tradeoffs': 'Trade-offs', 'ev.option': 'Option', 'ev.numbers': 'Numbers', 'ev.examples': 'Examples', 'ev.exGiven': 'Before', 'ev.exWhen': 'What is done', 'ev.exThen': 'After', 'ev.where': 'Where in the code',
     'ev.suggested': 'Suggested change', 'ev.ifChoose': 'if you choose {label}',
     'ev.replace': { one: 'Replace {n} line with', other: 'Replace {n} lines with' },
     'ev.replaceFrom': { one: 'Replace {n} line from line {line} with', other: 'Replace {n} lines from line {line} with' },
@@ -730,7 +735,7 @@ const CHROME_TEXT = {
     'ev.instructions': 'Instructions for the coding agent', 'ev.instructionsNamed': 'Instructions for the coding agent — {label}',
     'ev.empty': 'No evidence attached: the case is on the card.',
     'ev.accepts': 'Accepts: ', 'ev.recAccepts': 'The recommended option accepts: ',
-    'sum.title': 'Summary', 'sum.outcome': 'Outcome', 'sum.mockup': 'Mockup', 'sum.system': 'System',
+    'sum.title': 'Summary', 'sum.outcome': 'Outcome', 'sum.states': 'States', 'sum.mockup': 'Mockup', 'sum.system': 'System',
     'sum.whatSees': 'What the user sees', 'sum.howWorks': 'How the system works', 'sum.today': 'Today', 'sum.after': 'After', 'sum.target': 'Target',
     'sum.ifChosen': 'If {id} = {label}', 'sum.ifRec': 'If {id} = {label} (recommended)',
     'choose.set': { one: '{id}: {label}. {n} card still to decide.', other: '{id}: {label}. {n} cards still to decide.' },
@@ -948,7 +953,7 @@ const CHROME_TEXT = {
     'card.breaks': { one: 'Rompt {ids} : le choisir le lève', other: 'Rompt {ids} : le choisir les lève' },
     'card.note': 'Note ', 'card.noteClaude': 'Note pour Claude ', 'card.notePlaceholder': 'Facultatif : une note, ou une modification de ce choix',
     'ev.pickAria': 'Afficher les preuves de', 'ev.pick': 'Preuves de', 'ev.title': 'Preuves', 'ev.constraints': 'Contraintes', 'ev.from': 'Source : {source}',
-    'ev.tradeoffs': 'Compromis', 'ev.option': 'Option', 'ev.numbers': 'Chiffres', 'ev.where': 'Où dans le code',
+    'ev.tradeoffs': 'Compromis', 'ev.option': 'Option', 'ev.numbers': 'Chiffres', 'ev.examples': 'Exemples', 'ev.exGiven': 'Avant', 'ev.exWhen': 'Ce que l\'on fait', 'ev.exThen': 'Après', 'ev.where': 'Où dans le code',
     'ev.suggested': 'Modification suggérée', 'ev.ifChoose': 'si vous choisissez {label}',
     'ev.replace': { one: 'Remplacer {n} ligne par', other: 'Remplacer {n} lignes par' },
     'ev.replaceFrom': { one: 'Remplacer {n} ligne à partir de la ligne {line} par', other: 'Remplacer {n} lignes à partir de la ligne {line} par' },
@@ -958,7 +963,7 @@ const CHROME_TEXT = {
     'ev.instructions': 'Instructions pour l\'agent de code', 'ev.instructionsNamed': 'Instructions pour l\'agent de code — {label}',
     'ev.empty': 'Aucune preuve jointe : le dossier est sur la carte.',
     'ev.accepts': 'Accepte : ', 'ev.recAccepts': 'L\'option recommandée accepte : ',
-    'sum.title': 'Résumé', 'sum.outcome': 'Résultat attendu', 'sum.mockup': 'Maquette', 'sum.system': 'Système',
+    'sum.title': 'Résumé', 'sum.outcome': 'Résultat attendu', 'sum.states': 'États', 'sum.mockup': 'Maquette', 'sum.system': 'Système',
     'sum.whatSees': 'Ce que voit l\'utilisateur', 'sum.howWorks': 'Comment le système fonctionne', 'sum.today': 'Aujourd\'hui', 'sum.after': 'Après', 'sum.target': 'Cible',
     'sum.ifChosen': 'Si {id} = {label}', 'sum.ifRec': 'Si {id} = {label} (recommandé)',
     'choose.set': { one: '{id} : {label}. {n} carte reste à décider.', other: '{id} : {label}. {n} cartes restent à décider.' },
@@ -1429,6 +1434,15 @@ function makeL(lang) {
       } else {
         var fg = el('figure', 'figure');
         if (f.title) fg.appendChild(el('div', 'ftitle', f.title));
+        if (f.html) {
+          // A screen mockup lives in a shadow root: its styles stay in, the page's stay out; custom properties still inherit.
+          var hh = el('div', 'htmlwrap');
+          hh.attachShadow({ mode: 'open' }).innerHTML = '<style>:host { display: block; color: inherit; font: inherit; } *, *::before, *::after { box-sizing: border-box; }</style>' + f.html;
+          fg.appendChild(hh);
+          if (f.caption) fg.appendChild(el('figcaption', null, f.caption));
+          box.appendChild(fg);
+          return;
+        }
         var holder = el('div', 'svgwrap'); holder.innerHTML = f.svg || ''; fg.appendChild(holder);
         // One viewBox unit = one pixel, so font-size 12–13 renders at reading size; narrower panes scale down.
         var svg = holder.querySelector('svg'), vb = svg && svg.viewBox && svg.viewBox.baseVal;
@@ -2016,7 +2030,7 @@ function makeL(lang) {
     // recommends leaving the code as it is): a lone recommended fix shows anyway.
     var briefs = it.options.filter(function (o) { return o.brief; });
     var briefed = briefs.length > 1 || (briefs.length === 1 && !briefs[0].recommended);
-    var own = it.options.filter(function (o) { return o.code || (o.metrics && o.metrics.length) || (o.figures && o.figures.length) || o.accepts || (briefed && o.brief); });
+    var own = it.options.filter(function (o) { return o.code || (o.metrics && o.metrics.length) || (o.examples && o.examples.length) || (o.figures && o.figures.length) || o.accepts || (briefed && o.brief); });
     var sugFirst = shareMode ? reviewerSuggests(data, it) : null;
     var first = (own.filter(function (o) { return shareMode ? o.value === sugFirst : o.recommended; })[0] || own[0] || {}).value;
     var view = { shown: null, choice: undefined, picks: [], parts: [], groups: [], draws: [] };
@@ -2092,6 +2106,23 @@ function makeL(lang) {
       mets.forEach(function (m) { mb.appendChild(piece(metricRow(m), m.lens)); });
       metOpts.forEach(function (o) { o.metrics.forEach(function (m) { mb.appendChild(variant(mg, o.value, piece(metricRow(m), m.lens, o.value !== first))); }); });
       mg.appendChild(mb); view.groups.push({ g: mg, always: mets.length });
+    }
+    var exs = it.examples || [], exOpts = it.options.filter(function (o) { return o.examples && o.examples.length; });
+    if (exs.length || exOpts.length) {
+      var xls = exOpts.reduce(function (a, o) { return a.concat(o.examples); }, exs.slice()).map(function (r) { return r.lens; });
+      var xg = evGroup(L('ev.examples'), xls), xbox = el('div', 'ebox tbox'), xt = el('table', 'btable extable'), xh = el('thead'), xhr = el('tr'), xb = el('tbody');
+      var xcols = [['given', L('ev.exGiven')], ['when', L('ev.exWhen')], ['then', L('ev.exThen')]];
+      xcols.forEach(function (c) { xhr.appendChild(el('th', null, c[1])); });
+      xh.appendChild(xhr); xt.appendChild(xh);
+      function exRow(r, opt) {
+        var tr = el('tr');
+        xcols.forEach(function (c) { var td = inline(el('td'), r[c[0]]); td.setAttribute('data-l', c[1]); tr.appendChild(td); });
+        if (opt) return variant(xg, opt.value, piece(tr, r.lens, opt.value !== first));
+        return piece(tr, r.lens);
+      }
+      exs.forEach(function (r) { xb.appendChild(exRow(r)); });
+      exOpts.forEach(function (o) { o.examples.forEach(function (r) { xb.appendChild(exRow(r, o)); }); });
+      xt.appendChild(xb); xbox.appendChild(xt); xg.appendChild(xbox); view.groups.push({ g: xg, always: exs.length });
     }
     var atText = it.at && it.at.path ? it.at.path : '';
     if (atText) evGroup(L('ev.where'), []).appendChild(piece(atNode(el('div', 'ebox loc'), it.at), null));
@@ -2237,6 +2268,15 @@ function makeL(lang) {
           panes.appendChild(pane);
         });
         ov.appendChild(panes);
+        if (o.states && o.states.length) {
+          var sts = el('div', 'ostates'); sts.appendChild(el('div', 'olbl', L('sum.states')));
+          var srow = el('div', 'ostrow');
+          o.states.forEach(function (st) {
+            var sp = el('div', 'opane'); sp.appendChild(el('div', 'olbl', st.label));
+            sp.appendChild(figures([{ svg: st.svg, html: st.html, src: st.src, caption: st.caption }])); srow.appendChild(sp);
+          });
+          sts.appendChild(srow); ov.appendChild(sts);
+        }
         oc.appendChild(ov);
       });
     }

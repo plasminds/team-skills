@@ -28,6 +28,9 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Constraints
 [Those that bind the plan (`bridge.md`): id, lens, text, source, from the decision record's `## Constraints` and the profile's standing ones (`KS<n>`). One a *Structure* line states is listed by id only]
 
+## Examples
+[Copied from the decision record's `## Examples`, each row with its decision id. Each row is the failing test of the step that implements it, which names the row. "None" when the record has none]
+
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>]
 2. ...

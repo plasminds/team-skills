@@ -1,0 +1,14 @@
+<style>
+.scr { background: var(--surface); border: 1px solid currentColor; border-radius: 8px; padding: 20px 16px 16px; font-size: 13px; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.ctl { display: inline-block; padding: 6px 14px; background: var(--surface-2); border: 1px solid var(--ink-2); border-radius: 6px; white-space: nowrap; }
+.run { flex: 1 1 200px; min-width: 0; display: grid; gap: 8px; }
+.run .ctl { color: var(--ink-2); text-align: center; }
+.meter { height: 6px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--ink-2); }
+.meter i { display: block; width: 40%; height: 100%; border-radius: 3px; background: var(--accent); }
+.note { margin: 24px 0 0; font-size: 12px; color: var(--ink-2); }
+</style>
+<div class="scr">
+  <div class="bar"><span class="ctl">October 2026 ▾</span><span class="run"><span class="ctl">Preparing 2,000 invoices…</span><span class="meter"><i></i></span></span></div>
+  <p class="note">You can keep browsing: the file downloads when it is ready.</p>
+</div>

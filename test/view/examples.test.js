@@ -49,6 +49,7 @@ test('the review example renders, shares, and builds a GitHub review that lists 
 test('the debate example shows both lenses, its constraints, and auto-accept lifts nothing', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
   const file = copyTo(dir, 'debate-gate/export.gate.json');
+  fs.cpSync(path.join(EX, 'debate-gate', 'export'), path.join(dir, 'export'), { recursive: true }); // the outcome's sketches
   assert.strictEqual(render(file).code, 0);
   const data = pageData(fs.readFileSync(file.replace(/\.gate\.json$/, '.html'), 'utf8'));
   const byId = Object.fromEntries(data.items.map(it => [it.id, it]));
@@ -76,6 +77,7 @@ test('a .ceo.json copy of an example still renders to <name>.html', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
   const file = path.join(dir, 'export.ceo.json');
   fs.copyFileSync(path.join(EX, 'debate-gate', 'export.gate.json'), file);
+  fs.cpSync(path.join(EX, 'debate-gate', 'export'), path.join(dir, 'export'), { recursive: true });
   assert.strictEqual(render(file).code, 0);
   assert.ok(fs.existsSync(path.join(dir, 'export.html')));
 });

@@ -18,7 +18,7 @@ How: <one or two lines for a developer>
 Source: <the MR/PR line, ticket or commit the case comes from>
 ```
 
-Only what the branch changes or adds, as a user sees it. A case nobody can see in the app (a cron, a migration) is left out and named in one line at the end, under `Not visible:`.
+Each row of a decision record's `## Examples` that the branch implements is a case (the record a plan the branch follows names, or one the MR/PR links): `given` becomes its Data, `when` its Steps, `then` its Expected, and its Source is the record and the row's decision id. Only what the branch changes or adds, as a user sees it. A case nobody can see in the app (a cron, a migration) is left out and named in one line at the end, under `Not visible:`.
 
 ## Personal-data list (personal-data seat)
 

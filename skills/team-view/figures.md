@@ -23,12 +23,15 @@ A figure earns its place when the human decides faster with it than without it. 
 | what goes in the first release, and what waits | Story map | kickoff, plan |
 | several numbers, before → after | Slopegraph | refactor or debate item |
 | the causes of one incident | Fishbone | debate after an incident |
+| one rule's effect, case by case | no figure: `examples` (a table) | debate or plan item |
+| one screen in each of its states | `outcome` `states`, one wireframe each | `outcome` `ui` |
 
 Any type that compares two states (architecture, data model, state machine, dependency graph) uses the *Before/after* grammar below. The order the work runs in is the executor's concern: no Gantt, timeline or step graph on the page.
 
 ## Rules for every figure
 
 1. **Page palette.** Strokes and text are `currentColor`. Secondary marks (ordinary arrows, sublabels, gridlines) use `style="stroke: var(--ink-2)"` or `fill: var(--ink-2)`. Box fills and label masks are `var(--surface)`, except where a type card names `var(--surface-2)`. No hex colour, no light fill. Green and red belong to the metric chips: a figure never uses them. A mark with no fill takes the text colour, so give every box its `var(--surface)` fill.
+   **Except for the product's own meanings.** When a colour or a shape means something on the product's screens (green for delivering, blue for taking back, a licence-plate badge), any figure may use it with that meaning: a wireframe, and a diagram of the same objects too. Take the values from the product's design tokens (the profile's UX domain, a `DESIGN.md`, the app's CSS variables), as hex, each filled area with its text colour from the same source. At most 3 such colours, and the meaning is also written on the mark (`↓ Deliver`, a label): never colour alone. A wireframe sits on its own light or dark ground, like a screenshot. No external font: name the product's font with a system fallback. Everything else keeps the page palette: annotations, ordinary boxes and arrows, and the status of a before/after, which stays a word.
 2. **One focus.** `var(--accent)` marks at most 2 elements: what the human should look at first. If 4 things want it, you haven't chosen yet.
 3. **Delete before you add.** Each box is a distinct idea: two boxes that always travel together are one. Each arrow says something the layout doesn't. Each label says something the shape doesn't.
 4. **Budget.** At most 9 boxes and 12 arrows (tighter limits per type below). Over that, draw an overview and a detail, never fewer arrows than the system has.
@@ -38,6 +41,15 @@ Any type that compares two states (architecture, data model, state machine, depe
    - **Size every label before placing it:** about 7 units per character at `font-size` 12 (8 in mono capitals). A label keeps 8 units clear of every stroke it doesn't belong to, zone borders included, and 16 units inside the `viewBox`. One that doesn't fit wraps onto a second line or moves; it never crosses an edge.
    - **Text never inherits a stroke.** Put `stroke` on the shapes themselves, never on the `<svg>` root or a `<g>` that also holds text, or the text renders bold and blurred.
 8. **Legend.** Only when a mark's meaning isn't written on it, as one strip under the drawing, covering exactly the marks used.
+9. **The loaded case.** A wireframe of a list, a calendar or a table shows the load the evidence pass measured (the p90 day, the longest name, the fullest list), not the tidy case, and its caption names it (`p90 day: 16 slots, 7 at 9:00`). With no measure, the caption says `sample data`.
+
+## HTML for a screen
+
+A screen mockup (a `ui` outcome's `before`, `after` or `states`, an option's sketch of a screen) is written in HTML, a diagram in SVG. HTML wraps text and lays out a grid or a form the way the product does; arrows, zones and state machines stay SVG.
+- One fragment: a `<style>` first, then the markup. Classes are local to the fragment, so short names are fine.
+- Page tokens for the neutral parts (`var(--surface)`, `var(--surface-2)`, `var(--ink-2)`, `var(--mono)`), so the mockup follows the theme; the product's own colours by rule 1.
+- Real labels and sample data from the domain, on the loaded case (rule 9). Width: it fills the pane, laid out with grid or flex and relative widths. A screen that cannot shrink (a table, a calendar) sets a `min-width` and its cells `white-space: nowrap`: on a phone it scrolls in its pane, as the real one would, instead of wrapping every cell.
+- Static only: no script, no form, no external resource (`contract.md` lists what the renderer rejects). A control is drawn, not wired: a `<span>` styled as a button, not a `<button>`.
 
 ## Before/after
 

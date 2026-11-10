@@ -2,6 +2,16 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.27.0 — 2026-11-10
+
+- **Examples.** An item or an option can carry `examples`, given / when / then rows shown as a table in the evidence pane. The decision record keeps the chosen rows; team-plan makes each a test, team-acceptance a case.
+- **States.** An outcome can show its target in each state (`states`), one wireframe per state.
+- **The product's colours.** A figure may use a colour the product's screens give a meaning to, written on the mark too. A screen mockup is drawn on the measured loaded case.
+- **HTML mockups.** A figure can be an HTML fragment (`html`), for a screen mockup: rendered in its own shadow root, static, no external resource.
+- **Data evidence.** team-debate's evidence pass can measure a case's frequency with read-only queries on the environments the profile's `Data evidence envs` line names.
+- **Neighbouring work.** The debate framing reads the open tickets and MRs/PRs on the same objects; a collision becomes a coordination card.
+- **Scope on the debate page.** The summary says what stays unchanged, what is out of scope and the known limits.
+
 ## 0.26.0 — 2026-11-09
 
 - **team-acceptance.** An acceptance page (recette) of a pushed branch: cases with their steps, expected result and screenshots taken on a running environment, a Business view and a Technical one. Nothing to decide.

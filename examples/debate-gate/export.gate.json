@@ -6,7 +6,18 @@
   "summary": [
     { "label": "Decision", "text": "How customers get their invoices into their accounting tool. PO, CTO, UX and Philosopher sat, two rounds." },
     { "label": "Consensus", "text": "A CSV export first; a live sync waits for demand." },
+    { "label": "Unchanged", "text": "The invoice list and each invoice's PDF." },
+    { "label": "Out of scope", "text": "A live sync with accounting tools (R1)." },
     { "label": "Recommendation", "text": "Build in-house on the PDF pipeline. **Accepts:** PDF pipeline debt, to make the 1 Dec closing." }
+  ],
+  "outcome": [
+    { "view": "ui", "title": "The invoices page", "caption": "An Export CSV button beside the month filter; the list does not move. Pro customer with 2,000 invoices (sample data)",
+      "before": { "src": "export/ui-before.html" }, "after": { "src": "export/ui-after.html" },
+      "states": [
+        { "label": "Large month", "src": "export/state-large.html", "caption": "The button says how many invoices; the page stays usable" },
+        { "label": "Empty month", "src": "export/state-empty.html", "caption": "The button is disabled and says why" },
+        { "label": "Export failed", "src": "export/state-failed.html", "caption": "The button is back; the message says what to do" }
+      ] }
   ],
   "decisions": [
     {
@@ -64,12 +75,20 @@
       ],
       "options": [
         { "value": "included", "label": "Included in every plan", "recommended": true,
-          "tradeoff": { "business": "No new revenue; keeps the three customers" } },
+          "tradeoff": { "business": "No new revenue; keeps the three customers" },
+          "examples": [ { "given": "Starter customer, October picked", "when": "Clicks **Export CSV**", "then": "The CSV of October downloads" } ] },
         { "value": "paid", "label": "Paid add-on",
           "tradeoff": { "business": "About 1 k€/month; a new price to sell before 1 Dec" },
-          "violates": ["K1"] }
+          "violates": ["K1"],
+          "examples": [
+            { "given": "Starter customer, October picked", "when": "Clicks **Export CSV**", "then": "The add-on offer opens; no file" },
+            { "given": "Starter customer who bought the add-on", "when": "Clicks **Export CSV**", "then": "The CSV of October downloads" }
+          ] }
       ],
       "accepts": "No revenue from the export",
+      "examples": [
+        { "given": "Pro customer, 2,000 invoices in October", "when": "Clicks **Export CSV**", "then": "One CSV with all 2,000 invoices, one line each" }
+      ],
       "for": [ { "who": "PO", "point": "The three customers asked for it to close their books, not as an extra." } ],
       "against": [ { "who": "Philosopher", "point": "Nobody asked the other customers whether they would pay for it." } ]
     },

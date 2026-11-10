@@ -109,6 +109,7 @@ Standing answers to questions a run would otherwise ask every time; a run follow
 - Squash after execution: branch | run | none — <source>
 - Next step: launch | paste — <source>
 - Dependency scan (osv-scanner, sends the package list to api.osv.dev): yes | no — the user, <date>
+- Data evidence envs: <envs, read-only>; <how to reach each: a client, a tunnel> — the user, <date>
 ```
 
 ## Sibling worktrees

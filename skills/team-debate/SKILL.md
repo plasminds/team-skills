@@ -19,6 +19,7 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
   - **Variants.** Each mode, type or state the decided object comes in (an enum, a flag set at creation); each is a fact or a question.
   - **Glossary.** The human's own terms for the objects in play, written into the decision context; roles and writers use them verbatim. A term that names another object in the project is a question.
   - **What the request already says.** A ticket or MR/PR given or linked (by the user, the branch or its MR): its description, its comments, and the MRs and plans it links (`glab issue view <n> --comments`, `gh issue view <n> --comments`, the MR's discussion). What they settle is a fact with that link as source, never a question.
+  - **Neighbouring work.** Open tickets and MRs/PRs that touch the same objects (`glab issue list --search "<object>"`, `glab mr list --search "<object>"`, `gh issue list --search "<object>"`), read like the request. Each one is a fact with its link. A change that would collide with one (two messages for one event, a screen redesigned twice) becomes a coordination card on the gate: which work owns which part.
   - **Precedent.** For a new mode or variant of an existing object, how the existing one does it today (`file:line`): the default for the new one, written as such. Each departure from it is a question.
   - the answer you expect from the user to each open sub-question;
   - your confidence in that read (a percentage).
@@ -41,6 +42,14 @@ Templates live in `roles/` next to this file. Each role is a lens with its own `
 **Ad-hoc specialists**: summon extras when the decision turns on a lens no seated role holds (e.g. a Performance Analyst for perf-heavy calls), or when the user asks for one. Write each one 3–5 tests, no names (see `team-protocol`), and tell it to label every line `business` or `tech` (`bridge.md`).
 
 **Evidence pass**: when the question rests on facts nobody has observed, one agent gathers them (agent id `evidence`). It runs before Round 1, and before the restate when a constraint rests on code behaviour. Every claim carries `file:line`; it writes the lifecycle map of each entity whose states the decision touches (`reachability.md` § *Lifecycle map*); it ends with any two of its own claims that conflict. Its file goes to every role; its open questions join the pause. It leaves the project tree as found (`team-protocol` agent contract).
+
+**Data evidence**: when an option's worth rests on how often a case occurs or how much a screen holds, the evidence pass also measures it in the data.
+- Read-only queries only, on an environment the profile's `Data evidence envs` line names. With no line, ask once, with a proposal, and record the answer (`team-scan` § *Run preferences*).
+- List every command that runs outside the sandbox (a tunnel, a database client) in one chat message, and run them after a yes, each as a single plain command.
+- Save each query and its result to `<run folder>/data/`: aggregates only, never a row that identifies a customer. Name the period and the row count.
+- End with the loaded case (the p90 day, the fullest list) for figures to be drawn on (`figures.md` rule 9).
+
+The gate writer copies `data/` into the gate folder, and each number on the page names its query file as source.
 
 **Scope control**: a role invokes only its allowed specialists, never a tool that modifies state.
 
@@ -121,7 +130,7 @@ Then hand off (`team-protocol` § *Handoff*) with the prompt `run team-plan on <
 
 | Agent | Type | Model | Tool budget |
 |-------|------|-------|-------------|
-| Evidence pass | analyst | sonnet | ~15 |
+| Evidence pass | analyst | sonnet | ~15, ~25 with data evidence |
 | Round 1 roles, ad-hoc specialists | analyst | sonnet | ~12 |
 | Round 2: Philosopher, conflicting pairs, contradicted seats | analyst | sonnet | ~5 |
 | Reachability check | analyst | sonnet | ~10 |
