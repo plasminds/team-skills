@@ -551,6 +551,10 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
         ? `${d.id} has arguments on the question: put each on the option it backs or opposes directly (its "for" or "against"), on several if it applies to several`
         : `${d.id} has arguments on the question: write its options out ("approve" labelled "Approve", and "decline" labelled "Decline" with "negative": true) and put each argument on the option it backs or opposes directly; arguments for approving are Approve's "for", against approving Approve's "against"`);
     }
+    // Sides are a tension's: on a decision they would show as evidence while its choices fall back to Approve and Decline.
+    if (d.id && Array.isArray(d.sides) && d.sides.length) {
+      errors.push(`${d.id} has "sides": a decision's choices are its options; write each side as an option (its position as the label, its for and against on it) with one "negative": true, or make it a tension`);
+    }
     // The page shows the negative option last, whatever its place in the JSON (display order only; ids are unchanged).
     if (Array.isArray(item.options) && item.options.some(o => o && o.negative)) {
       item.options = item.options.filter(o => !(o && o.negative)).concat(item.options.filter(o => o && o.negative));

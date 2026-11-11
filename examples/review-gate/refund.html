@@ -283,11 +283,12 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .card[data-lens="business"] .lens-none.business, .card[data-lens="tech"] .lens-none.tech { display: block; }
 .lens-none { font-size: 14.5px; color: var(--ink-3); margin: 10px 0 0; }
 
-.c-decide { border-top: 1px solid var(--edge); padding: 16px 30px 18px; background: var(--foot); flex: none; }
-.dh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.dh h3 { margin: 0; font-size: 15px; font-weight: 650; }
-.dh .hint { font-size: 13px; color: var(--ink-3); }
-.options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.c-decide { border-top: 1px solid var(--edge); padding: 12px 30px 14px; background: var(--foot); flex: none; }
+/* The decide bar's head: "Your choice" and the note on one line, so the options get the height. */
+.dh { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 10px; }
+.dh h3 { flex: none; margin: 0; padding-top: 8px; font-size: 15px; font-weight: 650; line-height: 22px; }
+.dh .notewrap { flex: 1 1 auto; min-width: 0; }
+.options { display: flex; flex-wrap: wrap; gap: 10px; }
 .opt { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px 6px 8px; font-size: 15px; font-weight: 550; color: var(--ink); text-align: left;
   background: var(--panel); border: 1px solid var(--line); border-radius: 11px; transition: background-color .2s ease-out, border-color .2s ease-out; }
 .opt:hover { background: var(--raised); }
@@ -511,7 +512,7 @@ dialog.zoom p:empty { display: none; }
   .panes { grid-template-columns: 290px minmax(0, 1fr); grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); grid-template-areas: "list card" "list ev"; }
   .story-page .panes { grid-template-columns: 270px minmax(0, 1fr); }
   .c-scroll { padding: 20px 22px; }
-  .c-decide { padding: 14px 22px 16px; }
+  .c-decide { padding: 10px 22px 12px; }
   .args { grid-template-columns: 1fr; }
   .argcol, .argcol:first-child, .argcol:last-child { padding: 2px 0 4px; border-left: 0; }
   .argcol + .argcol { border-top: 1px solid var(--edge); padding-top: 16px; margin-top: 6px; }
@@ -550,9 +551,13 @@ dialog.zoom p:empty { display: none; }
   .c-decide { padding: 12px 16px 32px; flex: none; }
   /* A soft fade at the foot of the scrolling card says there is more below */
   .c-main::after { content: ''; display: block; position: sticky; bottom: 0; flex: none; height: 30px; margin-top: -30px; pointer-events: none; background: linear-gradient(to bottom, transparent, var(--foot)); }
-  .dh { display: none; }
+  /* No head on a phone: the note follows the options. */
+  .c-decide { display: flex; flex-direction: column; }
+  .dh { display: contents; }
+  .dh h3 { display: none; }
+  .dh .notewrap { order: 1; margin-top: 10px; }
   .opt { flex: 1 1 auto; min-height: 44px; padding-right: 10px; }
-  .options { gap: 8px; margin-bottom: 10px; }
+  .options { gap: 8px; }
   /* The recap: each row a stacked block, question then Recommended then Choice */
   .recap, .recap tbody, .recap tr, .recap td { display: block; }
   .recap thead { display: none; }
@@ -644,13 +649,13 @@ dialog.zoom p:empty { display: none; }
 /* The option rows (A6), in the decide bar: one row per option, all of one shape: the number key, the label and its cost
    line, then Recommended, the Breaks badges and the mark on the option the pane shows. The whole row picks; the chosen
    row is green, the shown one a shade lighter. */
-.story-page .orows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.story-page .orow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; min-height: 50px; padding: 6px 12px 6px 10px; border: 1px solid var(--edge); border-radius: 10px; background: var(--panel); cursor: pointer; }
+.story-page .orows { display: flex; flex-direction: column; gap: 6px; }
+.story-page .orow { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-height: 42px; padding: 3px 12px 3px 10px; border: 1px solid var(--edge); border-radius: 10px; background: var(--panel); cursor: pointer; }
 .story-page .orow:hover { background: var(--raised); }
 .story-page .orow.shown { border-color: var(--ink-3); background: var(--raised); }
 .story-page .orow.chosen { border-color: var(--green); background: var(--green-bg); box-shadow: 0 0 0 1px var(--green) inset; }
 .story-page .orow.off { border-style: dashed; cursor: default; }
-.story-page .opick { flex: 1 1 16rem; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 4px 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.story-page .opick { flex: 1 1 16rem; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 3px 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
 .story-page .opick kbd { flex: none; min-width: 24px; height: 24px; font-size: 12.5px; }
 .story-page .opick .ck { display: none; flex: none; color: var(--green); }
 .story-page .opick[aria-pressed="true"] .ck { display: block; }
@@ -2491,11 +2496,13 @@ function makeL(lang) {
       sdb.appendChild(tw);
     }
     var dlens = cardLens(it);
-    // Your choice, pinned under the card: numbered options, the recommended one ringed in amber, then the note. A card
-    // with option rows shows them in place of the option buttons (hidden, still pressed by render()); its hint says the pane follows.
+    // Your choice, pinned under the card: its heading and the note on one line, then the numbered options, the recommended
+    // one ringed in amber. A card with option rows shows them in place of the option buttons (hidden, still pressed by
+    // render()). The keys show on the options; the hint (the pane follows, on option rows) is the heading's tooltip.
     var decide = el('div', 'c-decide'), dh = el('div', 'dh'), n = it.options.length, rows = !!story;
-    dh.appendChild(el('h3', null, L('card.yourChoice')));
-    dh.appendChild(el('span', 'hint', rows ? (n > 1 ? L('story.hintMany', { max: Math.min(n, 9) }) : L('story.hintOne')) : n > 1 ? L('card.hintMany', { max: Math.min(n, 9) }) : L('card.hintOne')));
+    var dhh = el('h3', null, L('card.yourChoice'));
+    dhh.title = rows ? (n > 1 ? L('story.hintMany', { max: Math.min(n, 9) }) : L('story.hintOne')) : n > 1 ? L('card.hintMany', { max: Math.min(n, 9) }) : L('card.hintOne');
+    dh.appendChild(dhh);
     decide.appendChild(dh);
     var mootMsg = el('div', 'mootmsg'); if (rows) mootMsg.id = 'moot-' + it.id; mootMsg.hidden = true; decide.appendChild(mootMsg);
     var ob = optionButtons(it, function (v) { choose(it.id, v); }, { kbd: true }), row = ob.row, buttons = ob.buttons;
@@ -2506,7 +2513,7 @@ function makeL(lang) {
     note.id = 'note-' + it.id; lab.htmlFor = note.id; note.placeholder = L('card.notePlaceholder'); note.rows = 1;
     note.value = (state[it.id] && state[it.id].note) || '';
     note.addEventListener('input', function () { state[it.id] = state[it.id] || {}; state[it.id].note = note.value; save(); rowParts[it.id].nmark.hidden = !note.value.trim(); applyFilters(true); });
-    nw.appendChild(lab); nw.appendChild(note); decide.appendChild(nw);
+    nw.appendChild(lab); nw.appendChild(note); dh.appendChild(nw);
     main.appendChild(body); main.appendChild(decide);
 
     // Evidence: constraints once each with its lens, one trade-off table with a column per lens, numbers, the code, figures.

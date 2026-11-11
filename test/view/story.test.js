@@ -996,11 +996,13 @@ test('coherence: a rejected card\'s reason comes before its story block', async 
   assert.ok(reason >= 0 && reason < sb, order.map(n => cls(n).join('.')).join('|'));
 });
 
-test('A6: the debate bar reads "Your choice" and says the pane follows the option', async () => {
+test('A6: the debate bar reads "Your choice", the note on its line, and its tooltip says the pane follows the option', async () => {
   const dom = await cardPage('#d-D1');
   const dh = one(dom.document.getElementById('d-D1'), '.dh');
   assert.strictEqual(textOf(dh.children[0]), 'Your choice');
-  assert.strictEqual(textOf(one(dh, '.hint')), 'Press 1–3 or click · the evidence pane follows the option');
+  assert.strictEqual(dh.children[0].title, 'Press 1–3 or click · the evidence pane follows the option');
+  assert.strictEqual(q(dh, '.note').length, 1, 'the note sits on the heading\'s line');
+  assert.strictEqual(q(dh, '.hint').length, 0);
 });
 
 test('coherence: no lifts chip in the option rows, which say Breaks; the pane\'s table keeps its marks', async () => {
@@ -1083,7 +1085,7 @@ test('bare options: D4 (labels only) has no rows and no picker; the bar\'s own b
   assert.ok(!/\.story-page \.scard \.c-decide \.options/.test(css), 'no unscoped rule hides the bar buttons');
   const opts = cardOpts(dom, 'D4');
   assert.deepStrictEqual(opts.map(b => textOf(one(b, '.ol'))), ['Bar', 'Card', 'Nowhere']);
-  assert.strictEqual(textOf(one(one(card, '.dh'), '.hint')), 'Press 1–3 or click');
+  assert.strictEqual(one(card, '.dh').children[0].title, 'Press 1–3 or click');
   assert.strictEqual(textOf(one(card, '.dh').children[0]), 'Your choice');
   assert.ok(dom.document.getElementById('legend').children.map(textOf).some(t => t.includes('Bar')), 'the keys bar names the options, as on other pages');
   dom.press('Tab');
@@ -1115,7 +1117,7 @@ test('bare options: one option with a cost line keeps its rows, their picks and 
   assert.ok(!cls(card).includes('bare'));
   assert.strictEqual(rowsOf(dom, 'D4').length, 3);
   assert.strictEqual(q(card, '.opick').length, 3);
-  assert.strictEqual(textOf(one(one(card, '.dh'), '.hint')), 'Press 1–3 or click · the evidence pane follows the option');
+  assert.strictEqual(one(card, '.dh').children[0].title, 'Press 1–3 or click · the evidence pane follows the option');
 });
 
 test('figure centred: the card\'s drawing is centred, the rest stays left', () => {

@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.29.1 — 2026-11-12
+
+- **Sides on a decision refused.** A decision carrying `sides` is refused: its choices fell back to Approve and Decline. Write each side as an option, or make it a tension.
+- **A shorter decide bar.** *Your choice* and the note share one line; the key hint moves to the heading's tooltip; option rows are tighter.
+
 ## 0.29.0 — 2026-11-12
 
 - **Plain words.** The renderer warns on a code the page never defines (an approach, a bar, an answer written as `O1`, `P3`, `Q2`) and on a debate page with more than 7 weighty cards. The contract adds the rules: arguments give reasons, a tie says why, nothing is said twice, invented numbers are never key.

@@ -287,6 +287,14 @@ test('A9: a tension, rejected, settled or question item with item-level argument
   }
 });
 
+test('a decision with "sides" is refused on every kind: its choices are its options, not Approve and Decline', () => {
+  const msg = 'D1 has "sides": a decision\'s choices are its options; write each side as an option (its position as the label, its for and against on it) with one "negative": true, or make it a tension';
+  const sides = [{ who: 'CTO', position: 'Compile natively.' }, { who: 'Audio', position: 'Same bytes under a runtime.' }];
+  refused(withDecision(0, { options: undefined, sides }), msg);
+  refused(withDecision(0, { sides }), msg);
+  refused({ kind: 'plan', title: 'G', lang: 'en', decisions: [{ id: 'D1', title: 'Do it', brief: 'Do D1.', sides }] }, msg);
+});
+
 test('A1: a debate decision with its own options needs exactly one negative option; default options and other kinds are left alone', () => {
   const none = 'D1 has no negative option: add one with "negative": true and a label that says no to this question';
   refused(withDecision(0, { options: [{ value: 'a', label: 'A', recommended: true }, { value: 'b', label: 'B' }] }), none);
