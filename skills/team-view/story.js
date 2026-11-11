@@ -67,15 +67,27 @@
     if ((it.examples || []).length && !opts.some(function (o) { return (o.examples || []).length; })) return { examples: it.examples };
     return null;
   }
+  // The tension side an option stands for: gate.js gives a side's option the side's who as its value, "|" read as "/".
+  function sideOf(it, o) {
+    if (it.kind !== 'tension') return null;
+    return (it.sides || []).filter(function (s, j) { return String(s.who || 'side ' + (j + 1)).replace(/\|/g, '/') === o.value; })[0] || null;
+  }
+  // Whether the whole question compares the options in a table: two options or more carry a trade-off, an option gives
+  // numbers, or one breaks a constraint. Otherwise the one option with a trade-off shows it in its own section.
+  function compared(it) {
+    var opts = it.options || [];
+    return opts.filter(function (o) { return o.tradeoff && (o.tradeoff.business || o.tradeoff.tech); }).length >= 2 ||
+      opts.some(function (o) { return (o.metrics || []).length || (o.violates || []).length; });
+  }
   function storyView(it) {
-    var bridge = it.bridge || [], sides = it.sides || [];
+    var bridge = it.bridge || [];
     return {
       keys: (it.metrics || []).filter(function (m) { return m.key; }).slice(0, 3),
       drawing: drawingOf(it),
       rows: (it.options || []).map(function (o) {
         var t = o.tradeoff || {};
         // A tension side's option takes the side's who as its value (gate.js).
-        var side = it.kind === 'tension' ? sides.filter(function (s, j) { return String(s.who || 'side ' + (j + 1)).replace(/\|/g, '/') === o.value; })[0] : null;
+        var side = sideOf(it, o);
         return {
           o: o, line: t.business || t.tech || (side && side.position) || null,
           breaks: (o.violates || []).map(function (id) { var k = bridge.filter(function (b) { return b.id === id; })[0]; return { id: id, text: k ? k.text : '' }; })
@@ -93,7 +105,7 @@
   }
 
   // What a card shows in its evidence pane: { card: whether it has anything for "The whole question" (the comparison
-  // table when an option has a cost, numbers or a broken constraint, sides, numbers not shown large, figures past the
+  // table when an option has a cost, numbers or a broken constraint, sides on a card whose option rows show none, numbers not shown large, figures past the
   // drawing, examples, code, brief, location, suggestion, accepts, constraints: a card with nothing else still has its pane),
   // options: one flag per option, whether it has anything of its own (an argument, a trade-off, numbers, examples, code,
   // figures, brief, accepts) }. A context row shows its numbers not shown large and figures not drawn; nothing more: the pane says so.
@@ -104,7 +116,7 @@
     var dr = storyView(it).drawing || {};
     var code = !!(it.code && (it.code.before || it.code.after)) && !dr.code;
     return {
-      card: !!(n(it.sides) || it.brief || (it.at && it.at.path) || (it.suggestion && !dr.suggestion) || it.accepts || (n(it.examples) && !dr.examples) || code ||
+      card: !!((n(it.sides) && storyView(it).rows.every(function (r) { return !r.line && !r.breaks.length; })) || it.brief || (it.at && it.at.path) || (it.suggestion && !dr.suggestion) || it.accepts || (n(it.examples) && !dr.examples) || code ||
         rest > 0 || n(it.figures) > 1 || n(it.bridge) ||
         it.options.some(function (o) { return o.tradeoff || n(o.metrics) || n(o.violates); })),
       options: it.options.map(function (o) {
@@ -174,6 +186,23 @@
       if (rest.length) { var mb = blk(pane.evb, null); rest.forEach(function (m) { mb.appendChild(metricRow(m)); }); }
       var extra = (row.figures || []).slice(row.outcome != null ? 0 : 1);
       if (extra.length) blk(pane.evb, null).appendChild(figures(extra));
+    }
+    // The cover's pane holds each constraint of the page once, in full, in the order the story first uses it, with the cards
+    // it binds; the cards show it short.
+    if (row === coverRow) {
+      var seen = {}, ks = [], rank = function (it) { var i = (data.story || []).indexOf(it.id); return i < 0 ? 1e9 : i; };
+      // items is the links order, not the story's: a stable sort by the card's place in the story, minor items last.
+      items.map(function (it, i) { return { it: it, i: i }; }).sort(function (a, b) { return rank(a.it) - rank(b.it) || a.i - b.i; }).map(function (x) { return x.it; }).forEach(function (it) {
+        (it.bridge || []).forEach(function (k) {
+          if (!seen[k.id]) { seen[k.id] = { k: k, ids: [] }; ks.push(seen[k.id]); }
+          seen[k.id].ids.push(it.id);
+        });
+      });
+      if (ks.length) {
+        var kl = el('ul', 'klist ebox');
+        ks.forEach(function (e) { kl.appendChild(constraintRow(e.k, { lens: cardLens({}), source: true, binds: e.ids })); });
+        blk(pane.evb, L('ev.pageConstraints')).appendChild(kl);
+      }
     }
     var empty = !pane.evb.childNodes.length;
     if (empty) pane.evb.appendChild(el('p', 'ev-empty', L('ev.nothing')));

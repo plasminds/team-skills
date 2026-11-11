@@ -799,6 +799,29 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       });
     });
     drawnBy.forEach(ids => { if (ids.length > 1) warnings.push(`${ids.join(', ')} show the same figure: draw it once, on the card it explains; a figure several cards share goes in a context row before them`); });
+    // Plain words: a code the reader must decode (O1, Q2, P5, KS6) warns unless the page defines it, as a card or context
+    // id or a constraint on some card. Text in backticks is code on purpose. Only fields the page shows are read.
+    const CODE = /\b(?:KS\d+|[A-Z]\d{1,2}[a-z]?)\b/g;
+    const SHOWN = new Set(['title', 'topic', 'why', 'detail', 'accepts', 'label', 'point', 'business', 'tech', 'position', 'given', 'when', 'then', 'answer', 'text', 'caption', 'note']);
+    const HIDDEN = new Set(['on', 'after', 'figures', 'code', 'brief', 'suggestion', 'at', 'bridge', 'constraints', 'outcome', 'figure']);
+    const shownText = (x, key, out) => {
+      if (typeof x === 'string') { if (SHOWN.has(key)) out.push(x); }
+      else if (Array.isArray(x)) x.forEach(v => shownText(v, key, out));
+      else if (x && typeof x === 'object') Object.keys(x).forEach(k => { if (!HIDDEN.has(k)) shownText(x[k], k, out); });
+      return out;
+    };
+    const known = new Set([...items, ...context].map(x => x.id));
+    items.forEach(it => (Array.isArray(it.bridge) ? it.bridge : []).forEach(k => k && k.id && known.add(k.id)));
+    [...context, ...items].forEach(x => {
+      const found = [];
+      shownText(x, null, []).forEach(s => (s.replace(/`[^`]*`/g, '').match(CODE) || []).forEach(c => { if (!known.has(c) && !found.includes(c)) found.push(c); }));
+      if (found.length) warnings.push(`${x.id} names ${found.join(', ')}: a code this page never defines; write what each stands for`);
+    });
+    // At most ~7 weighty cards (contract.md § Triage): tensions and decisions, not minor items or the structure card.
+    if (STORY_KINDS.includes(data.kind)) {
+      const weighty = items.filter(it => it.kind === 'tension' || (it.kind === 'decision' && !it.minor && !/^(confirm the structure|confirmer la structure)\b/i.test(it.title || '')));
+      if (weighty.length > 7) warnings.push(`${weighty.length} weighty cards (${weighty.map(it => it.id).join(', ')}): keep about 7; fold the rest to minor items with a default, by stakes`);
+    }
   }
   const story = checkStory(data, ordered, context, errors, warnings);
   return { data, items: ordered, outcome, errors, warnings, preset, story, context };

@@ -124,7 +124,7 @@ node skills/team-view/render.js examples/refactor-gate/invoice.gate.json --accep
 
 [`examples/debate-gate/`](examples/debate-gate) holds a debate gate told as a story (`story` puts D3 before D1): two context rows (the cover with its key numbers, and the invoices page before and after), then the questions. Each option carries its own for and against; each question has a No option worded for it; constraints sit on cards, and an option that breaks one shows a Breaks badge. The evidence pane follows the option you pick, else the recommended one; `[` `]` show another without picking it, and `e` folds the pane.
 
-![A debate gate: card D1 current with its key number and three option rows (Build in-house recommended, Third-party service with a Breaks K2 badge, Neither: keep the manual export), and in the evidence pane, on Build in-house, its For and Against by role, its trade-off, constraint K2 holding, and the whole question's comparison table](docs/debate-gate.png)
+![A debate gate: card D1 current with its key number and three option rows (Build in-house recommended, Third-party service with a Breaks K2 badge, Neither: keep the manual export), and in the evidence pane, naming Build in-house with previous and next arrows, its For and Against by role, constraint K2 holding, and the whole question's comparison table](docs/debate-gate.png)
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send. Any other kind goes as a file with `render.js <gate.json> --share`: no record path, no key legend, and a cover line saying what the reader is asked.
 

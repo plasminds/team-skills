@@ -2,6 +2,14 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.29.0 — 2026-11-12
+
+- **Plain words.** The renderer warns on a code the page never defines (an approach, a bar, an answer written as `O1`, `P3`, `Q2`) and on a debate page with more than 7 weighty cards. The contract adds the rules: arguments give reasons, a tie says why, nothing is said twice, invented numbers are never key.
+- **One home per fact.** The evidence pane names the option it shows, with previous and next, instead of listing the options again. The comparison table appears only when two options or more carry a trade-off and is then the only place for them; *The two sides* is gone from cards with option rows, a side's position sits atop its option's evidence when the row does not already read it.
+- **Constraints once.** The cover's evidence pane lists every constraint in full, with the cards it binds; a card keeps a full row only for a constraint one of its options breaks, and folds the rest into one line of ids.
+- **Counter.** "Decided n of m" counts only the questions asked: settled, rejected and minor items carry a default.
+- **Display.** Numbers of five digits or more are grouped; a before/after pair stacks in a block narrower than 1536 px.
+
 ## 0.28.1 — 2026-11-12
 
 - **The card's drawing.** A card with no figure shows its diff, its suggested change or its examples in the story block, when they hold for the whole card; a diff or examples that differ by option stay in the evidence pane under each option.

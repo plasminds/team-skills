@@ -95,6 +95,8 @@ var viewTheme = (function () {
   var _l = makeL(LANG), L = _l.L, Lp = _l.Lp;
   document.documentElement.lang = LANG;
   var items = data.items || [];
+  // The page's cover (contract.md: the first context row). Each constraint is shown in full once, in its pane.
+  var coverRow = data.kind !== 'acceptance' && (data.context || [])[0] || null;
   // lib/gate.js writes its built-in option labels in English: show them in the page's language. A label the gate's
   // author wrote stays as is; the decisions block carries values, never labels. A tension side keeps its name in o.side.
   var BUILT_IN = { approve: ['Approve', L('opt.approve')], decline: ['Decline', L('opt.decline')], defer: ['Defer', L('opt.defer')], 'keep-rejected': ['Keep rejected', L('opt.keepRejected')], revive: ['Revive', L('opt.revive')], ok: ['OK', L('opt.ok')], reopen: ['Reopen', L('opt.reopen')], ask: ['Ask the author', L('opt.askAuthor')], drop: ['Drop', L('opt.drop')] };
@@ -501,6 +503,8 @@ var viewTheme = (function () {
   var storyList = storyPage ? storyRows(data, items) : (data.context || []).map(function (c) { return { id: c.id, context: true, depth: 0, parent: null }; }), placed = {}, ctxById = {};
   storyList.forEach(function (r) { placed[r.id] = true; });
   (data.context || []).forEach(function (c) { ctxById[c.id] = c; });
+  // A story that leaves the cover out shows no cover pane, so the cards keep their full rows.
+  if (coverRow && !placed[coverRow.id]) coverRow = null;
   if (storyList.length) {
     var storySec = sectionFor('_story', false); storySec.headless = true;
     storySec.items = storyList.filter(function (r) { return !r.context; }).map(function (r) { return byIdx[r.id]; });
@@ -748,6 +752,34 @@ var viewTheme = (function () {
   var cards = {};
   var comesAfter = reverseAfter(items);
   var refinedBy = {}; items.forEach(function (it) { if (it.on) (refinedBy[it.on.id] = refinedBy[it.on.id] || []).push(it.id); });
+  // One constraint as a row: its lens when it differs from the card's, id, text; then a contested status, and on demand
+  // its source and the cards it binds (the cover's list).
+  function constraintRow(k, opts) {
+    var li = el('li', 'kst'), kt = el('div', 'kt'), klb = opts.lens !== undefined ? lensLabel(k.lens, opts.lens) : null;
+    if (klb) kt.appendChild(klb);
+    kt.appendChild(el('b', 'kid', k.id)); inline(kt, k.text); li.appendChild(kt);
+    var contested = k.status && k.status !== 'confirmed', src = opts.source && k.source;
+    if (contested || src || opts.binds) {
+      var ks = el('div', 'ksrc');
+      if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
+      if (src) ks.appendChild(el('span', null, L('ev.from', { source: k.source })));
+      if (opts.binds) { var on = el('span'); putNode(on, L('ev.binds', { ids: SLOT }), relLinks(opts.binds)); ks.appendChild(on); }
+      li.appendChild(ks);
+    }
+    return li;
+  }
+  // "Holds under every option: K2 K4": a card's constraints no option breaks, each id a chip whose text shows on hover and
+  // keyboard focus, as a Breaks badge does. The full text is on the cover.
+  function heldLine(cardId, ks) {
+    var p = el('p', 'kheld ebox'); p.appendChild(el('span', 'khl', L('ev.heldAll')));
+    ks.forEach(function (k, i) {
+      var w = el('span', 'tbw'), chip = el('span', 'tkeep', k.id), tip = el('span', 'ttip');
+      tip.id = 'kh-' + cardId + '-' + i; tip.setAttribute('role', 'tooltip'); inline(tip, k.text);
+      chip.setAttribute('tabindex', '0'); chip.setAttribute('aria-describedby', tip.id);
+      w.appendChild(chip); w.appendChild(tip); p.appendChild(w);
+    });
+    return p;
+  }
   function relLinks(ids) {
     var s = el('span');
     ids.forEach(function (id, i) {
@@ -811,9 +843,14 @@ var viewTheme = (function () {
     return args;
   }
   // A number as the page prints it: "before → after unit" when both are given, else the value (or the lone after).
+  // A whole number of five digits or more (a digit-only string too) reads grouped, in the page's language: 13000 → "13,000" (fr "13 000").
+  function num(x) {
+    if (typeof x === 'string' && /^-?\d+$/.test(x)) x = Number(x);
+    return typeof x === 'number' && Math.abs(x) >= 10000 ? new Intl.NumberFormat(LANG).format(x) : String(x);
+  }
   function metricText(m) {
-    if (m.before != null && m.after != null) return m.before + ' → ' + m.after + (m.unit ? ' ' + m.unit : '');
-    return (m.value != null ? m.value : m.after != null && m.before == null ? m.after : '') + (m.unit ? ' ' + m.unit : '');
+    if (m.before != null && m.after != null) return num(m.before) + ' → ' + num(m.after) + (m.unit ? ' ' + m.unit : '');
+    return (m.value != null ? num(m.value) : m.after != null && m.before == null ? num(m.after) : '') + (m.unit ? ' ' + m.unit : '');
   }
   function metricRow(m, dflt) {
     var r = el('div', 'metric'), lab = el('span', 'ml'), lb = lensLabel(m.lens, dflt);
@@ -825,7 +862,7 @@ var viewTheme = (function () {
       var dd = Number(m.after) - Number(m.before);
       if (!isNaN(dd) && dd !== 0) {
         var good = m.better ? ((m.better === 'higher') === (dd > 0)) : null;
-        var mvars = { d: Math.round(Math.abs(dd) * 1000) / 1000 + (m.unit ? ' ' + m.unit : '') };
+        var mvars = { d: num(Math.round(Math.abs(dd) * 1000) / 1000) + (m.unit ? ' ' + m.unit : '') };
         dl = dd > 0 ? (good === null ? L('metric.up', mvars) : good ? L('metric.upBetter', mvars) : L('metric.upWorse', mvars))
           : (good === null ? L('metric.down', mvars) : good ? L('metric.downBetter', mvars) : L('metric.downWorse', mvars));
         dc = good === null ? '' : good ? 'better' : 'worse';
@@ -960,12 +997,17 @@ var viewTheme = (function () {
     var argued = it.options.some(function (x) { return (x.for && x.for.length) || (x.against && x.against.length); });
     if (argued) { var ab = el('div', 'ebox oargs'); ab.appendChild(argCols(o.for || [], o.against || [], dlens, L('arg.none'))); b.appendChild(ab); }
     var acc = o.accepts || (isHome(it, o) && it.accepts);
-    if (t.business || t.tech || acc) {
-      head(L('ev.tradeoff'));
+    // One home per fact: the option's row already reads its line, and the comparison table, when drawn, holds every
+    // trade-off. This section keeps what neither shows: the other lens, Accepts, and a side's position.
+    var line = (storyView(it).rows.filter(function (r) { return r.o === o; })[0] || {}).line;
+    var side = sideOf(it, o);
+    if (side && side.position && side.position !== line) b.insertBefore(inline(el('p', 'opos'), side.position), b.firstChild);
+    var lenses = compared(it) ? [] : LENSES.filter(function (l) { return t[l] && t[l] !== line; });
+    if (lenses.length || acc) {
+      if (lenses.length) head(L('ev.tradeoff'));
       var tb = el('div', 'ebox otrade');
-      LENSES.concat('accepts').forEach(function (l) {
+      lenses.concat(acc ? ['accepts'] : []).forEach(function (l) {
         var text = l === 'accepts' ? acc : t[l];
-        if (!text) return;
         var r = el('div', 'trow'), tl = el('span', 'tl');
         if (l === 'accepts') tl.textContent = L('ev.acceptsRow'); else tl.appendChild(lensLabel(l));
         r.appendChild(tl); r.appendChild(inline(el('span', 'tv'), text)); tb.appendChild(r);
@@ -993,9 +1035,9 @@ var viewTheme = (function () {
       sv.keys.forEach(function (m) {
         var k = el('div', 'knum'), u = m.unit ? ' ' + m.unit : '', kv = el('div', 'kv');
         if (m.before != null && m.after != null && String(m.before) !== String(m.after)) {
-          kv.appendChild(el('span', 'kbef', m.before + u)); kv.appendChild(el('span', 'karr', ' → '));
+          kv.appendChild(el('span', 'kbef', num(m.before) + u)); kv.appendChild(el('span', 'karr', ' → '));
         }
-        kv.appendChild(el('span', 'kaft', String(m.after != null ? m.after : m.value) + u));
+        kv.appendChild(el('span', 'kaft', num(m.after != null ? m.after : m.value) + u));
         k.appendChild(kv);
         k.appendChild(el('div', 'kl', m.label));
         kn.appendChild(k);
@@ -1129,7 +1171,7 @@ var viewTheme = (function () {
       qa.classList.add('keep-asker');
       body.appendChild(qa);
     }
-    if (it.sides && it.sides.length) {
+    if (it.sides && it.sides.length && !story) {
       wholeQ();
       var sdb = blk(evb, it.sides.length === 2 ? L('card.twoSides') : L('card.sides')), tw = el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''));
       it.sides.forEach(function (sd) {
@@ -1180,22 +1222,32 @@ var viewTheme = (function () {
     function variant(g, value, node) { view.parts.push({ g: g, value: value, node: node }); return node; }
     view.draw = function () {
       var cv = choiceOf(it.id), v = view.shown || cv || first;
-      view.picks.forEach(function (p) { p.b.setAttribute('aria-pressed', String(p.value === v)); p.b.classList.toggle('mine', p.value === choiceOf(it.id)); });
       view.parts.forEach(function (p) { p.node.hidden = p.value !== v; });
       view.draws.forEach(function (f) { f(v); });
       view.now = v;
     };
     if (own.length > 1) {
-      var pick = el('div', 'optpick'), seg = el('div', 'oseg'); pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', L('ev.pickAria'));
+      // The pane names the option it shows; ‹ › (or [ ]) step to another without choosing it. The option rows under the
+      // card are the page's one list of options, so the pane does not list them again.
+      var pick = el('div', 'optpick'), step = el('div', 'ostep'), oname = el('span', 'oname');
+      var prev = el('button', 'oprev', '‹'), next = el('button', 'onext', '›');
+      pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', L('ev.pickAria'));
       pick.appendChild(el('span', 'pl', L('ev.pick')));
-      pick.appendChild(pane.close); pick.appendChild(seg);
-      own.forEach(function (o, i) {
-        var b = el('button'); b.type = 'button';
-        // The pane's segment: the option's number and label, cut to the segment's width, the whole label in its title.
-        b.appendChild(el('span', 'pn', String(i + 1))); b.title = plainLabel(o.label);
-        inline(b, o.side != null ? o.side : o.label);
-        b.addEventListener('click', function () { view.shown = o.value; view.draw(); });
-        view.picks.push({ value: o.value, b: b }); seg.appendChild(b);
+      pick.appendChild(pane.close);
+      prev.type = 'button'; next.type = 'button';
+      prev.setAttribute('aria-label', L('ev.prev')); next.setAttribute('aria-label', L('ev.next'));
+      prev.addEventListener('click', function () { stepPane({ view: view }, -1); });
+      next.addEventListener('click', function () { stepPane({ view: view }, 1); });
+      oname.setAttribute('aria-live', 'polite');
+      step.appendChild(prev); step.appendChild(oname); step.appendChild(next); pick.appendChild(step);
+      own.forEach(function (o) { view.picks.push({ value: o.value }); });
+      view.draws.push(function (v) {
+        var i = own.map(function (o) { return o.value; }).indexOf(v); if (i < 0) i = 0;
+        var o = own[i];
+        while (oname.firstChild) oname.removeChild(oname.firstChild);
+        oname.title = plainLabel(o.label);
+        oname.appendChild(el('span', 'pn', String(i + 1))); inline(oname, o.side != null ? o.side : o.label);
+        oname.classList.toggle('mine', o.value === choiceOf(it.id));
       });
       evb.insertBefore(pick, evb.firstChild);
     }
@@ -1212,23 +1264,22 @@ var viewTheme = (function () {
     // view; otherwise under the current choice, drawn by render().
     var kstate = [];
     if (it.bridge && it.bridge.length) {
-      var kg = evGroup(L('ev.constraints'), top), kl = el('ul', 'klist ebox');
-      it.bridge.forEach(function (k) {
-        var li = el('li', 'kst'), kt = el('div', 'kt');
-        var klb = lensLabel(k.lens, dlens);
-        if (klb) kt.appendChild(klb);
-        kt.appendChild(el('b', 'kid', k.id)); inline(kt, k.text); li.appendChild(kt);
-        var contested = k.status && k.status !== 'confirmed';
-        if (contested || k.source) {
-          var ks = el('div', 'ksrc');
-          if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
-          if (k.source) ks.appendChild(el('span', null, L('ev.from', { source: k.source })));
-          li.appendChild(ks);
-        }
-        var stn = el('div', 'ks'); li.appendChild(stn); kl.appendChild(li);
-        kstate.push({ k: k, li: li, node: stn });
-      });
-      kg.appendChild(kl);
+      // With a cover, a constraint some option of this card breaks is evidence for the choice: a full row, its source on
+      // the cover. The ones every option respects fold into one line. Without a cover, every constraint stays a full row.
+      var inPlay = function (k) { return it.options.some(function (o) { return (o.violates || []).indexOf(k.id) >= 0; }); };
+      var krows = coverRow ? it.bridge.filter(inPlay) : it.bridge;
+      var kheld = coverRow ? it.bridge.filter(function (k) { return !inPlay(k); }) : [];
+      var kg = evGroup(L('ev.constraints'), top);
+      if (krows.length) {
+        var kl = el('ul', 'klist ebox');
+        krows.forEach(function (k) {
+          var li = constraintRow(k, { lens: dlens, source: !coverRow }), stn = el('div', 'ks');
+          li.appendChild(stn); kl.appendChild(li);
+          kstate.push({ k: k, li: li, node: stn });
+        });
+        kg.appendChild(kl);
+      }
+      if (kheld.length) kg.appendChild(heldLine(it.id, kheld));
       if (top) view.draws.push(function (v) {
         var o = it.options.filter(function (x) { return x.value === v; })[0];
         kstate.forEach(function (s) {
@@ -1244,7 +1295,7 @@ var viewTheme = (function () {
     // constraint: a column per lens traded on and per number an option gives, the shown option's row marked.
     var mcols = [];
     if (story) it.options.forEach(function (o) { (o.metrics || []).forEach(function (m) { if (mcols.indexOf(m.label) < 0) mcols.push(m.label); }); });
-    if (story && it.options.some(function (o) { return o.tradeoff || (o.violates && o.violates.length); }) || mcols.length) {
+    if (story && compared(it)) {
       // A lens no option trades on gets no column: a tech-only card shows only Tech.
       var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
       var tgp = evGroup(null);
@@ -1639,7 +1690,7 @@ var viewTheme = (function () {
       paintRails(); legend();
       return;
     }
-    var done = 0;
+    var done = 0, asked = 0;
     items.forEach(function (it) {
       var c = cards[it.id], v = choiceOf(it.id);
       c.buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.value === v)); });
@@ -1705,7 +1756,8 @@ var viewTheme = (function () {
         s.node.appendChild(icon(lifted ? 'lifted' : 'hold'));
         s.node.appendChild(document.createTextNode(lifted ? L('card.liftedBy', { label: opt.label }) : by.length ? L('card.holdsLifted', { options: by.join(L('card.or')) }) : L('card.holds')));
       });
-      if (v || moot) done++;
+      // The counter counts the questions asked: an item with a default (settled, rejected, minor) is already answered, until its choice is cleared.
+      if (it.default == null || (!v && !moot)) { asked++; if (v || moot) done++; }
     });
     drawOutcomes();
     if (storyPage) recapPaint();
@@ -1716,10 +1768,10 @@ var viewTheme = (function () {
     });
     var ptxt = document.getElementById('ptxt');
     ptxt.textContent = '';
-    putNode(ptxt, L('prog.decided', { done: SLOT }), el('b', null, L('prog.of', { n: done, total: items.length })));
-    document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
-    listCount.textContent = items.length - done ? L('list.toDecide', { n: items.length - done }) : L('list.allDecided');
-    var allDecided = items.length === done;
+    putNode(ptxt, L('prog.decided', { done: SLOT }), el('b', null, L('prog.of', { n: done, total: asked })));
+    document.getElementById('pfill').style.transform = 'scaleX(' + (asked ? done / asked : 1) + ')';
+    listCount.textContent = asked - done ? L('list.toDecide', { n: asked - done }) : L('list.allDecided');
+    var allDecided = asked === done;
     document.getElementById('recAll').disabled = allDecided;
     document.getElementById('recAll').title = allDecided ? L('bar.allDecided') : '';
     paintRails(); legend();

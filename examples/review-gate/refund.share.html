@@ -354,6 +354,8 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .ks svg { width: 14px; height: 14px; }
 .kst.lifted .ks { color: var(--red); font-weight: 600; }
 .kst.lifted .kt { color: var(--ink-2); }
+.kheld { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 10px 14px; }
+.kheld .khl { font-size: 13.5px; color: var(--ink-2); margin-right: 4px; }
 .tbox { overflow-x: auto; }
 .btable { width: 100%; border-collapse: collapse; }
 .btable th { text-align: left; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 9px 12px 7px; border-bottom: 1px solid var(--edge); }
@@ -390,8 +392,6 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .optpick button { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 3px 10px; font-size: 13px; color: var(--ink-2);
   background: none; border: 1px solid var(--edge); border-radius: 8px; text-align: left; }
 .optpick button:hover { color: var(--ink); background: var(--panel); }
-.optpick button[aria-pressed="true"] { color: var(--ink); background: var(--cur); border-color: var(--ink-3); font-weight: 600; }
-.optpick button.mine { border-color: var(--green); }
 .nocode { margin: 8px 0 0; font-size: 14px; }
 /* How it gets done: the shown option's brief, folded until read */
 .brief summary { cursor: pointer; padding: 9px 12px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
@@ -437,7 +437,7 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .ohead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .ohead b { font-size: 15px; font-weight: 650; }
 .ohead .oif { font-size: 13px; color: var(--ink-3); }
-.opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
+.opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(760px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
 .opane { min-width: 0; }
 .ostates { margin-top: 14px; }
 .ostrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; margin-top: 6px; }
@@ -668,16 +668,20 @@ dialog.zoom p:empty { display: none; }
 .story-page .tbreak { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; font-size: 14px; font-weight: 650; color: var(--red); background: var(--red-bg); box-shadow: inset 0 0 0 1px var(--red); cursor: help; white-space: nowrap; }
 .story-page .tbreak:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .story-page .ttip { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 5; width: max-content; max-width: min(46ch, 70vw); padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: var(--pane-lift); font-size: 14.5px; font-weight: 400; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; visibility: hidden; opacity: 0; pointer-events: none; }
-.story-page .tbreak:hover + .ttip, .story-page .tbreak:focus + .ttip { visibility: visible; opacity: 1; }
+.story-page .tbreak:hover + .ttip, .story-page .tbreak:focus + .ttip, .story-page .tkeep:hover + .ttip, .story-page .tkeep:focus + .ttip { visibility: visible; opacity: 1; }
+.story-page .kheld .ttip { right: auto; left: 0; }
+.story-page .tkeep { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font: 600 12.5px var(--mono); color: var(--ink-2); background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); cursor: help; }
+.story-page .tkeep:focus-visible { outline: 2px solid var(--ink-3); outline-offset: 2px; }
 /* The pane: the picker heads it, one segment per option (its number and label, cut to fit); the chosen option's segment
    has a green ring. Then the shown option's section, the constraints under it, and the whole question under a divider. */
 .story-page .optpick { margin: 14px 0 6px; }
-.story-page .oseg { flex: 1 1 100%; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; border-radius: 10px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); }
-.story-page .oseg button { flex: 1 1 5.5rem; min-width: 0; display: block; min-height: 32px; padding: 4px 8px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-.story-page .oseg button:hover { color: var(--ink); }
-.story-page .oseg button[aria-pressed="true"] { color: var(--ink); background: var(--panel); box-shadow: 0 0 0 1px var(--line); font-weight: 650; }
-.story-page .oseg button.mine { box-shadow: inset 0 0 0 1.5px var(--green); }
-.story-page .oseg .pn { margin-right: 6px; font-variant-numeric: tabular-nums; }
+.story-page .osec .opos { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.story-page .ostep { flex: 1 1 100%; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 3px; border-radius: 10px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); }
+.story-page .ostep button { flex: none; min-width: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; font-size: 16px; color: var(--ink-2); }
+.story-page .ostep button:hover { color: var(--ink); background: var(--panel); }
+.story-page .oname { flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.story-page .oname.mine { color: var(--green); }
+.story-page .oname .pn { margin-right: 6px; font-variant-numeric: tabular-nums; }
 .story-page .etop, .story-page .osecs { display: contents; }
 .story-page .osec { display: flex; flex-direction: column; min-width: 0; }
 .story-page .osec > .eh:first-child { margin-top: 10px; }
@@ -741,7 +745,7 @@ dialog.zoom p:empty { display: none; }
   .story-page .scard .ch .tags { flex: 1 0 100%; margin: 0; }
   .story-page .orow { min-height: 48px; }
   .story-page .opick { min-height: 40px; }
-  .story-page .oseg button { min-height: 44px; }
+  .story-page .ostep button { min-height: 44px; min-width: 44px; }
 }
 @media print {
   .layout { display: block; height: auto; overflow: visible; }
@@ -941,7 +945,7 @@ const CHROME_TEXT = {
     'card.decisionFor': 'Decision for {id}', 'card.lifts': 'lifts {ids}',
     'card.breaks': { one: 'Breaks {ids}: choosing it lifts it', other: 'Breaks {ids}: choosing it lifts them' },
     'card.note': 'Note ', 'card.noteClaude': 'Note for Claude ', 'card.notePlaceholder': 'Optional: a note, or an edit to this choice',
-    'ev.pickAria': 'Show the evidence for', 'ev.pick': 'Evidence for', 'ev.title': 'Evidence', 'ev.constraints': 'Constraints', 'ev.from': 'From {source}',
+    'ev.pickAria': 'Show the evidence for', 'ev.pick': 'Evidence for', 'ev.prev': 'Previous option', 'ev.next': 'Next option', 'ev.title': 'Evidence', 'ev.constraints': 'Constraints', 'ev.from': 'From {source}', 'ev.pageConstraints': 'Constraints on this page', 'ev.binds': 'On {ids}', 'ev.heldAll': 'Holds under every option',
     'ev.option': 'Option', 'ev.numbers': 'Numbers', 'ev.examples': 'Examples', 'ev.exGiven': 'Before', 'ev.exWhen': 'What is done', 'ev.exThen': 'After', 'ev.where': 'Where in the code',
     'ev.suggested': 'Suggested change', 'ev.ifChoose': 'if you choose {label}',
     'ev.replace': { one: 'Replace {n} line with', other: 'Replace {n} lines with' },
@@ -1200,7 +1204,7 @@ const CHROME_TEXT = {
     'card.decisionFor': 'Décision pour {id}', 'card.lifts': 'lève {ids}',
     'card.breaks': { one: 'Rompt {ids} : le choisir le lève', other: 'Rompt {ids} : le choisir les lève' },
     'card.note': 'Note ', 'card.noteClaude': 'Note pour Claude ', 'card.notePlaceholder': 'Facultatif : une note, ou une modification de ce choix',
-    'ev.pickAria': 'Afficher les preuves de', 'ev.pick': 'Preuves de', 'ev.title': 'Preuves', 'ev.constraints': 'Contraintes', 'ev.from': 'Source : {source}',
+    'ev.pickAria': 'Afficher les preuves de', 'ev.pick': 'Preuves de', 'ev.prev': 'Option précédente', 'ev.next': 'Option suivante', 'ev.title': 'Preuves', 'ev.constraints': 'Contraintes', 'ev.from': 'Source : {source}', 'ev.pageConstraints': 'Contraintes de cette page', 'ev.binds': 'Sur {ids}', 'ev.heldAll': 'Tient quelle que soit l’option',
     'ev.option': 'Option', 'ev.numbers': 'Chiffres', 'ev.examples': 'Exemples', 'ev.exGiven': 'Avant', 'ev.exWhen': 'Ce que l\'on fait', 'ev.exThen': 'Après', 'ev.where': 'Où dans le code',
     'ev.suggested': 'Modification suggérée', 'ev.ifChoose': 'si vous choisissez {label}',
     'ev.replace': { one: 'Remplacer {n} ligne par', other: 'Remplacer {n} lignes par' },
@@ -1399,6 +1403,8 @@ function makeL(lang) {
   var _l = makeL(LANG), L = _l.L, Lp = _l.Lp;
   document.documentElement.lang = LANG;
   var items = data.items || [];
+  // The page's cover (contract.md: the first context row). Each constraint is shown in full once, in its pane.
+  var coverRow = data.kind !== 'acceptance' && (data.context || [])[0] || null;
   // lib/gate.js writes its built-in option labels in English: show them in the page's language. A label the gate's
   // author wrote stays as is; the decisions block carries values, never labels. A tension side keeps its name in o.side.
   var BUILT_IN = { approve: ['Approve', L('opt.approve')], decline: ['Decline', L('opt.decline')], defer: ['Defer', L('opt.defer')], 'keep-rejected': ['Keep rejected', L('opt.keepRejected')], revive: ['Revive', L('opt.revive')], ok: ['OK', L('opt.ok')], reopen: ['Reopen', L('opt.reopen')], ask: ['Ask the author', L('opt.askAuthor')], drop: ['Drop', L('opt.drop')] };
@@ -1805,6 +1811,8 @@ function makeL(lang) {
   var storyList = storyPage ? storyRows(data, items) : (data.context || []).map(function (c) { return { id: c.id, context: true, depth: 0, parent: null }; }), placed = {}, ctxById = {};
   storyList.forEach(function (r) { placed[r.id] = true; });
   (data.context || []).forEach(function (c) { ctxById[c.id] = c; });
+  // A story that leaves the cover out shows no cover pane, so the cards keep their full rows.
+  if (coverRow && !placed[coverRow.id]) coverRow = null;
   if (storyList.length) {
     var storySec = sectionFor('_story', false); storySec.headless = true;
     storySec.items = storyList.filter(function (r) { return !r.context; }).map(function (r) { return byIdx[r.id]; });
@@ -2052,6 +2060,34 @@ function makeL(lang) {
   var cards = {};
   var comesAfter = reverseAfter(items);
   var refinedBy = {}; items.forEach(function (it) { if (it.on) (refinedBy[it.on.id] = refinedBy[it.on.id] || []).push(it.id); });
+  // One constraint as a row: its lens when it differs from the card's, id, text; then a contested status, and on demand
+  // its source and the cards it binds (the cover's list).
+  function constraintRow(k, opts) {
+    var li = el('li', 'kst'), kt = el('div', 'kt'), klb = opts.lens !== undefined ? lensLabel(k.lens, opts.lens) : null;
+    if (klb) kt.appendChild(klb);
+    kt.appendChild(el('b', 'kid', k.id)); inline(kt, k.text); li.appendChild(kt);
+    var contested = k.status && k.status !== 'confirmed', src = opts.source && k.source;
+    if (contested || src || opts.binds) {
+      var ks = el('div', 'ksrc');
+      if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
+      if (src) ks.appendChild(el('span', null, L('ev.from', { source: k.source })));
+      if (opts.binds) { var on = el('span'); putNode(on, L('ev.binds', { ids: SLOT }), relLinks(opts.binds)); ks.appendChild(on); }
+      li.appendChild(ks);
+    }
+    return li;
+  }
+  // "Holds under every option: K2 K4": a card's constraints no option breaks, each id a chip whose text shows on hover and
+  // keyboard focus, as a Breaks badge does. The full text is on the cover.
+  function heldLine(cardId, ks) {
+    var p = el('p', 'kheld ebox'); p.appendChild(el('span', 'khl', L('ev.heldAll')));
+    ks.forEach(function (k, i) {
+      var w = el('span', 'tbw'), chip = el('span', 'tkeep', k.id), tip = el('span', 'ttip');
+      tip.id = 'kh-' + cardId + '-' + i; tip.setAttribute('role', 'tooltip'); inline(tip, k.text);
+      chip.setAttribute('tabindex', '0'); chip.setAttribute('aria-describedby', tip.id);
+      w.appendChild(chip); w.appendChild(tip); p.appendChild(w);
+    });
+    return p;
+  }
   function relLinks(ids) {
     var s = el('span');
     ids.forEach(function (id, i) {
@@ -2115,9 +2151,14 @@ function makeL(lang) {
     return args;
   }
   // A number as the page prints it: "before → after unit" when both are given, else the value (or the lone after).
+  // A whole number of five digits or more (a digit-only string too) reads grouped, in the page's language: 13000 → "13,000" (fr "13 000").
+  function num(x) {
+    if (typeof x === 'string' && /^-?\d+$/.test(x)) x = Number(x);
+    return typeof x === 'number' && Math.abs(x) >= 10000 ? new Intl.NumberFormat(LANG).format(x) : String(x);
+  }
   function metricText(m) {
-    if (m.before != null && m.after != null) return m.before + ' → ' + m.after + (m.unit ? ' ' + m.unit : '');
-    return (m.value != null ? m.value : m.after != null && m.before == null ? m.after : '') + (m.unit ? ' ' + m.unit : '');
+    if (m.before != null && m.after != null) return num(m.before) + ' → ' + num(m.after) + (m.unit ? ' ' + m.unit : '');
+    return (m.value != null ? num(m.value) : m.after != null && m.before == null ? num(m.after) : '') + (m.unit ? ' ' + m.unit : '');
   }
   function metricRow(m, dflt) {
     var r = el('div', 'metric'), lab = el('span', 'ml'), lb = lensLabel(m.lens, dflt);
@@ -2129,7 +2170,7 @@ function makeL(lang) {
       var dd = Number(m.after) - Number(m.before);
       if (!isNaN(dd) && dd !== 0) {
         var good = m.better ? ((m.better === 'higher') === (dd > 0)) : null;
-        var mvars = { d: Math.round(Math.abs(dd) * 1000) / 1000 + (m.unit ? ' ' + m.unit : '') };
+        var mvars = { d: num(Math.round(Math.abs(dd) * 1000) / 1000) + (m.unit ? ' ' + m.unit : '') };
         dl = dd > 0 ? (good === null ? L('metric.up', mvars) : good ? L('metric.upBetter', mvars) : L('metric.upWorse', mvars))
           : (good === null ? L('metric.down', mvars) : good ? L('metric.downBetter', mvars) : L('metric.downWorse', mvars));
         dc = good === null ? '' : good ? 'better' : 'worse';
@@ -2264,12 +2305,17 @@ function makeL(lang) {
     var argued = it.options.some(function (x) { return (x.for && x.for.length) || (x.against && x.against.length); });
     if (argued) { var ab = el('div', 'ebox oargs'); ab.appendChild(argCols(o.for || [], o.against || [], dlens, L('arg.none'))); b.appendChild(ab); }
     var acc = o.accepts || (isHome(it, o) && it.accepts);
-    if (t.business || t.tech || acc) {
-      head(L('ev.tradeoff'));
+    // One home per fact: the option's row already reads its line, and the comparison table, when drawn, holds every
+    // trade-off. This section keeps what neither shows: the other lens, Accepts, and a side's position.
+    var line = (storyView(it).rows.filter(function (r) { return r.o === o; })[0] || {}).line;
+    var side = sideOf(it, o);
+    if (side && side.position && side.position !== line) b.insertBefore(inline(el('p', 'opos'), side.position), b.firstChild);
+    var lenses = compared(it) ? [] : LENSES.filter(function (l) { return t[l] && t[l] !== line; });
+    if (lenses.length || acc) {
+      if (lenses.length) head(L('ev.tradeoff'));
       var tb = el('div', 'ebox otrade');
-      LENSES.concat('accepts').forEach(function (l) {
+      lenses.concat(acc ? ['accepts'] : []).forEach(function (l) {
         var text = l === 'accepts' ? acc : t[l];
-        if (!text) return;
         var r = el('div', 'trow'), tl = el('span', 'tl');
         if (l === 'accepts') tl.textContent = L('ev.acceptsRow'); else tl.appendChild(lensLabel(l));
         r.appendChild(tl); r.appendChild(inline(el('span', 'tv'), text)); tb.appendChild(r);
@@ -2297,9 +2343,9 @@ function makeL(lang) {
       sv.keys.forEach(function (m) {
         var k = el('div', 'knum'), u = m.unit ? ' ' + m.unit : '', kv = el('div', 'kv');
         if (m.before != null && m.after != null && String(m.before) !== String(m.after)) {
-          kv.appendChild(el('span', 'kbef', m.before + u)); kv.appendChild(el('span', 'karr', ' → '));
+          kv.appendChild(el('span', 'kbef', num(m.before) + u)); kv.appendChild(el('span', 'karr', ' → '));
         }
-        kv.appendChild(el('span', 'kaft', String(m.after != null ? m.after : m.value) + u));
+        kv.appendChild(el('span', 'kaft', num(m.after != null ? m.after : m.value) + u));
         k.appendChild(kv);
         k.appendChild(el('div', 'kl', m.label));
         kn.appendChild(k);
@@ -2433,7 +2479,7 @@ function makeL(lang) {
       qa.classList.add('keep-asker');
       body.appendChild(qa);
     }
-    if (it.sides && it.sides.length) {
+    if (it.sides && it.sides.length && !story) {
       wholeQ();
       var sdb = blk(evb, it.sides.length === 2 ? L('card.twoSides') : L('card.sides')), tw = el('div', 'args' + (it.sides.length > 2 ? ' stack' : ''));
       it.sides.forEach(function (sd) {
@@ -2484,22 +2530,32 @@ function makeL(lang) {
     function variant(g, value, node) { view.parts.push({ g: g, value: value, node: node }); return node; }
     view.draw = function () {
       var cv = choiceOf(it.id), v = view.shown || cv || first;
-      view.picks.forEach(function (p) { p.b.setAttribute('aria-pressed', String(p.value === v)); p.b.classList.toggle('mine', p.value === choiceOf(it.id)); });
       view.parts.forEach(function (p) { p.node.hidden = p.value !== v; });
       view.draws.forEach(function (f) { f(v); });
       view.now = v;
     };
     if (own.length > 1) {
-      var pick = el('div', 'optpick'), seg = el('div', 'oseg'); pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', L('ev.pickAria'));
+      // The pane names the option it shows; ‹ › (or [ ]) step to another without choosing it. The option rows under the
+      // card are the page's one list of options, so the pane does not list them again.
+      var pick = el('div', 'optpick'), step = el('div', 'ostep'), oname = el('span', 'oname');
+      var prev = el('button', 'oprev', '‹'), next = el('button', 'onext', '›');
+      pick.setAttribute('role', 'group'); pick.setAttribute('aria-label', L('ev.pickAria'));
       pick.appendChild(el('span', 'pl', L('ev.pick')));
-      pick.appendChild(pane.close); pick.appendChild(seg);
-      own.forEach(function (o, i) {
-        var b = el('button'); b.type = 'button';
-        // The pane's segment: the option's number and label, cut to the segment's width, the whole label in its title.
-        b.appendChild(el('span', 'pn', String(i + 1))); b.title = plainLabel(o.label);
-        inline(b, o.side != null ? o.side : o.label);
-        b.addEventListener('click', function () { view.shown = o.value; view.draw(); });
-        view.picks.push({ value: o.value, b: b }); seg.appendChild(b);
+      pick.appendChild(pane.close);
+      prev.type = 'button'; next.type = 'button';
+      prev.setAttribute('aria-label', L('ev.prev')); next.setAttribute('aria-label', L('ev.next'));
+      prev.addEventListener('click', function () { stepPane({ view: view }, -1); });
+      next.addEventListener('click', function () { stepPane({ view: view }, 1); });
+      oname.setAttribute('aria-live', 'polite');
+      step.appendChild(prev); step.appendChild(oname); step.appendChild(next); pick.appendChild(step);
+      own.forEach(function (o) { view.picks.push({ value: o.value }); });
+      view.draws.push(function (v) {
+        var i = own.map(function (o) { return o.value; }).indexOf(v); if (i < 0) i = 0;
+        var o = own[i];
+        while (oname.firstChild) oname.removeChild(oname.firstChild);
+        oname.title = plainLabel(o.label);
+        oname.appendChild(el('span', 'pn', String(i + 1))); inline(oname, o.side != null ? o.side : o.label);
+        oname.classList.toggle('mine', o.value === choiceOf(it.id));
       });
       evb.insertBefore(pick, evb.firstChild);
     }
@@ -2516,23 +2572,22 @@ function makeL(lang) {
     // view; otherwise under the current choice, drawn by render().
     var kstate = [];
     if (it.bridge && it.bridge.length) {
-      var kg = evGroup(L('ev.constraints'), top), kl = el('ul', 'klist ebox');
-      it.bridge.forEach(function (k) {
-        var li = el('li', 'kst'), kt = el('div', 'kt');
-        var klb = lensLabel(k.lens, dlens);
-        if (klb) kt.appendChild(klb);
-        kt.appendChild(el('b', 'kid', k.id)); inline(kt, k.text); li.appendChild(kt);
-        var contested = k.status && k.status !== 'confirmed';
-        if (contested || k.source) {
-          var ks = el('div', 'ksrc');
-          if (contested) ks.appendChild(el('span', 'kstat', cap(k.status)));
-          if (k.source) ks.appendChild(el('span', null, L('ev.from', { source: k.source })));
-          li.appendChild(ks);
-        }
-        var stn = el('div', 'ks'); li.appendChild(stn); kl.appendChild(li);
-        kstate.push({ k: k, li: li, node: stn });
-      });
-      kg.appendChild(kl);
+      // With a cover, a constraint some option of this card breaks is evidence for the choice: a full row, its source on
+      // the cover. The ones every option respects fold into one line. Without a cover, every constraint stays a full row.
+      var inPlay = function (k) { return it.options.some(function (o) { return (o.violates || []).indexOf(k.id) >= 0; }); };
+      var krows = coverRow ? it.bridge.filter(inPlay) : it.bridge;
+      var kheld = coverRow ? it.bridge.filter(function (k) { return !inPlay(k); }) : [];
+      var kg = evGroup(L('ev.constraints'), top);
+      if (krows.length) {
+        var kl = el('ul', 'klist ebox');
+        krows.forEach(function (k) {
+          var li = constraintRow(k, { lens: dlens, source: !coverRow }), stn = el('div', 'ks');
+          li.appendChild(stn); kl.appendChild(li);
+          kstate.push({ k: k, li: li, node: stn });
+        });
+        kg.appendChild(kl);
+      }
+      if (kheld.length) kg.appendChild(heldLine(it.id, kheld));
       if (top) view.draws.push(function (v) {
         var o = it.options.filter(function (x) { return x.value === v; })[0];
         kstate.forEach(function (s) {
@@ -2548,7 +2603,7 @@ function makeL(lang) {
     // constraint: a column per lens traded on and per number an option gives, the shown option's row marked.
     var mcols = [];
     if (story) it.options.forEach(function (o) { (o.metrics || []).forEach(function (m) { if (mcols.indexOf(m.label) < 0) mcols.push(m.label); }); });
-    if (story && it.options.some(function (o) { return o.tradeoff || (o.violates && o.violates.length); }) || mcols.length) {
+    if (story && compared(it)) {
       // A lens no option trades on gets no column: a tech-only card shows only Tech.
       var used = LENSES.filter(function (l) { return it.options.some(function (o) { return o.tradeoff && o.tradeoff[l]; }); });
       var tgp = evGroup(null);
@@ -2742,15 +2797,27 @@ function makeL(lang) {
     if ((it.examples || []).length && !opts.some(function (o) { return (o.examples || []).length; })) return { examples: it.examples };
     return null;
   }
+  // The tension side an option stands for: gate.js gives a side's option the side's who as its value, "|" read as "/".
+  function sideOf(it, o) {
+    if (it.kind !== 'tension') return null;
+    return (it.sides || []).filter(function (s, j) { return String(s.who || 'side ' + (j + 1)).replace(/\|/g, '/') === o.value; })[0] || null;
+  }
+  // Whether the whole question compares the options in a table: two options or more carry a trade-off, an option gives
+  // numbers, or one breaks a constraint. Otherwise the one option with a trade-off shows it in its own section.
+  function compared(it) {
+    var opts = it.options || [];
+    return opts.filter(function (o) { return o.tradeoff && (o.tradeoff.business || o.tradeoff.tech); }).length >= 2 ||
+      opts.some(function (o) { return (o.metrics || []).length || (o.violates || []).length; });
+  }
   function storyView(it) {
-    var bridge = it.bridge || [], sides = it.sides || [];
+    var bridge = it.bridge || [];
     return {
       keys: (it.metrics || []).filter(function (m) { return m.key; }).slice(0, 3),
       drawing: drawingOf(it),
       rows: (it.options || []).map(function (o) {
         var t = o.tradeoff || {};
         // A tension side's option takes the side's who as its value (gate.js).
-        var side = it.kind === 'tension' ? sides.filter(function (s, j) { return String(s.who || 'side ' + (j + 1)).replace(/\|/g, '/') === o.value; })[0] : null;
+        var side = sideOf(it, o);
         return {
           o: o, line: t.business || t.tech || (side && side.position) || null,
           breaks: (o.violates || []).map(function (id) { var k = bridge.filter(function (b) { return b.id === id; })[0]; return { id: id, text: k ? k.text : '' }; })
@@ -2768,7 +2835,7 @@ function makeL(lang) {
   }
 
   // What a card shows in its evidence pane: { card: whether it has anything for "The whole question" (the comparison
-  // table when an option has a cost, numbers or a broken constraint, sides, numbers not shown large, figures past the
+  // table when an option has a cost, numbers or a broken constraint, sides on a card whose option rows show none, numbers not shown large, figures past the
   // drawing, examples, code, brief, location, suggestion, accepts, constraints: a card with nothing else still has its pane),
   // options: one flag per option, whether it has anything of its own (an argument, a trade-off, numbers, examples, code,
   // figures, brief, accepts) }. A context row shows its numbers not shown large and figures not drawn; nothing more: the pane says so.
@@ -2779,7 +2846,7 @@ function makeL(lang) {
     var dr = storyView(it).drawing || {};
     var code = !!(it.code && (it.code.before || it.code.after)) && !dr.code;
     return {
-      card: !!(n(it.sides) || it.brief || (it.at && it.at.path) || (it.suggestion && !dr.suggestion) || it.accepts || (n(it.examples) && !dr.examples) || code ||
+      card: !!((n(it.sides) && storyView(it).rows.every(function (r) { return !r.line && !r.breaks.length; })) || it.brief || (it.at && it.at.path) || (it.suggestion && !dr.suggestion) || it.accepts || (n(it.examples) && !dr.examples) || code ||
         rest > 0 || n(it.figures) > 1 || n(it.bridge) ||
         it.options.some(function (o) { return o.tradeoff || n(o.metrics) || n(o.violates); })),
       options: it.options.map(function (o) {
@@ -2849,6 +2916,23 @@ function makeL(lang) {
       if (rest.length) { var mb = blk(pane.evb, null); rest.forEach(function (m) { mb.appendChild(metricRow(m)); }); }
       var extra = (row.figures || []).slice(row.outcome != null ? 0 : 1);
       if (extra.length) blk(pane.evb, null).appendChild(figures(extra));
+    }
+    // The cover's pane holds each constraint of the page once, in full, in the order the story first uses it, with the cards
+    // it binds; the cards show it short.
+    if (row === coverRow) {
+      var seen = {}, ks = [], rank = function (it) { var i = (data.story || []).indexOf(it.id); return i < 0 ? 1e9 : i; };
+      // items is the links order, not the story's: a stable sort by the card's place in the story, minor items last.
+      items.map(function (it, i) { return { it: it, i: i }; }).sort(function (a, b) { return rank(a.it) - rank(b.it) || a.i - b.i; }).map(function (x) { return x.it; }).forEach(function (it) {
+        (it.bridge || []).forEach(function (k) {
+          if (!seen[k.id]) { seen[k.id] = { k: k, ids: [] }; ks.push(seen[k.id]); }
+          seen[k.id].ids.push(it.id);
+        });
+      });
+      if (ks.length) {
+        var kl = el('ul', 'klist ebox');
+        ks.forEach(function (e) { kl.appendChild(constraintRow(e.k, { lens: cardLens({}), source: true, binds: e.ids })); });
+        blk(pane.evb, L('ev.pageConstraints')).appendChild(kl);
+      }
     }
     var empty = !pane.evb.childNodes.length;
     if (empty) pane.evb.appendChild(el('p', 'ev-empty', L('ev.nothing')));
@@ -3170,7 +3254,7 @@ function makeL(lang) {
       paintRails(); legend();
       return;
     }
-    var done = 0;
+    var done = 0, asked = 0;
     items.forEach(function (it) {
       var c = cards[it.id], v = choiceOf(it.id);
       c.buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.value === v)); });
@@ -3236,7 +3320,8 @@ function makeL(lang) {
         s.node.appendChild(icon(lifted ? 'lifted' : 'hold'));
         s.node.appendChild(document.createTextNode(lifted ? L('card.liftedBy', { label: opt.label }) : by.length ? L('card.holdsLifted', { options: by.join(L('card.or')) }) : L('card.holds')));
       });
-      if (v || moot) done++;
+      // The counter counts the questions asked: an item with a default (settled, rejected, minor) is already answered, until its choice is cleared.
+      if (it.default == null || (!v && !moot)) { asked++; if (v || moot) done++; }
     });
     drawOutcomes();
     if (storyPage) recapPaint();
@@ -3247,10 +3332,10 @@ function makeL(lang) {
     });
     var ptxt = document.getElementById('ptxt');
     ptxt.textContent = '';
-    putNode(ptxt, L('prog.decided', { done: SLOT }), el('b', null, L('prog.of', { n: done, total: items.length })));
-    document.getElementById('pfill').style.transform = 'scaleX(' + (items.length ? done / items.length : 0) + ')';
-    listCount.textContent = items.length - done ? L('list.toDecide', { n: items.length - done }) : L('list.allDecided');
-    var allDecided = items.length === done;
+    putNode(ptxt, L('prog.decided', { done: SLOT }), el('b', null, L('prog.of', { n: done, total: asked })));
+    document.getElementById('pfill').style.transform = 'scaleX(' + (asked ? done / asked : 1) + ')';
+    listCount.textContent = asked - done ? L('list.toDecide', { n: asked - done }) : L('list.allDecided');
+    var allDecided = asked === done;
     document.getElementById('recAll').disabled = allDecided;
     document.getElementById('recAll').title = allDecided ? L('bar.allDecided') : '';
     paintRails(); legend();

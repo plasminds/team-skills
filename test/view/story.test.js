@@ -307,7 +307,7 @@ test('ST5-3: a minor card refining a story card has one row, nested under its ro
   assert.deepStrictEqual(dom.document.querySelectorAll('.gname').map(textOf), ['Minor items']);
   dom.press('j');
   assert.strictEqual(at(dom), '#d-M1');
-  assert.ok(/ of 5$/.test(textOf(dom.document.getElementById('ptxt'))), textOf(dom.document.getElementById('ptxt')));
+  assert.ok(/ of 3$/.test(textOf(dom.document.getElementById('ptxt'))), textOf(dom.document.getElementById('ptxt')));
 });
 
 test('K12 on the page: a refinement hangs under its parent on a solid rail; a needing card is not nested and reads "needs"', async () => {
@@ -439,7 +439,8 @@ const cssText = () => fs.readFileSync(path.join(__dirname, '../../skills/team-vi
 const paneOf = (dom, id) => dom.document.getElementById('ev-' + id);
 const secsOf = (dom, id) => q(paneOf(dom, id), '.osec');
 const shownSecs = (dom, id) => secsOf(dom, id).filter(x => !x.hidden).map(x => x.getAttribute('aria-label'));
-const pickBtns = (dom, id) => kidsOf(one(paneOf(dom, id), '.oseg'));
+const paneName = (dom, id) => textOf(one(paneOf(dom, id), '.oname'));
+const stepBtn = (dom, id, d) => one(paneOf(dom, id), d < 0 ? '.oprev' : '.onext');
 const marks = (dom, id) => rowsOf(dom, id).map(r => !one(r, '.oshown').hidden);
 const tabOf = dom => dom.document.querySelector('.layout').dataset.tab;
 const NOTHING = 'Nothing more on this row.';
@@ -699,7 +700,7 @@ test('A6: the pane shows the recommended option while nothing is picked, the pic
   assert.deepStrictEqual(marks(dom, 'D1'), [false, true, false]);
   assert.ok(rowsOf(dom, 'D1')[1].classList.contains('shown'));
   assert.strictEqual(textOf(one(rowsOf(dom, 'D1')[1], '.oshown')), 'in the pane');
-  assert.deepStrictEqual(pickBtns(dom, 'D1').map(b => b.getAttribute('aria-pressed')), ['false', 'true', 'false']);
+  assert.strictEqual(paneName(dom, 'D1'), '2Story first');
   one(rowsOf(dom, 'D1')[0], '.opick').click();
   assert.deepStrictEqual(shownSecs(dom, 'D1'), ['Detail first']);
   assert.deepStrictEqual(marks(dom, 'D1'), [true, false, false]);
@@ -711,17 +712,22 @@ test('A6: the pane shows the recommended option while nothing is picked, the pic
 
 test('A6: the picker lists every option, the negative one too, and shows another without changing the pick or the decisions block; a new pick brings the pane back', async () => {
   const dom = await cardPage('#d-D2');
-  const pick = pickBtns(dom, 'D2');
-  assert.deepStrictEqual(pick.map(textOf), ['1One column', '2Two columns', '3Three columns', '4Free', '5Keep it as is']);
-  assert.deepStrictEqual(pick.map(b => b.title), ['One column', 'Two columns', 'Three columns', 'Free', 'Keep it as is']);
+  const names = [], titles = [];
+  for (let i = 0; i < 5; i++) { names.push(paneName(dom, 'D2')); titles.push(one(paneOf(dom, 'D2'), '.oname').title); stepBtn(dom, 'D2', 1).click(); }
+  assert.deepStrictEqual(names.sort(), ['1One column', '2Two columns', '3Three columns', '4Free', '5Keep it as is']);
+  assert.deepStrictEqual(titles.sort(), ['Free', 'Keep it as is', 'One column', 'Three columns', 'Two columns']);
   assert.strictEqual(textOf(one(one(paneOf(dom, 'D2'), '.optpick'), '.pl')), 'Evidence for');
   one(rowsOf(dom, 'D2')[0], '.opick').click();
   assert.deepStrictEqual(shownSecs(dom, 'D2'), ['One column']);
-  pick[4].click();
+  stepBtn(dom, 'D2', -1).click();
   assert.deepStrictEqual(shownSecs(dom, 'D2'), ['Keep it as is']);
   assert.deepStrictEqual(marks(dom, 'D2'), [false, false, false, false, true]);
   assert.ok(rowsOf(dom, 'D2')[0].classList.contains('chosen'), 'the pick stays');
-  assert.ok(pick[0].classList.contains('mine') && pick[4].getAttribute('aria-pressed') === 'true');
+  assert.strictEqual(paneName(dom, 'D2'), '5Keep it as is');
+  assert.ok(!one(paneOf(dom, 'D2'), '.oname').classList.contains('mine'));
+  stepBtn(dom, 'D2', 1).click();
+  assert.ok(one(paneOf(dom, 'D2'), '.oname').classList.contains('mine'), 'the pick reads as mine');
+  stepBtn(dom, 'D2', -1).click();
   dom.document.getElementById('copy').click();
   await settle();
   assert.match(dom.copied[0], /^D2 = a\b/m, 'the decisions block keeps the pick');
@@ -769,7 +775,7 @@ test('A6: the constraints read their status under the shown option, holds or bre
   assert.ok(one(top, '.klist'), 'with the shown option, above the whole question');
   assert.ok(textOf(one(li, '.ks')).includes('Holds'));
   assert.ok(!li.classList.contains('lifted'));
-  pickBtns(dom, 'D2')[0].click();
+  stepBtn(dom, 'D2', -1).click();
   assert.ok(li.classList.contains('lifted'));
   assert.ok(textOf(one(li, '.ks')).includes('Breaks under this option'));
   one(rowsOf(dom, 'D2')[2], '.opick').click();
@@ -789,7 +795,7 @@ test('A6: "The whole question" follows the shown option\'s part: the options com
   assert.deepStrictEqual(trs.map(r => r.classList.contains('shown')), [false, true, false, false, false]);
   assert.strictEqual(textOf(one(trs[0], '.lift')), 'Breaks K4');
   assert.deepStrictEqual(kidsOf(trs[2]).slice(1).map(textOf), ['—', '—']);
-  pickBtns(dom, 'D2')[0].click();
+  stepBtn(dom, 'D2', -1).click();
   assert.deepStrictEqual(trs.map(r => r.classList.contains('shown')), [true, false, false, false, false]);
   const dom1 = await cardPage('#d-D1');
   assert.strictEqual(q(paneOf(dom1, 'D1'), '.ocomp').length, 0, 'no cost, number or Breaks on D1\'s options: no table');
@@ -804,7 +810,7 @@ test('A6: "The whole question" follows the shown option\'s part: the options com
   const t6 = one(paneOf(dom6, 'Q6'), '.ocomp'), [h6, b6] = kidsOf(t6);
   assert.deepStrictEqual(kidsOf(kidsOf(h6)[0]).map(textOf), ['Option', 'Sends'], 'a column per number the options give');
   assert.deepStrictEqual(kidsOf(b6).map(r => textOf(kidsOf(r)[1])), ['4', '8', '—']);
-  pickBtns(dom6, 'Q6')[1].click();
+  stepBtn(dom6, 'Q6', 1).click();
   assert.deepStrictEqual(q(secsOf(dom6, 'Q6')[1], '.mv').map(textOf), ['8'], 'the shown option\'s own number in its section');
 });
 
@@ -862,7 +868,8 @@ test('on a context row or the recap the pane shows the row\'s own evidence, else
   assert.ok(textOf(paneOf(dom, 'SCREEN')).includes(NOTHING));
   dom.press('k');
   assert.strictEqual(at(dom), '#d-COVER');
-  assert.ok(textOf(paneOf(dom, 'COVER')).includes(NOTHING));
+  // The cover's pane lists the page's constraints (Task 5), so it is no longer empty.
+  assert.deepStrictEqual(q(paneOf(dom, 'COVER'), '.kst').map(r => textOf(one(r, '.kid'))), ['K4']);
   const recap = dom.document.getElementById('ev-_recap');
   assert.strictEqual(recap.hidden, false);
   assert.ok(textOf(recap).includes(NOTHING));
@@ -911,7 +918,7 @@ test('D3-1 pane half: the negative option\'s arguments all sit in its own sectio
 test('D5-1 pane half: key numbers show large only; the numbers not shown large sit in the card\'s pane', async () => {
   const dom = await cardPage('#d-COVER');
   assert.strictEqual(q(paneOf(dom, 'COVER'), '.metric').length, 0, 'three key numbers and nothing else: the pane has nothing more');
-  assert.ok(textOf(paneOf(dom, 'COVER')).includes(NOTHING));
+  assert.ok(!textOf(paneOf(dom, 'COVER')).includes(NOTHING) && q(paneOf(dom, 'COVER'), '.kst').length === 1, 'only the page constraints');
   assert.strictEqual(q(dom.document.getElementById('d-COVER'), '.metric').length, 0);
   const rows = q(paneOf(dom, 'D1'), '.metric');
   assert.deepStrictEqual(rows.map(r => textOf(one(r, '.ml'))), ['Roles', 'Gates', 'Hidden', 'Later']);
@@ -931,8 +938,8 @@ test('an option\'s section: all its arguments, its trade-off (both lenses, what 
   assert.strictEqual(f.getAttribute('aria-label'), 'A');
   assert.deepStrictEqual(q(f, '.arg').map(pointOf), ['o1', 'o2', 'o3', 'o4']);
   assert.strictEqual(q(f, '.argcol').length, 2, 'both sides, the empty one says so');
-  assert.deepStrictEqual(q(f, '.tv').map(textOf), ['Biz cost', 'Tech cost', 'Slower.']);
-  assert.deepStrictEqual(q(f, '.tl').map(textOf), ['for the business', 'for the build', 'Accepts']);
+  assert.deepStrictEqual(q(f, '.tv').map(textOf), ['Slower.'], 'the card compares: the table holds the trade-offs, the section only Accepts');
+  assert.deepStrictEqual(q(f, '.tl').map(textOf), ['Accepts']);
   assert.strictEqual(q(f, '.metric').length, 1);
   assert.strictEqual(q(f, '.extable').length, 1);
   assert.ok(textOf(f).includes('F1') && textOf(f).includes('F2'), 'every figure of the option');
@@ -1198,7 +1205,11 @@ test('A6: for every debate card of the example and the fixtures, a card with row
       const pane = paneOf(dom, id);
       if (!pane) continue;
       const evb = one(pane, '.ev-scroll'), card = dom.document.getElementById('d-' + id), wq = one(evb, '.wholeq');
-      if (!cls(card).includes('bare') && rowsOf(dom, id).length > 1) assert.strictEqual(pickBtns(dom, id).length, rowsOf(dom, id).length, label + ' ' + id + ': every option in the picker');
+      if (!cls(card).includes('bare') && rowsOf(dom, id).length > 1) {
+        const seen = new Set();
+        for (let i = 0; i < rowsOf(dom, id).length; i++) { seen.add(paneName(dom, id)); stepBtn(dom, id, 1).click(); }
+        assert.strictEqual(seen.size, rowsOf(dom, id).length, label + ' ' + id + ': every option reachable with ›');
+      }
       if (wq) assert.ok(evb.children.indexOf(wq) < evb.children.length - 1, label + ' ' + id + ': something follows the divider');
       else assert.ok(evb.children.every(k => ['optpick', 'etop', 'ev-empty'].some(c => cls(k).includes(c)) || cls(card).includes('bare')), label + ' ' + id + ': nothing of the card\'s own without the divider');
       n++;
@@ -1244,15 +1255,13 @@ test('A6 amended: the picker pane and a head-only pane both carry the close cont
 });
 
 test('A6 amended: a card or row with nothing for the pane shows no pane and cannot open it; the next card with evidence brings it back as it was', async () => {
-  const dom = await cardPage('#d-COVER');
+  const dom = await cardPage('#d-SCREEN');
   assert.ok(evNone(dom), 'a context row with no evidence of its own');
   const before = dom.store.get(EV_KEY);
   dom.press('e');
   assert.ok(!evClosed(dom), 'e does nothing');
   assert.strictEqual(dom.store.get(EV_KEY), before);
   assert.ok(!dom.document.getElementById('toast') || !textOf(dom.document.getElementById('toast')));
-  dom.press('j'); // SCREEN: a drawing only
-  assert.ok(evNone(dom));
   dom.press('j'); // D1
   assert.strictEqual(at(dom), '#d-D1');
   assert.ok(!evNone(dom));
@@ -1316,7 +1325,7 @@ test('the comparison table says Breaks, as the rows do', async () => {
 test('the phone grid override, the 44px picker segments and the recommended row\'s rule are pinned in the CSS', () => {
   const css = cssText();
   assert.match(css, /@media \(max-width: 760px\) \{[^@]*\.story-page \.panes \{ grid-template-columns: minmax\(0, 1fr\); \}/);
-  assert.match(css, /@media \(max-width: 760px\) \{[^@]*\.story-page \.oseg button \{ min-height: 44px; \}/);
+  assert.match(css, /@media \(max-width: 760px\) \{[^@]*\.story-page \.ostep button \{ min-height: 44px; min-width: 44px; \}/);
   assert.ok(!/\.orow\.is-rec/.test(css), 'the recommended row has no fill of its own');
   assert.match(css, /\.story-page \.orow \{[^}]*background: var\(--panel\)/);
   assert.match(css, /\.story-page \.otags \.rectag \{ margin: 0; \}/);
@@ -1422,6 +1431,7 @@ test('a context row renders cases, then facts, then its note, inside its story b
     facts: [{ label: 'Recommendation', text: 'Do **it**.' }, { label: 'Out of scope', text: 'Billing.' }],
     note: 'Source: audit.'
   }], story: ['C1', 'D1', 'D2', 'D3'] });
+  delete g.decisions[0].constraints; delete g.decisions[0].options[1].violates; // the cover's pane would list them
   const dom = await boot(htmlOf(g), '#d-C1');
   const card = dom.document.getElementById('d-C1');
   const kids = one(card, '.sblock').children.map(c => c.className);
@@ -1636,4 +1646,241 @@ test('a card with a figure keeps the figure as its drawing and its code in the p
 test('the code, suggestion and table drawn in a story block are left-aligned and full width', () => {
   const css = cssText();
   assert.match(css, /\.story-page \.sblock > \.sdraw\.sdoc \{ text-align: left;/);
+});
+
+test('the counter counts only the questions asked: settled, rejected and minor items carry a default', async () => {
+  const g = domGate(STORY3);
+  g.decisions.push({ id: 'M1', title: 'Colour?', minor: true, default: 'a', options: [{ value: 'a', label: 'A', recommended: true }, { value: 'b', label: 'B' }, { value: 'none', label: 'Neither', negative: true }] });
+  g.settled = [{ id: 'S1', title: 'Is it read?', answer: 'Yes', source: 'a.js:1', who: 'Reach' }];
+  g.rejected = [{ id: 'X1', title: 'Old idea', reason: 'Too slow' }];
+  const dom = await boot(htmlOf(g));
+  assert.strictEqual(textOf(dom.document.getElementById('ptxt')), 'Decided 0 of 3');
+  dom.press('u');
+  dom.press('1');
+  assert.match(textOf(dom.document.getElementById('ptxt')), /Decided 1 of 3$/); // the fake DOM keeps the old text before it
+});
+
+test('a key number of five digits or more reads grouped, in the page language', async () => {
+  const g = domGate(STORY3);
+  g.decisions[1].metrics = [{ label: 'Lines', value: 13000, unit: 'lines', key: true }, { label: 'Quantum', value: 2667, unit: 'µs', key: true }];
+  let dom = await boot(htmlOf(g), '#d-D2');
+  assert.deepStrictEqual(q(sblockOf(dom, 'D2'), '.kaft').map(textOf), ['13,000 lines', '2667 µs']);
+  dom = await boot(htmlOf(Object.assign({}, g, { lang: 'fr' })), '#d-D2');
+  assert.match(textOf(q(sblockOf(dom, 'D2'), '.kaft')[0]), /^13\D000 lines$/);
+});
+
+test('a before/after pair sits side by side only on a wide pane', () => {
+  assert.match(cssText(), /\.opanes \{ display: grid; grid-template-columns: repeat\(auto-fit, minmax\(min\(760px, 100%\), 1fr\)\);/);
+});
+
+// A recommended side with a trade-off needs the card's accepts (contract.md § Bridge fields).
+const tieGate = (sides, extra) => Object.assign(gateOf([{ id: 'D9', title: 'Aside', unillustrated: 'x', options: [{ value: 'a', label: 'A', recommended: true }, { value: 'b', label: 'B', negative: true }] }]), {
+  story: ['T1'],
+  tensions: [Object.assign({ id: 'T1', topic: 'FAUST path?', unillustrated: 'none', sides }, sides.some(s => s.tradeoff) ? { accepts: 'A new toolchain in CI.' } : {})]
+}, extra || {});
+
+test('a tension with trade-offs: each fact once — row line, comparison table, position on its own section, no Two sides', async () => {
+  const dom = await boot(htmlOf(tieGate([
+    { who: 'Compile', position: 'Compile it into the core.', recommended: true, tradeoff: { business: 'Ships later', tech: 'One artefact' } },
+    { who: 'Host', position: 'Host the modules.', tradeoff: { business: 'Ships sooner', tech: 'A runtime' } }
+  ])), '#d-T1');
+  const pane = paneOf(dom, 'T1'), text = textOf(pane);
+  assert.strictEqual(text.split('Ships later').length - 1, 1, 'the business trade-off only in the comparison table');
+  assert.strictEqual(text.split('One artefact').length - 1, 1);
+  assert.ok(!text.includes('The two sides'));
+  assert.strictEqual(q(pane, '.ocomp').length, 1);
+  assert.deepStrictEqual(secsOf(dom, 'T1').map(s => q(s, '.opos').map(textOf)[0]), ['Compile it into the core.', 'Host the modules.', undefined]);
+  assert.deepStrictEqual(q(pane, '.trow').map(r => textOf(r.children[0])), ['Accepts'], 'only the Accepts row when the table compares');
+});
+
+test('a tension without trade-offs: the position is the row line and nowhere in the pane', async () => {
+  const dom = await boot(htmlOf(tieGate([
+    { who: 'Strict', position: 'Peak under -90 dBFS.', recommended: true },
+    { who: 'Loose', position: 'Peak under -80 dBFS.' }
+  ])), '#d-T1');
+  assert.ok(textOf(rowsOf(dom, 'T1')[0]).includes('Peak under -90 dBFS.'));
+  const pane = paneOf(dom, 'T1');
+  assert.ok(!textOf(pane).includes('Peak under -90 dBFS.'));
+  assert.ok(!textOf(pane).includes('The two sides'));
+  assert.strictEqual(q(pane, '.ocomp').length + q(pane, '.opos').length, 0);
+});
+
+test('a position equal to its business trade-off shows once, as the row line', async () => {
+  const dom = await boot(htmlOf(tieGate([
+    { who: 'A', position: 'Ships later', recommended: true, tradeoff: { business: 'Ships later' } },
+    { who: 'B', position: 'Ships sooner' }
+  ])), '#d-T1');
+  assert.strictEqual(q(paneOf(dom, 'T1'), '.opos').length, 0);
+});
+
+test('one option with a trade-off: no table; its section shows the lens the row does not read, and Accepts', async () => {
+  const g = domGate(STORY3);
+  g.decisions[0].accepts = 'A full rewrite.';
+  g.decisions[0].options[0].tradeoff = { business: 'One sound everywhere', tech: 'Rewrite 9–13k lines' };
+  g.decisions[0].options[1] = { value: 'buy', label: 'Buy' };
+  const dom = await boot(htmlOf(g), '#d-D1');
+  const pane = paneOf(dom, 'D1'), rec = secsOf(dom, 'D1')[0];
+  assert.strictEqual(q(pane, '.ocomp').length, 0);
+  assert.deepStrictEqual(q(rec, '.trow').map(r => textOf(r.children[1])), ['Rewrite 9–13k lines', 'A full rewrite.']);
+  assert.ok(!textOf(pane).includes('One sound everywhere'), 'the row line is not repeated in the pane');
+});
+
+test('compared(): two trade-offs, numbers or a broken constraint', () => {
+  const src = composedTemplate().match(/\/\*STORY-START\*\/([\s\S]*?)\/\*STORY-END\*\//)[1];
+  const ctx = {}; vm.createContext(ctx); vm.runInContext(src, ctx);
+  const T = { tradeoff: { business: 'x' } };
+  assert.strictEqual(ctx.compared({ options: [T, {}] }), false);
+  assert.strictEqual(ctx.compared({ options: [T, { tradeoff: { tech: 'y' } }] }), true);
+  assert.strictEqual(ctx.compared({ options: [{ violates: ['K1'] }, {}] }), true);
+  assert.strictEqual(ctx.compared({ options: [{ metrics: [{ label: 'a', value: 1 }] }, {}] }), true);
+});
+
+test('foldsOf: sides count as pane content only where they are still drawn, on a card without option rows', () => {
+  const src = composedTemplate().match(/\/\*STORY-START\*\/([\s\S]*?)\/\*STORY-END\*\//)[1];
+  const ctx = {}; vm.createContext(ctx); vm.runInContext(src, ctx);
+  const opts = [{ value: 'PO', label: 'Side with PO' }, { value: 'CX', label: 'Side with CX' }, { value: 'defer', label: 'Defer', negative: true }];
+  const withPositions = { id: 'T1', kind: 'tension', sides: [{ who: 'PO', position: 'Split.' }, { who: 'CX', position: 'Keep.' }], options: opts };
+  assert.strictEqual(ctx.foldsOf(withPositions).card, false, 'positions are shown on the option rows; the pane has nothing');
+  const noPositions = { id: 'T2', kind: 'tension', sides: [{ who: 'PO' }, { who: 'CX' }], options: opts };
+  assert.strictEqual(ctx.foldsOf(noPositions).card, true, 'sides without a position stay drawn in the pane');
+});
+
+test('the pane names the option it shows; ‹ › step through the options without choosing, and wrap', async () => {
+  const dom = await boot(htmlOf(cardGate()), '#d-D1');
+  const pane = paneOf(dom, 'D1');
+  assert.strictEqual(q(pane, '.oseg').length, 0, 'the option rows are the one list of options');
+  const first = paneName(dom, 'D1');
+  stepBtn(dom, 'D1', 1).click();
+  assert.notStrictEqual(paneName(dom, 'D1'), first);
+  assert.ok(!textOf(dom.document.getElementById('ptxt')).startsWith('Decided 1'), 'stepping does not choose');
+  const n = cardGate().decisions[0].options.length;
+  for (let i = 1; i < n; i++) stepBtn(dom, 'D1', 1).click();
+  assert.strictEqual(paneName(dom, 'D1'), first, 'wraps');
+  dom.press(']');
+  stepBtn(dom, 'D1', -1).click();
+  assert.strictEqual(paneName(dom, 'D1'), first, '] and ‹ agree');
+});
+
+test('the shown option reads as mine once chosen', async () => {
+  const dom = await boot(htmlOf(cardGate()), '#d-D1');
+  dom.press('1');
+  stepBtn(dom, 'D1', 1).click(); stepBtn(dom, 'D1', -1).click();
+  assert.ok(one(paneOf(dom, 'D1'), '.oname').classList.contains('mine'));
+});
+
+test('a moot card still previews its options', async () => {
+  const g = domGate(STORY3);
+  g.decisions[2].options.forEach(o => { o.accepts = 'it costs ' + o.value; });
+  const dom = await boot(htmlOf(g), '#d-D2');
+  dom.press('2');
+  dom.press('j');
+  assert.strictEqual(dom.document.getElementById('d-D3').dataset.state, 'moot');
+  const before = paneName(dom, 'D3');
+  stepBtn(dom, 'D3', 1).click();
+  assert.notStrictEqual(paneName(dom, 'D3'), before);
+});
+
+test('the stepper is labelled in both languages', () => {
+  const src = fs.readFileSync(path.join(__dirname, '../../skills/team-view/chrome.js'), 'utf8');
+  assert.match(src, /'ev\.prev': 'Previous option'/);
+  assert.match(src, /'ev\.next': 'Next option'/);
+  assert.match(src, /'ev\.prev': 'Option précédente'/);
+  assert.match(src, /'ev\.next': 'Option suivante'/);
+});
+
+const K3 = { id: 'K3', lens: 'tech', text: 'Engine ports carry no Web Audio types', source: 'docs/guide.md:32', status: 'confirmed' };
+const K4a = { id: 'K4', lens: 'business', text: 'Ships on the web first', source: 'ROADMAP.md:47', status: 'assumed' };
+const onceGate = () => { const g = domGate(['I0', ...STORY3]); g.decisions[1].constraints = [K3, K4a]; g.decisions[2].constraints = [K3]; return g; };
+
+test('the cover lists each constraint once, in full, with the cards it binds', async () => {
+  const g = onceGate(), dom = await boot(htmlOf(g));
+  const pane = paneOf(dom, g.context[0].id), rows = q(pane, '.kst');
+  assert.deepStrictEqual(rows.map(r => textOf(one(r, '.kid'))), ['K2', 'K3', 'K4']);
+  const k3 = textOf(rows[1]);
+  assert.ok(k3.includes('Engine ports carry no Web Audio types') && k3.includes('From docs/guide.md:32') && k3.includes('On D2, D3'), k3);
+  assert.ok(textOf(rows[2]).includes('Assumed'), 'a contested status shows on the cover');
+});
+
+test('the cover lists constraints in the order the story first uses them, not the items order', async () => {
+  const g = domGate(['I0', 'D2', 'D3', 'D1']); g.decisions[1].constraints = [K3];
+  const dom = await boot(htmlOf(g));
+  assert.deepStrictEqual(q(paneOf(dom, g.context[0].id), '.kst').map(r => textOf(one(r, '.kid'))), ['K3', 'K2']);
+});
+
+test('on a card: a constraint an option breaks stays a full row without its source; the others fold into one line', async () => {
+  const g = onceGate(), dom = await boot(htmlOf(g), '#d-D2');
+  const d1 = paneOf(dom, 'D1');
+  assert.deepStrictEqual(q(d1, '.kst').map(r => textOf(one(r, '.kid'))), ['K2']);
+  assert.ok(!textOf(d1).includes('From CLAUDE.md:12'), 'the source is on the cover');
+  assert.strictEqual(q(d1, '.kheld').length, 0);
+  const d2 = paneOf(dom, 'D2');
+  assert.strictEqual(q(d2, '.kst').length, 0);
+  const held = one(d2, '.kheld');
+  assert.ok(textOf(held).startsWith('Holds under every option'));
+  assert.deepStrictEqual(q(held, '.tkeep').map(textOf), ['K3', 'K4']);
+  assert.deepStrictEqual(q(held, '.ttip').map(textOf), ['Engine ports carry no Web Audio types', 'Ships on the web first']);
+  const chip = one(held, '.tkeep');
+  assert.strictEqual(chip.getAttribute('tabindex'), '0');
+  assert.strictEqual(chip.getAttribute('aria-describedby'), one(held, '.ttip').id);
+});
+
+test('a constraint\'s text shows once on the page, outside tooltips', async () => {
+  const g = onceGate(), dom = await boot(htmlOf(g));
+  // fakeDom has no single tree: walk every root once, skipping tooltips.
+  const seen = new Set(), visible = n => (seen.has(n) || cls(n).includes('ttip') ? '' : (seen.add(n), (n.textContent || '') + (n.children || []).map(visible).join('')));
+  assert.strictEqual(dom.roots().map(visible).join(' ').split('Engine ports carry no Web Audio types').length - 1, 1);
+});
+
+test('with no cover row, cards keep their full constraint rows and sources', async () => {
+  const g = onceGate(); delete g.context; delete g.outcome; g.story = STORY3; g.decisions[1].unillustrated = 'none';
+  const dom = await boot(htmlOf(g), '#d-D2');
+  const d2 = paneOf(dom, 'D2');
+  assert.deepStrictEqual(q(d2, '.kst').map(r => textOf(one(r, '.kid'))), ['K3', 'K4']);
+  assert.ok(textOf(d2).includes('From docs/guide.md:32'));
+  assert.strictEqual(q(d2, '.kheld').length, 0);
+});
+
+test('the folded line reads in French on a French page', async () => {
+  const g = Object.assign(onceGate(), { lang: 'fr' }), dom = await boot(htmlOf(g), '#d-D2');
+  assert.ok(textOf(one(paneOf(dom, 'D2'), '.kheld')).startsWith('Tient quelle que soit l’option'));
+});
+
+test('clearing a minor item default makes it an open question again; an all-default page draws a full bar', async () => {
+  const g = domGate(STORY3);
+  g.decisions.push({ id: 'M1', title: 'Colour?', minor: true, default: 'a', options: [{ value: 'a', label: 'A', recommended: true }, { value: 'b', label: 'B' }, { value: 'none', label: 'Neither', negative: true }] });
+  const dom = await boot(htmlOf(g));
+  const txt = () => textOf(dom.document.getElementById('ptxt'));
+  dom.document.getElementById('recAll').click();
+  assert.ok(/Decided 3 of 3/.test(txt()), txt());
+  const pressed = q(dom.document.getElementById('d-M1'), '.opt').filter(b => b.getAttribute('aria-pressed') === 'true');
+  assert.strictEqual(pressed.length, 1);
+  pressed[0].click();
+  assert.ok(/Decided 3 of 4$/.test(txt()), txt()); // the fake DOM keeps the old text before it
+  assert.strictEqual(dom.document.getElementById('recAll').disabled, false);
+  const only = domGate([]);
+  only.kind = 'refactor'; delete only.story; delete only.context;
+  only.decisions = [{ id: 'M1', title: 'Colour?', minor: true, default: 'a', options: [{ value: 'a', label: 'A', recommended: true }, { value: 'b', label: 'B' }, { value: 'none', label: 'Neither', negative: true }] }];
+  const d2 = await boot(htmlOf(only));
+  assert.strictEqual(d2.document.getElementById('pfill').style.transform, 'scaleX(1)');
+});
+
+test('the folded constraint tooltip opens rightwards from the chip, not clipped on the left', () => {
+  assert.match(cssText(), /\.story-page \.kheld \.ttip \{[^}]*right: auto; left: 0/);
+});
+
+test('a number of digits only and the delta chip read grouped; the cover constraint carries the page lens', async () => {
+  const g = domGate(STORY3);
+  g.decisions[1].metrics = [{ label: 'Lines', before: 13000, after: 26000, unit: 'lines', better: 'higher' }];
+  const dom = await boot(htmlOf(g), '#d-D2');
+  const t = textOf(paneOf(dom, 'D2'));
+  assert.ok(/13,000 → 26,000/.test(t) && /Up 13,000/.test(t), t);
+  g.decisions[1].metrics = [{ label: 'Lines', value: '13000', unit: 'lines', key: true }];
+  assert.deepStrictEqual(q(sblockOf(await boot(htmlOf(g), '#d-D2'), 'D2'), '.kaft').map(textOf), ['13,000 lines']);
+});
+
+test('the cover lists a tech constraint on a business page with its lens label', async () => {
+  const g = cardGate();
+  g.decisions.forEach(d => { d.constraints = (d.constraints || []).map(k => k.id === 'K4' ? Object.assign({}, k, { lens: 'tech' }) : k); });
+  const dom = await boot(htmlOf(g), '#d-COVER');
+  assert.strictEqual(q(paneOf(dom, 'COVER'), '.klens').length, 1);
 });

@@ -169,7 +169,7 @@ test('D5-1: a debate share page has a visible strip with the count of open quest
   assert.strictEqual(ask.hidden, false);
   assert.strictEqual(ask.attrs.role === undefined ? 'note' : ask.attrs.role, 'note');
   assert.match(textOf(ask), /You are asked to decide 2 questions\./);
-  assert.match(textOf(dom.document.getElementById('ptxt')), /3/, 'the counter counts every item');
+  assert.match(textOf(dom.document.getElementById('ptxt')), /0 of 2/, 'the counter counts the questions asked: D3 is minor with a default');
   const legend = dom.document.getElementById('legend');
   assert.strictEqual(legend.hidden, true);
   assert.strictEqual(legend.children.length, 0);

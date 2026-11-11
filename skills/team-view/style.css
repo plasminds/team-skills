@@ -314,6 +314,8 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .ks svg { width: 14px; height: 14px; }
 .kst.lifted .ks { color: var(--red); font-weight: 600; }
 .kst.lifted .kt { color: var(--ink-2); }
+.kheld { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 10px 14px; }
+.kheld .khl { font-size: 13.5px; color: var(--ink-2); margin-right: 4px; }
 .tbox { overflow-x: auto; }
 .btable { width: 100%; border-collapse: collapse; }
 .btable th { text-align: left; font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 9px 12px 7px; border-bottom: 1px solid var(--edge); }
@@ -350,8 +352,6 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .optpick button { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 3px 10px; font-size: 13px; color: var(--ink-2);
   background: none; border: 1px solid var(--edge); border-radius: 8px; text-align: left; }
 .optpick button:hover { color: var(--ink); background: var(--panel); }
-.optpick button[aria-pressed="true"] { color: var(--ink); background: var(--cur); border-color: var(--ink-3); font-weight: 600; }
-.optpick button.mine { border-color: var(--green); }
 .nocode { margin: 8px 0 0; font-size: 14px; }
 /* How it gets done: the shown option's brief, folded until read */
 .brief summary { cursor: pointer; padding: 9px 12px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
@@ -397,7 +397,7 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .ohead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .ohead b { font-size: 15px; font-weight: 650; }
 .ohead .oif { font-size: 13px; color: var(--ink-3); }
-.opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
+.opanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(760px, 100%), 1fr)); gap: 16px; margin-top: 8px; }
 .opane { min-width: 0; }
 .ostates { margin-top: 14px; }
 .ostrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; margin-top: 6px; }
@@ -628,16 +628,20 @@ dialog.zoom p:empty { display: none; }
 .story-page .tbreak { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px; border-radius: 999px; font-size: 14px; font-weight: 650; color: var(--red); background: var(--red-bg); box-shadow: inset 0 0 0 1px var(--red); cursor: help; white-space: nowrap; }
 .story-page .tbreak:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 .story-page .ttip { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 5; width: max-content; max-width: min(46ch, 70vw); padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: var(--pane-lift); font-size: 14.5px; font-weight: 400; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; visibility: hidden; opacity: 0; pointer-events: none; }
-.story-page .tbreak:hover + .ttip, .story-page .tbreak:focus + .ttip { visibility: visible; opacity: 1; }
+.story-page .tbreak:hover + .ttip, .story-page .tbreak:focus + .ttip, .story-page .tkeep:hover + .ttip, .story-page .tkeep:focus + .ttip { visibility: visible; opacity: 1; }
+.story-page .kheld .ttip { right: auto; left: 0; }
+.story-page .tkeep { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; font: 600 12.5px var(--mono); color: var(--ink-2); background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); cursor: help; }
+.story-page .tkeep:focus-visible { outline: 2px solid var(--ink-3); outline-offset: 2px; }
 /* The pane: the picker heads it, one segment per option (its number and label, cut to fit); the chosen option's segment
    has a green ring. Then the shown option's section, the constraints under it, and the whole question under a divider. */
 .story-page .optpick { margin: 14px 0 6px; }
-.story-page .oseg { flex: 1 1 100%; min-width: 0; display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; border-radius: 10px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); }
-.story-page .oseg button { flex: 1 1 5.5rem; min-width: 0; display: block; min-height: 32px; padding: 4px 8px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-.story-page .oseg button:hover { color: var(--ink); }
-.story-page .oseg button[aria-pressed="true"] { color: var(--ink); background: var(--panel); box-shadow: 0 0 0 1px var(--line); font-weight: 650; }
-.story-page .oseg button.mine { box-shadow: inset 0 0 0 1.5px var(--green); }
-.story-page .oseg .pn { margin-right: 6px; font-variant-numeric: tabular-nums; }
+.story-page .osec .opos { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.story-page .ostep { flex: 1 1 100%; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 3px; border-radius: 10px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); }
+.story-page .ostep button { flex: none; min-width: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; font-size: 16px; color: var(--ink-2); }
+.story-page .ostep button:hover { color: var(--ink); background: var(--panel); }
+.story-page .oname { flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.story-page .oname.mine { color: var(--green); }
+.story-page .oname .pn { margin-right: 6px; font-variant-numeric: tabular-nums; }
 .story-page .etop, .story-page .osecs { display: contents; }
 .story-page .osec { display: flex; flex-direction: column; min-width: 0; }
 .story-page .osec > .eh:first-child { margin-top: 10px; }
@@ -701,7 +705,7 @@ dialog.zoom p:empty { display: none; }
   .story-page .scard .ch .tags { flex: 1 0 100%; margin: 0; }
   .story-page .orow { min-height: 48px; }
   .story-page .opick { min-height: 40px; }
-  .story-page .oseg button { min-height: 44px; }
+  .story-page .ostep button { min-height: 44px; min-width: 44px; }
 }
 @media print {
   .layout { display: block; height: auto; overflow: visible; }
