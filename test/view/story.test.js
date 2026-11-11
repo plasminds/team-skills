@@ -844,10 +844,12 @@ test('a bare card has no rows and no picker; its pane shows its own evidence und
   assert.strictEqual(secsOf(dom, 'D3').length + q(pane, '.optpick').length + q(pane, '.wholeq').length, 0);
   assert.strictEqual(textOf(one(pane, '.phead').children[0]), 'Evidence');
   assert.ok(textOf(pane).includes(NOTHING));
-  const dom2 = await boot(htmlOf(gateOf([{ id: 'B1', title: 'Bare with evidence', unillustrated: 'x', examples: [ROW], options: [opt('a', 'Alpha', { recommended: true }), opt('b', 'Beta'), opt('n', 'None', { negative: true })] }])), '#d-B1');
+  const dom2 = await boot(htmlOf(gateOf([{ id: 'B1', title: 'Bare with evidence', unillustrated: 'x', at: { path: 'src/a.js', line: 3 }, examples: [ROW], options: [opt('a', 'Alpha', { recommended: true }), opt('b', 'Beta'), opt('n', 'None', { negative: true })] }])), '#d-B1');
   const p2 = paneOf(dom2, 'B1');
   assert.ok(cls(dom2.document.getElementById('d-B1')).includes('bare'));
-  assert.strictEqual(q(p2, '.extable').length, 1);
+  assert.strictEqual(q(p2, '.extable').length, 0, 'the examples are the card\'s drawing now');
+  assert.strictEqual(q(one(one(dom2.document.getElementById('d-B1'), '.sblock'), '.sdraw'), '.extable').length, 1);
+  assert.strictEqual(q(p2, '.loc').length, 1);
   assert.strictEqual(q(p2, '.wholeq').length, 0);
   assert.ok(one(p2, '.ev-empty').hidden, 'the one line hides beside evidence');
 });
@@ -1576,4 +1578,62 @@ test('A9 fix: a review body takes an array or bulleted why of the cover as one l
     const body = JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
     assert.strictEqual(body.split('\n\n')[1], 'Mergeable.; One nit.');
   }
+});
+
+// The card's illustration (2026-11-12): the story block draws the card's diff, suggestion or examples when it has no figure.
+const drawOf = (dom, id) => q(sblockOf(dom, id), '.sdraw');
+const REFAC = { before: 'old()', after: 'neu()' };
+test('storyView drawing: figure, else the card\'s code (no option code), else its suggestion, else its examples (no option examples)', () => {
+  const src = composedTemplate().match(/\/\*STORY-START\*\/([\s\S]*?)\/\*STORY-END\*\//)[1];
+  const ctx = {}; vm.createContext(ctx); vm.runInContext(src, ctx);
+  const d = it => JSON.parse(JSON.stringify(ctx.storyView(it).drawing));
+  const sug = { text: 'x', lines: 1 };
+  assert.deepStrictEqual(d({ id: 'A', figures: [{ svg: 'f' }], code: REFAC, suggestion: sug, examples: [ROW] }), { svg: 'f' });
+  assert.deepStrictEqual(d({ id: 'A', code: REFAC, suggestion: sug, examples: [ROW] }), { code: REFAC });
+  assert.deepStrictEqual(d({ id: 'A', code: REFAC, options: [{ value: 'a', label: 'A', code: { after: 'z' } }], suggestion: sug }), { suggestion: sug });
+  assert.deepStrictEqual(d({ id: 'A', suggestion: sug, examples: [ROW] }), { suggestion: sug });
+  assert.deepStrictEqual(d({ id: 'A', examples: [ROW] }), { examples: [ROW] });
+  assert.strictEqual(d({ id: 'A', examples: [ROW], options: [{ value: 'a', label: 'A', examples: [ROW] }] }), null);
+  assert.strictEqual(d({ id: 'A', options: [{ value: 'a', label: 'A', suggestion: sug }] }), null, 'an option\'s suggestion stays in the pane');
+});
+
+test('a refactor card with its own code and no option code draws the diff in its story block, not in the pane', async () => {
+  const dom = await boot(htmlOf({ kind: 'refactor', title: 'R', lang: 'en', decisions: [{ id: 'S1', title: 'Do it', brief: 'Do S1.', code: REFAC }] }), '#d-S1');
+  assert.strictEqual(drawOf(dom, 'S1').length, 1);
+  assert.strictEqual(q(one(sblockOf(dom, 'S1'), '.sdraw'), '.code').length, 2, 'before and after');
+  assert.strictEqual(q(paneOf(dom, 'S1'), '.code').length, 0);
+});
+
+test('the same card where an option has its own code keeps the diff in the pane and draws none in the story block', async () => {
+  const dom = await boot(htmlOf({ kind: 'refactor', title: 'R', lang: 'en', decisions: [{ id: 'S1', title: 'Do it', brief: 'Do S1.', code: { before: 'old()' },
+    options: [opt('a', 'Alpha', { recommended: true, code: { after: 'alt()' } }), opt('n', 'None', { negative: true })] }] }), '#d-S1');
+  assert.strictEqual(drawOf(dom, 'S1').length, 0);
+  assert.ok(q(paneOf(dom, 'S1'), '.code').length >= 2);
+});
+
+test('a review card with a suggestion and no code draws it in its story block, with its location in the pane', async () => {
+  const dom = await boot(htmlOf({ kind: 'review', title: 'R', lang: 'en', decisions: [Object.assign({ id: 'CR-1', title: 'Rate', at: { path: 'src/x.js', line: 10 }, suggestion: { lines: 2, text: 'a\nb' } }, twoOpts())] }), '#d-CR-1');
+  const draw = one(sblockOf(dom, 'CR-1'), '.sdraw');
+  assert.ok(draw && textOf(draw).includes('Replace 2 lines from line 10'), draw && textOf(draw));
+  assert.strictEqual(q(paneOf(dom, 'CR-1'), '.code').length, 0);
+  assert.strictEqual(q(paneOf(dom, 'CR-1'), '.loc').length, 1);
+});
+
+test('a card with examples and no figure or code draws the table in its story block; an emptied pane is body.ev-none', async () => {
+  const dom = await boot(htmlOf({ kind: 'refactor', title: 'R', lang: 'en', decisions: [{ id: 'S1', title: 'Do it', examples: [ROW] }] }), '#d-S1');
+  assert.strictEqual(q(one(sblockOf(dom, 'S1'), '.sdraw'), '.extable').length, 1);
+  assert.strictEqual(q(paneOf(dom, 'S1'), '.extable').length, 0);
+  assert.ok(evNone(dom), 'nothing left for the pane');
+});
+
+test('a card with a figure keeps the figure as its drawing and its code in the pane', async () => {
+  const dom = await boot(htmlOf({ kind: 'refactor', title: 'R', lang: 'en', decisions: [{ id: 'S1', title: 'Do it', brief: 'Do S1.', code: REFAC, figures: [{ svg: '<svg viewBox="0 0 10 10"></svg>', caption: 'x' }] }] }), '#d-S1');
+  assert.strictEqual(q(one(sblockOf(dom, 'S1'), '.sdraw'), '.code').length, 0);
+  assert.strictEqual(q(one(sblockOf(dom, 'S1'), '.sdraw'), '.figure').length, 1);
+  assert.ok(q(paneOf(dom, 'S1'), '.code').length >= 2);
+});
+
+test('the code, suggestion and table drawn in a story block are left-aligned and full width', () => {
+  const css = cssText();
+  assert.match(css, /\.story-page \.sblock > \.sdraw\.sdoc \{ text-align: left;/);
 });

@@ -2,7 +2,7 @@
 
 **Agent-team skills for [Claude Code](https://claude.com/claude-code).** Instead of one model giving one opinion, these skills dispatch a *team* of agents, each in its own isolated context. The agents debate with evidence, a gate kills speculative work, and **you, the human, make the final call** on a local HTML decision page. A review can be handed on from there: the owner of the branch you reviewed gets a page to decide on alone.
 
-![The gate page on a refactoring backlog, in three panes: the list in story order (the cover and context rows, then the cards: S1 to S4 hang under S0 by dashed elbows, as they come after it, and S5 under S1 by a solid one, as it refines it; settled and rejected items below, the recap last), card S1 in the centre with its option rows, and the evidence pane on Approve: its For, the before/after code and, unfolded under How it gets done, its Step Card](docs/view.png)
+![The gate page on a refactoring backlog, in three panes: the list in story order (the cover and context rows, then the cards: S1 to S4 hang under S0 by dashed elbows, as they come after it, and S5 under S1 by a solid one, as it refines it; settled and rejected items below, the recap last), card S1 in the centre with its before/after code and its option rows, and the evidence pane on Approve: its For and, unfolded under How it gets done, its Step Card](docs/view.png)
 
 ## The skills
 

@@ -787,6 +787,18 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       const fa = shown(a);
       if ([...shown(b)].some(f => fa.has(f))) warnings.push(`${it.id} options "${a.value}" and "${b.value}" show the same figure: give an option a figure only where it lands differently`);
     })));
+    // One figure, one place: drawn on two cards or context rows, it tells the reader nothing new the second time.
+    const drawnBy = new Map();
+    [...context, ...items].forEach(x => {
+      const figs = [].concat(Array.isArray(x.figures) ? x.figures : [],
+        (Array.isArray(x.cases) ? x.cases : []).map(k => k && k.figure),
+        ...(Array.isArray(x.options) ? x.options : []).map(o => (o && Array.isArray(o.figures) ? o.figures : [])));
+      new Set(figs.map(f => f && (f.svg || f.src || f.html)).filter(Boolean)).forEach(f => {
+        if (!drawnBy.has(f)) drawnBy.set(f, []);
+        drawnBy.get(f).push(x.id);
+      });
+    });
+    drawnBy.forEach(ids => { if (ids.length > 1) warnings.push(`${ids.join(', ')} show the same figure: draw it once, on the card it explains; a figure several cards share goes in a context row before them`); });
   }
   const story = checkStory(data, ordered, context, errors, warnings);
   return { data, items: ordered, outcome, errors, warnings, preset, story, context };

@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.28.1 — 2026-11-12
+
+- **The card's drawing.** A card with no figure shows its diff, its suggested change or its examples in the story block, when they hold for the whole card; a diff or examples that differ by option stay in the evidence pane under each option.
+- **One figure, one place.** A figure shown by two cards or context rows warns the gate writer; a figure several cards share goes in a context row before them.
+
 ## 0.28.0 — 2026-11-10
 
 - **Story.** Every debate card opens as a story: the question, key numbers, one drawing, then one row per option. `story` is an id list; context rows open the page, the recap closes it; a context row can carry labelled facts, cases with a small drawing each, and a source note. The list is open or a 52px rail. Saved choices on a debate page start fresh.

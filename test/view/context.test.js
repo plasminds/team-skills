@@ -345,7 +345,22 @@ test('D6-4: two options of one card showing the same figure warn; an option with
   clean(differ);
 });
 
-test('A2-D: a "Drop this question" option marked negative needs no brief beside an item brief', () => {
+test('a figure drawn on two cards, or on a card and a context row, warns; a card and its own option do not', () => {
+  const two = gate();
+  two.decisions[0].figures = [Object.assign({ caption: 'flow' }, SVG)];
+  two.decisions[1].figures = [Object.assign({ caption: 'flow' }, SVG)];
+  warned(two, 'D1, D2 show the same figure: draw it once, on the card it explains; a figure several cards share goes in a context row before them');
+  const row = gate({ kind: 'plan' });
+  row.context[0].figures = [SVG];
+  row.decisions[1].options[0].figures = [SVG];
+  warned(row, 'C1, D2 show the same figure: draw it once, on the card it explains; a figure several cards share goes in a context row before them');
+  const own = gate();
+  own.decisions[0].figures = [SVG];
+  own.decisions[0].options[0].figures = [SVG];
+  assert.ok(!load(own).warnings.some(w => /show the same figure: draw it once/.test(w)));
+});
+
+test('A2-D:a "Drop this question" option marked negative needs no brief beside an item brief', () => {
   const g = withDecision(1, { brief: 'Do D2.', options: [
     { value: 'a', label: 'Build it', recommended: true },
     { value: 'drop', label: 'Drop this question', negative: true, for: [{ who: 'Philosopher', point: 'Nobody asked.' }] }

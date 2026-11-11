@@ -932,6 +932,12 @@ var viewTheme = (function () {
     xt.appendChild(xb); xbox.appendChild(xt);
     return xbox;
   }
+  // A suggested change as its code box ("Replace N lines from line L"); sug is { s, opt? } as suggestionOf.
+  function suggestionBox(sug, at) {
+    var stext = String(sug.s.text).replace(/\n$/, ''), sl = sug.s.lines || stext.split('\n').length;
+    return codeBox(at && at.line ? Lp('ev.replaceFrom', sl, { line: at.line }) : Lp('ev.replace', sl),
+      sug.opt ? L('ev.ifChoose', { label: sug.opt.label }) : '', stext.split('\n'), null, 'add');
+  }
   // A code change as before and after panes, the changed lines marked; o, when given, is the option that changes nothing.
   function drawCode(panes, code, o) {
     panes.textContent = '';
@@ -978,7 +984,7 @@ var viewTheme = (function () {
   }
   // The top of the story block (story pages; sv from storyView): the stake line, the detail, up to 3 key numbers (the
   // "after" value large, read "40 → 20" when a "before" differs, the label under it), the drawing.
-  function storyHead(sv, why, detail) {
+  function storyHead(sv, why, detail, at) {
     var sb = el('div', 'sblock');
     if (why) sb.appendChild(typeof why === 'string' && why.indexOf('\n') < 0 ? inline(el('p', 'lead'), why) : rich('prose', why));
     if (detail) sb.appendChild(rich('prose', detail));
@@ -998,6 +1004,9 @@ var viewTheme = (function () {
     }
     var d = sv.drawing, draw = el('div', 'sdraw');
     if (d && d.outcome != null) { if (data.outcome && data.outcome[d.outcome]) draw.appendChild(outcomeBlock(data.outcome[d.outcome])); }
+    else if (d && d.code) { draw.classList.add('sdoc'); var cp = el('div'); draw.appendChild(cp); drawCode(cp, d.code, null); }
+    else if (d && d.suggestion) { draw.classList.add('sdoc'); draw.appendChild(suggestionBox({ s: d.suggestion }, at)); }
+    else if (d && d.examples) { draw.classList.add('sdoc'); draw.appendChild(examplesTable(d.examples)); }
     else if (d) draw.appendChild(figures([d]));
     if (draw.childNodes.length) sb.appendChild(draw);
     return sb;
@@ -1069,7 +1078,7 @@ var viewTheme = (function () {
     var story = null, top = null, whole = null;
     if (it.kind === 'rejected' && it.why) reasonBlk();
     var sv = storyView(it);
-    body.appendChild(storyHead(sv, it.kind === 'rejected' ? null : it.why, it.detail));
+    body.appendChild(storyHead(sv, it.kind === 'rejected' ? null : it.why, it.detail, it.at));
     if (!bare) {
       story = optionRows(it, sv);
       top = el('div', 'etop'); evb.appendChild(top);
@@ -1269,19 +1278,17 @@ var viewTheme = (function () {
       mg.appendChild(mb);
     }
     var exs = it.examples || [];
-    if (exs.length) {
+    if (exs.length && !(storyPage && sv.drawing && sv.drawing.examples)) {
       var xg = evGroup(L('ev.examples'));
       xg.appendChild(examplesTable(exs));
     }
     var atText = it.at && it.at.path ? it.at.path : '';
     if (atText) evGroup(L('ev.where')).appendChild(atNode(el('div', 'ebox loc'), it.at));
     var sug = suggestionOf(it);
-    if (sug && sug.s && sug.s.text != null) {
-      var stext = String(sug.s.text).replace(/\n$/, ''), sl = sug.s.lines || stext.split('\n').length;
-      evGroup(L('ev.suggested')).appendChild(codeBox(it.at && it.at.line ? Lp('ev.replaceFrom', sl, { line: it.at.line }) : Lp('ev.replace', sl),
-        sug.opt ? L('ev.ifChoose', { label: sug.opt.label }) : '', stext.split('\n'), null, 'add'));
+    if (sug && sug.s && sug.s.text != null && !(storyPage && sv.drawing && sv.drawing.suggestion && sug.s === it.suggestion)) {
+      evGroup(L('ev.suggested')).appendChild(suggestionBox(sug, it.at));
     }
-    if (it.code && (it.code.before || it.code.after)) {
+    if (it.code && (it.code.before || it.code.after) && !(storyPage && sv.drawing && sv.drawing.code)) {
       var cg = evGroup(L('ev.codeBoth')), panes = el('div');
       cg.appendChild(panes); drawCode(panes, it.code, null);
     }

@@ -58,11 +58,20 @@
   // The story block's view-model, for a card or a context row: up to 3 key numbers, one drawing (a context row's outcome
   // entry before its first figure), and one option row per option: its cost line (its cost, else a tension side's
   // position) and its Breaks badges (the card's constraints the option lifts).
+  function drawingOf(it) {
+    if (it.outcome != null) return { outcome: it.outcome };
+    if (it.figures && it.figures[0]) return it.figures[0];
+    var opts = it.options || [];
+    if (it.code && (it.code.before || it.code.after) && !opts.some(function (o) { return o.code; })) return { code: it.code };
+    if (it.suggestion && it.suggestion.text != null) return { suggestion: it.suggestion };
+    if ((it.examples || []).length && !opts.some(function (o) { return (o.examples || []).length; })) return { examples: it.examples };
+    return null;
+  }
   function storyView(it) {
     var bridge = it.bridge || [], sides = it.sides || [];
     return {
       keys: (it.metrics || []).filter(function (m) { return m.key; }).slice(0, 3),
-      drawing: it.outcome != null ? { outcome: it.outcome } : (it.figures && it.figures[0]) || null,
+      drawing: drawingOf(it),
       rows: (it.options || []).map(function (o) {
         var t = o.tradeoff || {};
         // A tension side's option takes the side's who as its value (gate.js).
@@ -92,9 +101,10 @@
     function n(list) { return (list || []).length; }
     var rest = n(it.metrics) - storyView(it).keys.length;
     if (!it.options) return { card: rest > 0 || n(it.figures) > (it.outcome != null ? 0 : 1), options: [] };
-    var code = !!(it.code && (it.code.before || it.code.after));
+    var dr = storyView(it).drawing || {};
+    var code = !!(it.code && (it.code.before || it.code.after)) && !dr.code;
     return {
-      card: !!(n(it.sides) || it.brief || (it.at && it.at.path) || it.suggestion || it.accepts || n(it.examples) || code ||
+      card: !!(n(it.sides) || it.brief || (it.at && it.at.path) || (it.suggestion && !dr.suggestion) || it.accepts || (n(it.examples) && !dr.examples) || code ||
         rest > 0 || n(it.figures) > 1 || n(it.bridge) ||
         it.options.some(function (o) { return o.tradeoff || n(o.metrics) || n(o.violates); })),
       options: it.options.map(function (o) {
