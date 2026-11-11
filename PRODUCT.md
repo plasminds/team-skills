@@ -9,12 +9,13 @@ web
 ## Users
 
 - **The human**: the developer who ran a team-* skill (debate, plan, refactor, review) and must now decide on what the agent team recommends. They open the gate page in a browser, alone, between terminal sessions. Reviews and refactors are quick triage (2–5 minutes: skim, take the recommendations, fix a few, send); debates and plans get a deep read (15+ minutes over arguments, trade-offs and code).
-- **The branch owner**: a colleague who receives a shared review gate (a standalone file) and decides on the findings alone, then copies a prompt to their own agent.
+- **The branch owner**: a colleague who receives a shared review gate (a standalone file) and decides on the findings alone, then copies a prompt to their own agent. Any gate can go as a file: a debate, plan, kickoff or refactor page sent with `--share`; an acceptance page has nothing to send back.
 - **The acceptance reader**: a business person (PO, customer) or a developer who receives an acceptance page and reads what a branch does, case by case, in the Business view or the Technical one. They decide nothing on it.
+- **The business decider**: a PO, a manager or a customer who decides a debate's business questions, alone on a page sent to them or in a meeting where the developer projects the page. They follow the story to the recap, pick on the page and send Copy decisions back by Slack or mail; nothing leaves the page by itself.
 
 ## Product Purpose
 
-The gate is the one place a human decides in a multi-agent run. Each card is a decision the agents could not or should not take alone: options, the recommended one, the arguments for and against with who made them, the constraints that bind it, and the evidence (code before/after, trade-off tables, metrics, figures). Success: every card answered with confidence in minutes, the answers sent back to Claude (Send to Claude, Copy decisions) or handed to the branch owner (Share).
+The gate is the one place a human decides in a multi-agent run. Each card is a decision the agents could not or should not take alone: options, the recommended one, the arguments for and against with who made them, the constraints that bind it, and the evidence (code before/after, trade-off tables, metrics, figures). Success: every card answered with confidence in minutes, the answers sent back to Claude (Send to Claude, Copy decisions) or handed to the branch owner (Share on a review, or `--share` on any other gate's page).
 
 ## Positioning
 
@@ -30,7 +31,7 @@ Not a dashboard of agent output: a decision instrument. Agents recommend, the hu
 
 - Single self-contained HTML file: inline CSS and JS, no network fetches, no external fonts or libraries (it must work offline, as a file sent to someone; `confirm()` is not used).
 - The tests in `test/view/` drive the template's DOM and script; ids, data attributes and the decisions-block format they rely on are contract.
-- Must keep: the keyboard flow (←/→ cards, number keys and Enter to choose, `u` next undecided, `n` note, `?` help), an overview of all cards and their status at once, evidence beside the choice (not behind clicks), and the share page for the branch owner.
+- Must keep: the keyboard flow (←/→ cards, number keys and Enter to choose, `u` next undecided, `n` note, `?` help), an overview of all cards and their status at once, each option's figure, its pros and cons and any constraint it breaks beside the choice; the rest of the evidence (the respected constraints, full trade-off table, role detail) one key away, in place, and the share page of every gate kind, for the branch owner or whoever receives it, and, on a debate gate, a list a business decider can follow from the cover to the recap.
 - Dark by default, light on request: the page follows the system or the viewer, a toggle (or `d`) overrides it, shared pages included. The light theme is warm paper, never white.
 
 ## Brand Commitments
@@ -47,4 +48,4 @@ Example gates with real-shaped content in `examples/refactor-gate/`, `examples/d
 2. Evidence sits beside the choice: argument, constraint and code are read in one glance, not opened.
 3. The recommendation leads, the dissent stays visible.
 4. Speed for triage, depth on demand, in one page.
-5. Substance over decoration: no flourish that slows reading.
+5. Substance over decoration: no flourish that slows reading. For the business decider, an example, a mockup or a state beats a paragraph.

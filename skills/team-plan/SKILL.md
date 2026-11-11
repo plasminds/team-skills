@@ -113,7 +113,7 @@ The shared ones are in `team-protocol`. These are the planner's own.
 
 | Excuse | Reality |
 |--------|---------|
-| "The debate's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Record the concern in the `against` of the step it concerns, or put the minority option on the gate as `reverses debate D<n>`. Only the human amends the decision; a wholly different direction is a new debate. |
+| "The debate's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Record the concern in the `against` of the option it opposes on the step it concerns, or put the minority option on the gate as `reverses debate D<n>`. Only the human amends the decision; a wholly different direction is a new debate. |
 | "The writers can start now and align on names later" | Consumers that guess the keystone's API get rewritten. Freeze the contract first. |
 | "I'll leave that design question to the writer" | A writer who meets an open question guesses, and the gate undoes the guess. Settle it before drafting. |
 | "This extra step is small and useful" | Nothing smuggled in, nothing dropped: that is what the PO reviewer checks. Raise it at the gate instead. |

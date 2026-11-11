@@ -116,10 +116,10 @@ Round 2 prompts repeat the role file's *Output Format*. Questions Round 2 raises
 The synthesizer (a separate call from the Round 1 PO) writes the *Debate Summary* by `templates.md` § *Synthesis*.
 
 ### Reachability
-Before the gate writer, check every `unverified` premise in the synthesis by `reachability.md` § *Reachability check* (agent id `reach`). The gate writer reads the synthesis and that agent's file.
+Before the gate writer, check every `unverified` premise in the synthesis by `reachability.md` § *Reachability check* (agent id `reach`). The gate writer reads the synthesis, that agent's file and each seat's last-round *Position* and *Trade-offs*, so it can attach each argument to its option.
 
 ### Gate
-**REQUIRED SUB-SKILL:** `team-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*; you serve it and read the decisions block. The Round 1 question pause stays in chat; those answers are free text.
+**REQUIRED SUB-SKILL:** `team-view`. The gate writer builds and renders the page by `templates.md` § *Gate page*, from the synthesis, the reachability file and each seat's last-round *Position* and *Trade-offs*; you serve it and read the decisions block. The Round 1 question pause stays in chat; those answers are free text.
 
 ### Decision recording
 The record writer records the human's decisions by `templates.md` § *Decision record*, including supersession, corrections and the project's own decision records. `team-plan` reads this record next.
@@ -161,7 +161,7 @@ The shared ones are in `team-protocol`. These are this skill's own.
 - Dispatching before the framing got an explicit yes
 - A framing with an *unchecked* environment fact nobody asked about
 - A seat whose Round 1 position the human's answer contradicts, counted without sitting again
-- A record whose `Status:` still says it awaits the human
+- A record without `Status: decided`
 - UX left out of a change that users or API callers will meet
 - A recommendation with no `Accepts:` line
 - A recommended option that violates a constraint

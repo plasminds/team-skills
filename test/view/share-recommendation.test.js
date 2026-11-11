@@ -3,60 +3,9 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { RENDER, shareGate, writeGate, render, pageData } = require('./helpers');
+const { composedTemplate, RENDER, shareGate, writeGate, render, pageData, fakeDom } = require('./helpers');
 
 // The shared page shows the reviewer's picks, never the agents' recommendation. These tests run the page's script on a fake DOM.
-
-// A DOM just wide enough to run the main script: real nodes for what the page builds, a callable no-op for the rest.
-function fakeDom(html) {
-  const ids = new Map(), body = node('body');
-  function node(tag) {
-    const t = { tagName: String(tag).toUpperCase(), children: [], parentNode: null, listeners: {}, attrs: {}, style: loose({}), dataset: {}, textContent: '', value: '', className: '', hidden: false,
-      classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
-      get childNodes() { return t.children; }, get firstChild() { return t.children[0] || null; }, get lastChild() { return t.children[t.children.length - 1] || null; },
-      get nextSibling() { const s = t.parentNode && t.parentNode.children; return s ? s[s.indexOf(p) + 1] || null : null; },
-      previousSibling: null,
-      appendChild(c) { if (c.parentNode) c.parentNode.removeChild(c); c.parentNode = p; t.children.push(c); return c; },
-      insertBefore(c, ref) { if (c.parentNode) c.parentNode.removeChild(c); c.parentNode = p; const i = t.children.indexOf(ref); t.children.splice(i < 0 ? t.children.length : i, 0, c); return c; },
-      removeChild(c) { t.children = t.children.filter(x => x !== c); c.parentNode = null; return c; },
-      addEventListener(type, f) { (t.listeners[type] = t.listeners[type] || []).push(f); },
-      setAttribute(k, v) { t.attrs[k] = String(v); }, getAttribute: k => (k in t.attrs ? t.attrs[k] : null), removeAttribute(k) { delete t.attrs[k]; }, hasAttribute: k => k in t.attrs,
-      querySelector: () => node('div'), querySelectorAll: () => [], closest: () => null, contains: () => false
-    };
-    const p = loose(t, (k, v) => { if (k === 'id') ids.set(v, p); });
-    return p;
-  }
-  function loose(t, onSet) {
-    return new Proxy(t, {
-      get: (o, k) => (k in o ? o[k] : typeof k === 'symbol' ? undefined : any),
-      set: (o, k, v) => { o[k] = v; if (onSet) onSet(k, v); return true; }
-    });
-  }
-  const any = new Proxy(function () {}, { get: (o, k) => (k === Symbol.toPrimitive ? () => 0 : k === 'length' ? 0 : any), apply: () => node('div') });
-  // A template element: placed in a holder, so the script can insert beside it.
-  const placed = () => node('div').appendChild(node('div'));
-  const layout = placed();
-  const store = new Map();
-  const document = {
-    body, documentElement: node('html'), activeElement: null, title: '', readyState: 'complete',
-    getElementById: id => (id === 'gate-data' ? { textContent: html.match(/<script type="application\/json" id="gate-data">([\s\S]*?)<\/script>/)[1] } : ids.get(id) || (ids.set(id, placed()), ids.get(id))),
-    querySelector: sel => (sel === '.layout' ? layout : placed()), querySelectorAll: () => [],
-    createElement: node, createElementNS: (ns, tag) => node(tag), createTextNode: s => { const n = node('#text'); n.textContent = s; return n; }, createDocumentFragment: () => node('#fragment'),
-    addEventListener() {}, removeEventListener() {}
-  };
-  const ctx = {
-    document, console, Promise, setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {}, requestAnimationFrame: () => 0,
-    localStorage: { get length() { return store.size; }, key: i => [...store.keys()][i], getItem: k => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) },
-    location: { hash: '', href: 'https://example.com/x', search: '' }, history: { replaceState() {} },
-    navigator: { clipboard: { writeText: () => Promise.resolve() }, platform: '', userAgent: '' },
-    matchMedia: () => ({ matches: false, addEventListener() {}, addListener() {} }), getComputedStyle: () => ({ getPropertyValue: () => '' }),
-    addEventListener() {}, removeEventListener() {}, scrollTo() {},
-    IntersectionObserver: function () { return { observe() {}, disconnect() {} }; }, ResizeObserver: function () { return { observe() {}, disconnect() {} }; }, MutationObserver: function () { return { observe() {}, disconnect() {} }; },
-  };
-  ctx.window = ctx;
-  return { ctx, ids, body, store };
-}
-
 
 const storeKey = data => 'team-view:' + (data.source || data.title) + ':' + (data._rev || '');
 const settleDom = async () => { for (let i = 0; i < 6; i++) await new Promise(resolve => setImmediate(resolve)); };
@@ -108,6 +57,21 @@ test('a shared page tags the reviewer\'s pick as Suggested, and only that option
   assert.deepStrictEqual(f1Buttons(made).filter(n => /\bis-rec\b/.test(n.className)).map(b => b.dataset.value), [pick.value]);
 });
 
+test('A9: a shared review card\'s option rows tag the reviewer\'s pick as Suggested, none Recommended, and its pane opens on the pick', async () => {
+  const { html } = shareHtml('GATE SHARE\nF1 = round\n');
+  const { dom } = await run(html);
+  const card = dom.ctx.document.getElementById('d-F1');
+  const rows = card.querySelectorAll('.orow'), valueOf = r => r.querySelectorAll('.opick')[0].dataset.value;
+  assert.deepStrictEqual(rows.map(valueOf), ['keep', 'round', 'ask']);
+  const tagged = rows.filter(r => r.querySelectorAll('.rectag').length);
+  assert.deepStrictEqual(tagged.map(valueOf), ['round'], 'only the pick is tagged, not the agents\' recommendation');
+  assert.strictEqual(tagged[0].querySelectorAll('.rectag')[0].className, 'rectag sug');
+  assert.strictEqual(tagged[0].querySelectorAll('.rectag')[0].textContent, 'Suggested');
+  assert.deepStrictEqual(rows.filter(r => /\bis-rec\b/.test(r.className)).map(valueOf), ['round']);
+  const shown = card.querySelectorAll('.osec').filter(s => !s.hidden).map(s => s.getAttribute('aria-label'));
+  assert.deepStrictEqual(shown, ['Round']);
+});
+
 test('clicking an option on a share card records the choice', async () => {
   const { html } = shareHtml();
   const { dom } = await run(html);
@@ -120,21 +84,34 @@ test('clicking an option on a share card records the choice', async () => {
 });
 
 test('a shared page\'s r key, help lines, evidence pane and accepts footer follow the reviewer\'s pick', () => {
-  const html = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
-  assert.match(html, /var rv = shareMode \? reviewerSuggests\(data, c\.it\) : /);
-  assert.match(html, /\['<kbd>r<\/kbd>', shareMode \? L\('help\.sug'\) : L\('help\.rec'\)\]/);
-  assert.match(html, /\['<kbd>a<\/kbd>', shareMode \? L\('help\.acceptSug'\) : L\('help\.acceptAll'\)\]/);
-  assert.match(html, /return shareMode \? o\.value === sugFirst : o\.recommended;/);
-  assert.match(html, /base = \(!shareMode && rec && rec\.accepts\) \|\| it\.accepts/);
-  assert.match(html, /!shareMode && o && !o\.accepts && rec && rec\.accepts && o !== rec \? L\('ev\.recAccepts'\)/);
+  const html = composedTemplate();
+  assert.match(html, /var rv = reviewShare \? reviewerSuggests\(data, c\.it\) : /);
+  assert.match(html, /\['<kbd>r<\/kbd>', reviewShare \? L\('help\.sug'\) : L\('help\.rec'\)\]/);
+  assert.match(html, /\['<kbd>a<\/kbd>', reviewShare \? L\('help\.acceptSug'\) : L\('help\.acceptAll'\)\]/);
+  assert.match(html, /return reviewShare \? o\.value === sugFirst : o\.recommended;/);
 });
 
 test('a shared page\'s Accept takes the reviewer\'s picks only', () => {
-  const html = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+  const html = composedTemplate();
   const src = html.slice(html.indexOf('function acceptRecommended'), html.indexOf('function decisionsBlock'));
   const { acceptRecommended } = vm.runInNewContext('function mootBy() { return false; }\n' + src + '\n({ acceptRecommended: acceptRecommended })');
   const items = [{ id: 'A', options: [{ value: 'x', recommended: true }, { value: 'y' }] }, { id: 'B', options: [{ value: 'x', recommended: true }, { value: 'y' }] }];
   const state = {};
   assert.strictEqual(acceptRecommended(items, state, it => (it.id === 'A' ? 'y' : null)), 1);
   assert.deepStrictEqual(JSON.parse(JSON.stringify(state)), { A: { choice: 'y' } });
+});
+
+test('A9: on a review share the card\'s accepts sits in the trade-off of the reviewer\'s suggested option, not the recommended one', async () => {
+  const file = writeGate(shareGate());
+  const g = JSON.parse(fs.readFileSync(file, 'utf8'));
+  g.decisions.find(d => d.id === 'F1').accepts = 'Cents round up.';
+  const gf = writeGate(g), p = gf.replace(/\.gate\.json$/, '.share.txt');
+  fs.writeFileSync(p, 'GATE SHARE\nF1 = round\n');
+  assert.strictEqual(render(gf, '--share', '--preset=' + p).code, 0);
+  const { dom } = await run(fs.readFileSync(gf.replace(/\.gate\.json$/, '.share.html'), 'utf8'));
+  const all = n => [n].concat(...(Array.isArray(n.children) ? n.children : []).map(all));
+  const secs = dom.ctx.document.getElementById('d-F1').querySelectorAll('.osec');
+  const accepts = label => secs.filter(s => s.getAttribute('aria-label') === label).map(s => s.querySelectorAll('.tv').map(n => all(n).map(x => x.textContent || '').join(''))).flat();
+  assert.deepStrictEqual(accepts('Round'), ['Cents round up.']);
+  assert.deepStrictEqual(accepts('Keep floor'), [], 'the agents\' recommended option does not carry it');
 });

@@ -10,13 +10,13 @@
 // block (with a "mode: auto-accept" line) is saved to <gate>.decisions.txt and printed after the page path.
 // --channels=<json> (with --serve): availability of the Share dialog's choices, detected by Claude:
 // { review?: true | { label } | 'why not and how to fix' }.
-// --share: a review gate (kind "review") as a page the branch owner acts on alone; it needs "preamble" and briefs (contract.md, Share fields).
-// A standalone document, to send as a file.
-// --preset=<file>: a GATE SHARE block whose choices and notes the share page starts from.
+// --share: any gate as a page to send as a file (no record path, no key legend, a cover line with the ask).
+// A review gate (kind "review") keeps its work order: it needs "preamble" and briefs (contract.md, Share fields).
+// --preset=<file> (review only): a GATE SHARE block whose choices and notes the share page starts from.
 // --review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head> (with --share):
 // instead of the page, write a ready-to-post review: <gate>.review.github.json, or the folder <gate>.review.gitlab/.
 // --page-url=<https link | /uploads/... path> (with --review): the review body links the shared page, uploaded first.
-// kind "acceptance" (team-acceptance): a page that presents a branch; rendered only (no --serve, --accept-recommended, --share), it prints its size after its path.
+// kind "acceptance" (team-acceptance): a page that presents a branch; rendered only (no --serve, --accept-recommended; --share writes it as a file), it prints its size after its path.
 // Cards with "at" inside the diff become comments; --diff=<unified diff file> says which lines are in it (default: all).
 // Internals live in lib/: gate.js (validation), page.js (page + HTML), share.js (presets, channels), review.js (--diff, review payloads), serve.js (local server), accept.js (--accept-recommended), files.js (project files the page names: IDE and remote links).
 const fs = require('fs');
@@ -27,6 +27,7 @@ const { acceptedBlock } = require('./lib/accept');
 const { parseChannels } = require('./lib/share');
 const { parseDiff, loadReviewBuilder, buildReviewPayloads, writeReviewFiles } = require('./lib/review');
 const { serve } = require('./lib/serve');
+const { composeTemplate } = require('./lib/compose');
 const { repoOf, projectFiles, trackedFiles } = require('./lib/files');
 
 const args = process.argv.slice(2);
@@ -66,11 +67,13 @@ if (CHANNELS_ARG !== undefined) {
   channels = parseChannels(CHANNELS_ARG.slice('--channels='.length), USAGE);
 }
 
-const { data, items, outcome, errors, preset } = loadGate(src, { share: SHARE, preset: PRESET });
+const { data, items, outcome, errors, warnings, preset, story, context } = loadGate(src, { share: SHARE, preset: PRESET });
+if (REVIEW !== undefined && data.kind !== 'review') { console.error('--review needs a review gate: only a team-review share becomes a ready-to-post review\n' + USAGE); process.exit(2); }
 if (data.kind === 'acceptance' && (flags.has('--serve') || ACCEPT)) errors.push('kind "acceptance" is a page to read, not a gate: --serve and --accept-recommended do not apply (nothing comes back from it)');
 if (errors.length) { console.error('invalid gate JSON:\n- ' + errors.join('\n- ')); process.exit(1); }
+warnings.forEach(w => console.error('warning: ' + w));
 
-const page = buildPage({ data, items, outcome, preset, channels, share: SHARE });
+const page = buildPage({ data, items, outcome, preset, channels, share: SHARE, story, context });
 // After _rev, like channels: pushing the branch must not reset saved choices.
 const repo = repoOf(path.dirname(path.resolve(src)));
 const files = repo ? projectFiles(page, repo.root) : [];
@@ -78,9 +81,8 @@ if (files.length) {
   page.files = files;
   if (repo.blob) page.repo = { blob: repo.blob, forge: repo.forge, files: trackedFiles(repo.root, files) };
 }
-let template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
-if (!template.includes('/*TOKENS*/')) { console.error('template.html has no /*TOKENS*/ marker'); process.exit(1); }
-template = template.replace('/*TOKENS*/', () => fs.readFileSync(path.join(__dirname, 'tokens.css'), 'utf8').replace(/\n$/, ''));
+let template;
+try { template = composeTemplate(__dirname); } catch (e) { console.error(e.message); process.exit(1); }
 if (REVIEW) {
   let diff = null;
   if (DIFF) {

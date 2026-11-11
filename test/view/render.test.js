@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
-const { RENDER, shareGate, writeGate, render, pageData } = require('./helpers');
+const { RENDER, shareGate, writeGate, render, pageData, cover, tmpDir } = require('./helpers');
 
 const shareOf = file => file.replace(/\.gate\.json$/, '.share.html');
 const localOf = file => file.replace(/\.gate\.json$/, '.html');
@@ -85,12 +85,11 @@ test('--share needs a commit SHA in the preamble', () => {
   rejects(shareGate({ preamble: 'Repo acme, branch feat-x, reviewed on 20261014.' }), /names no commit SHA/);
 });
 
-test('--share rejects a gate that is not a review', () => {
+test('--share on a gate that is not a review writes the page as a file', () => {
   const file = writeGate(shareGate({ kind: 'refactor' }));
   const r = render(file, '--share');
-  assert.strictEqual(r.code, 1);
-  assert.match(r.stderr, /--share needs kind "review": only a team-review gate is shared with the branch owner/);
-  assert.ok(!fs.existsSync(file.replace(/\.gate\.json$/, '.share.html')));
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.ok(fs.existsSync(file.replace(/\.gate\.json$/, '.share.html')));
 });
 
 test('an option that leads to work needs a brief', () => {
@@ -160,7 +159,7 @@ test('--preset needs --share', () => {
 });
 
 function presetFile(text) {
-  const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'gate-preset-')), 'g.share.txt');
+  const f = path.join(tmpDir('gate-preset-'), 'g.share.txt');
   fs.writeFileSync(f, text);
   return f;
 }
@@ -276,7 +275,7 @@ test('--preset ignores the as, via and to lines of a GATE SHARE block', () => {
 
 test('a bare --channels is rejected and its JSON is not taken for the output path', () => {
   const file = writeGate(shareGate());
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-channels-'));
+  const cwd = tmpDir('gate-channels-');
   const r = spawnSync(process.execPath, [RENDER, file, '--serve', '--channels', '{}'], { encoding: 'utf8', timeout: 5000, cwd });
   assert.strictEqual(r.status, 2);
   assert.match(r.stderr, /--channels takes JSON: --channels='<json>'/);
@@ -518,13 +517,60 @@ test('--page-url needs --review and a safe link', () => {
 });
 
 test('the review summary uses the language\'s colon: a no-break space before it on French gates', () => {
-  const summary = [{ label: 'Verdict', text: 'ok' }, { label: 'Blockers', points: ['None'] }];
+  const facts = [{ label: 'Verdict', text: 'ok' }, { label: 'Blockers', text: 'None' }];
   const body = lang => {
-    const file = writeGate(Object.assign(reviewGate(), { lang, summary }));
+    const file = writeGate(Object.assign(reviewGate(), { lang }, cover(facts)));
     assert.strictEqual(render(file, '--share', '--review=github', '--head=' + HEAD).code, 0);
     return JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
   };
   const en = body('en'), fr = body('fr');
-  assert.ok(en.includes('- **Verdict**: ok') && en.includes('- **Blockers**:\n  - None'), en);
-  assert.ok(fr.includes('- **Verdict** : ok') && fr.includes('- **Blockers** :\n  - None'), fr);
+  assert.ok(en.includes('- **Verdict**: ok') && en.includes('- **Blockers**: None'), en);
+  assert.ok(fr.includes('- **Verdict** : ok') && fr.includes('- **Blockers** : None'), fr);
+});
+
+test('composeTemplate names the marker a template lacks', () => {
+  const { composeTemplate } = require('../../skills/team-view/lib/compose');
+  const dir = tmpDir('compose-');
+  const view = path.join(path.dirname(RENDER));
+  for (const f of ['style.css', 'chrome.js', 'tokens.css']) fs.copyFileSync(path.join(view, f), path.join(dir, f));
+  fs.writeFileSync(path.join(dir, 'template.html'), fs.readFileSync(path.join(view, 'template.html'), 'utf8').replace('/*CHROME*/', ''));
+  assert.throws(() => composeTemplate(dir), /template\.html has no \/\*CHROME\*\/ marker/);
+});
+
+test('render exits 1 with the marker name when the template lacks one', () => {
+  const view = path.dirname(RENDER);
+  const dir = tmpDir('compose-cli-');
+  fs.mkdirSync(path.join(dir, 'lib'));
+  for (const f of ['render.js', 'style.css', 'chrome.js', 'tokens.css']) fs.copyFileSync(path.join(view, f), path.join(dir, f));
+  for (const f of fs.readdirSync(path.join(view, 'lib'))) fs.copyFileSync(path.join(view, 'lib', f), path.join(dir, 'lib', f));
+  fs.writeFileSync(path.join(dir, 'template.html'), fs.readFileSync(path.join(view, 'template.html'), 'utf8').replace('/*CHROME*/', ''));
+  const r = spawnSync(process.execPath, [path.join(dir, 'render.js'), writeGate(shareGate())], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 1);
+  assert.match(r.stderr, /template\.html has no \/\*CHROME\*\/ marker/);
+});
+
+test('the raw template keeps the skeleton and holds neither the CSS nor the chrome strings', () => {
+  const raw = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+  assert.ok(raw.includes('/*STYLE*/') && raw.includes('/*CHROME*/'));
+  assert.ok(!raw.includes('const CHROME_TEXT = {'));
+  assert.ok(!raw.includes('.layout {'));
+});
+
+test('A9: the review body takes the cover context row: its why as one line, its facts as bullets, then the page link', () => {
+  const file = writeGate(Object.assign(reviewGate(), cover([{ label: 'Blockers', text: 'None' }, { label: 'Recommendation', text: 'Approve' }], { why: 'Mergeable.\nOne nit.' })));
+  const url = 'https://gist.github.com/someone/0123abcd';
+  const r = render(file, '--share', '--review=github', '--head=' + HEAD, '--page-url=' + url);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const body = JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
+  const parts = body.split('\n\n');
+  assert.strictEqual(parts[1], 'Mergeable. One nit.');
+  assert.strictEqual(parts[2], '- **Blockers**: None\n- **Recommendation**: Approve');
+  assert.ok(parts[3].includes('[open the page](' + url + ')'), parts[3]);
+});
+
+test('A9: a review gate without a cover row has no summary part in its body', () => {
+  const file = writeGate(reviewGate());
+  assert.strictEqual(render(file, '--share', '--review=github', '--head=' + HEAD).code, 0);
+  const body = JSON.parse(fs.readFileSync(file.replace(/\.gate\.json$/, '.review.github.json'), 'utf8')).body;
+  assert.match(body.split('\n\n')[1], /^One thread per card/, 'the title is followed by the how-to');
 });

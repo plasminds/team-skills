@@ -232,8 +232,8 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 ### Tertiary
 - **For Blue** (pro, with pro-bg fill): the For sign. Arguments never take the green and red of a code diff.
 - **Against Copper** (con, with con-bg fill): the Against sign. Copper, not amber: amber stays "Recommended".
-- **Business Violet** (biz, with biz-bg fill): the business lens mark, tag and column label ("Biz").
-- **Tech Teal** (tech, with tech-bg fill): the Tech lens mark, tag and column label. Teal, so it never reads as For Blue.
+- **Business Violet** (biz, with biz-bg fill): the business lens mark, tag and column label ("Biz"); on acceptance pages it marks the Business lens.
+- **Tech Teal** (tech, with tech-bg fill): the Tech lens mark, tag and column label; on acceptance pages it marks the Technical lens. Teal, so it never reads as For Blue.
 
 ### Neutral
 - **Ground** (ground): the page, and recessed wells inside panels (inputs, the lens switch, evidence boxes, keycaps).
@@ -282,7 +282,7 @@ A warm brown-grey neutral ladder with five small semantic hues, each lifted to p
 
 ## Layout
 
-A fixed 100dvh grid: top bar, the three panes, and a quiet key legend at the foot. The page opens on the Summary item, the first row of the list; a card named in the address (`#d-ID`) opens instead. Only panes scroll. The page edge is 20px, panes sit 14px apart.
+A fixed 100dvh grid: top bar, the three panes, and a quiet key legend at the foot. A debate page opens on its first story row (the cover when there is one); other kinds open on the Summary item; a card named in the address (`#d-ID`) opens instead. Only panes scroll. The page edge is 20px, panes sit 14px apart.
 
 - **Wide (above 1400px):** list 400px, card fluid, evidence 460px. A card marked wide spans card and evidence columns.
 - **1400px and below:** list 340px, evidence 400px; top-bar keycaps drop.
@@ -291,11 +291,11 @@ A fixed 100dvh grid: top bar, the three panes, and a quiet key legend at the foo
 - **Phone (760px and below):** one pane at a time, chosen by a segmented tab bar; progress and actions pin to the bottom; the card scrolls as one with "Your choice" following the arguments; touch navigation replaces the key legend.
 - **640px and below:** the trade-off table becomes one block per option, each cost labelled by its lens.
 
-The list collapses to a 116px rail (status marks, rails and ids only) or closes entirely; the centre and evidence take the room.
+The list collapses to a 116px rail (status marks, rails and ids only) or closes entirely; the centre and evidence take the room; on a debate page closed leaves a 52px rail on the left, like the evidence pane's, and a click on it reopens the list.
 
 Spacing rhythm is small and even: 4–14px inside components, 26px between blocks in the card, 30px card inset (22px tablet, 18px phone).
 
-**The Evidence Beside The Choice Rule.** Arguments live only in the centre; evidence lives only in the right pane; neither is ever behind a click or a disclosure.
+**The Evidence Beside The Choice Rule.** The evidence pane stays beside the card on every kind, never behind a click. On a debate page it folds like the decisions list (a close control in its header, a rail on the right, `e`, remembered and kept from card to card) and is absent, with no rail, on a card or row with nothing for it. On a debate page it follows one option: the option rows say its cost and any constraint it breaks; its pros and cons, trade-off and own evidence sit at the top of the pane, the whole question under them. On pages without a story view, arguments live in the centre and evidence in the right pane.
 
 ## Elevation & Depth
 
@@ -334,7 +334,7 @@ The decision itself, pinned in the foot bar of the centre pane.
 
 ### Chips, tags and lens marks
 - **Tag:** raised fill, ink-2, 7px corners, 24px; blocker variant red on red-bg, warn variant an inset line ring.
-- **Lens mark:** full-round, icon plus "Biz" or "Tech" in its hue on its deep tint.
+- **Lens mark:** full-round, icon plus "Biz" or "Tech" in its hue on its deep tint. On acceptance pages only; on other kinds a line shows the plain label ("for the business", "for the build") only where it differs from its card's default lens.
 - **Filter pill:** panel fill with edge border; pressed state takes the cursor fill and an ink-3 border.
 
 ### Inputs / Fields
@@ -350,8 +350,20 @@ The decision itself, pinned in the foot bar of the centre pane.
 - **States:** hover raised; current takes the cursor fill, an inset line ring and a 600 title; a newly reached row flashes briefly.
 - **Rails:** drawn to the left of the rows; the cursor's family lights to rail-lit.
 
+### Story
+The one layout of a debate card. The title keeps the card-title size; the card's `detail` shows right after its stake line; up to 3 key numbers follow (a before/after one reads `40 → 20`, centred), then one centred drawing. Then *Your choice* in the pinned decide bar: one row per option, all of one shape: the number key, the label with its cost line, then the Recommended tag, a Breaks badge per constraint it breaks (the text on hover and keyboard focus) and an "in the pane" mark on the option the evidence pane shows (that row a shade lighter, the chosen row green); the whole row picks, then the note. The evidence pane (460px, always shown, as on the other kinds) follows the picked option, else the recommended, else the first: an *Evidence for* segmented picker of every option (`[` `]`, without choosing), that option's for and against in two columns ("No argument raised" on an empty side), its trade-off, its own evidence, the constraints as they stand under it; then a dashed divider, *The whole question*: the options compared (the shown row marked), the card's other numbers, code, examples, figures, sources. A context row or the recap shows its own evidence there, else one line; at 760px and under the pane is the Evidence tab. There is no mode control. A card whose options carry nothing shows plain decide-bar buttons and no picker. The list runs in story order: context rows open the page, the recap row closes it.
+
+### Cover strip
+Share pages only (`--share`, every kind); hidden on the local page. A note above the tabs, between the top bar and the panes, in panel fill with an edge border and the pane radius, 10px by 16px padding, 14px text. The lead sentence says what the reader is asked and how many questions need an answer (an acceptance page: how many cases to read, nothing to send back); the line on how to send the answer back sits under it in ink-2. At 760px and under that line folds into a native "What to do next" disclosure (44px tap target), closed by default; wider, the summary is hidden and the line reads as plain text. The key legend is absent on share pages; the `?` panel keeps every key.
+
+### Spec example (case card)
+On an acceptance case that cites an example id, a folded block under the title tags: "Example E3 from the specification", a native disclosure in the raised fill that opens on the example's given, when and then. The id is text, never colour.
+
+### Uncovered examples (Summary)
+Under the Summary's bullets (at the top of the Cases when there is no Summary): a section headed "Examples from the specification that no case on this page covers", each example in a raised well with its id and given / when / then, and a note that it is an observation with nothing to decide.
+
 ### Lens switch
-A segmented control (Both | Biz | Tech) recessed in ground with a 4px inner padding; the selected segment takes the cursor fill and an inset line ring. Counts sit beside each name in ink-3.
+Acceptance pages only. A segmented control (Both | Biz | Tech) recessed in ground with a 4px inner padding; the selected segment takes the cursor fill and an inset line ring. Counts sit beside each name in ink-3.
 
 ### Evidence boxes
 Recessed ground wells with a 1px edge and 11px corners holding constraints, the trade-off table, metrics, code and location; rows inside divide with edge hairlines. Code diffs tint whole lines green or red.
@@ -371,7 +383,7 @@ Inline-grid, 20px, ground fill, line border with a 2px bottom edge, 5px corners,
 - **Do** show a keycap on every control that has a key, and keep the key legend to the keys that work now.
 - **Do** use monospace only for ids, paths, code and keycaps; tabular numerals for every count.
 - **Do** use the pane lift shadow on panes only; separate everything inside with tone and 1px edges.
-- **Do** keep evidence beside the choice: arguments in the centre, evidence in the right pane, nothing behind a click.
+- **Do** keep each option's figure, pros and cons and any constraint it breaks beside the choice; the rest of the evidence is one key away, in place. Pages without a story view keep arguments in the centre and evidence in the right pane, nothing behind a click.
 
 ### Don't:
 - **Don't** ship a white one: no `#fff`, no fully opaque white, no black shadow on light. The brightest light surface is `--panel` (`#eee9df`, off-white); white glares.

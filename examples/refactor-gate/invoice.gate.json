@@ -3,34 +3,59 @@
   "title": "Refactoring backlog — src/invoice.js",
   "date": "2026-09-26",
   "source": ".council/refactors/2026-09-26-invoice.md",
-  "summary": [
+  "context": [
     {
-      "label": "Verdict",
-      "text": "invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite."
-    },
-    {
-      "label": "Weak spots",
-      "points": [
-        "The 20% tax rule is written out in three places",
-        "exportCsv() has no callers",
-        "The name 'grand' hides that it is the total including tax"
+      "id": "I0",
+      "title": "Four small steps, not a rewrite",
+      "why": "invoice.js is one 140-line function mixing tax rules, discounts, formatting and email. Worth four small steps, not a rewrite.",
+      "facts": [
+        {
+          "label": "Recommendation",
+          "text": "Approve S0–S4 and side with the Minimalist on T1. Run team-review on src/invoice.js first: the rounding touches money."
+        }
       ]
     },
     {
-      "label": "For team-review",
-      "points": [
-        "Gold customers' discount rounds down while every other tier rounds to nearest",
-        "Currency symbol printed after a space ('12,00 €'), in the formatter; S0 pins it as-is",
-        "'Discount: -0.00' printed when there is no discount, in the totals block; S0 pins it as-is",
-        "Run team-review on src/invoice.js before executing: the rounding touches money."
+      "id": "I2",
+      "title": "Three weak spots in the code today",
+      "facts": [
+        {
+          "label": "Tax rule",
+          "text": "The 20% tax rule is written out in three places."
+        },
+        {
+          "label": "Dead code",
+          "text": "exportCsv() has no callers."
+        },
+        {
+          "label": "Naming",
+          "text": "The name 'grand' hides that it is the total including tax."
+        }
       ]
     },
     {
-      "label": "Recommendation",
-      "points": [
-        "Approve S0–S4",
-        "Side with the Minimalist on T1"
+      "id": "I3",
+      "title": "Three behaviors for team-review",
+      "why": "Suspected bugs, not fixed by these steps: S0 pins each one as it is today.",
+      "facts": [
+        {
+          "label": "Gold rounding",
+          "text": "Gold customers' discount rounds down while every other tier rounds to nearest."
+        },
+        {
+          "label": "Currency symbol",
+          "text": "The formatter prints the symbol after a space ('12,00 €')."
+        },
+        {
+          "label": "Zero discount",
+          "text": "The totals block prints 'Discount: -0.00' when there is no discount."
+        }
       ]
+    },
+    {
+      "id": "I1",
+      "title": "invoice.js after the approved steps",
+      "outcome": 0
     }
   ],
   "outcome": [
@@ -55,12 +80,6 @@
         "Pins 9 behaviors: each tier's discount, the 0 € order, tax on shipping, the email subject",
         "Proves they bite by flipping the rounding and the tax constant"
       ],
-      "for": [
-        {
-          "who": "Safety Net",
-          "point": "Today's two tests only cover the silver path."
-        }
-      ],
       "metrics": [
         {
           "label": "Pinned branches",
@@ -69,23 +88,32 @@
           "better": "higher"
         }
       ],
-      "brief": "Why: Safety Net: today's two tests only cover the silver path.\nDo:\n- Add `test/invoice.characterization.test.js`: one test per behavior in *Details*, each asserting today's output, quirks included (Gold rounds down, `12,00 €`, `Discount: -0.00`)\n- Make each one bite: flip the rounding, then the tax constant, watch it fail, revert\nFence: `src/invoice.js` and the existing tests. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: test(invoice): characterize invoice totals\nOn red: revert the step, report why, stop."
+      "brief": "Why: Safety Net: today's two tests only cover the silver path.\nDo:\n- Add `test/invoice.characterization.test.js`: one test per behavior in *Details*, each asserting today's output, quirks included (Gold rounds down, `12,00 €`, `Discount: -0.00`)\n- Make each one bite: flip the rounding, then the tax constant, watch it fail, revert\nFence: `src/invoice.js` and the existing tests. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: test(invoice): characterize invoice totals\nOn red: revert the step, report why, stop.",
+      "options": [
+        {
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Safety Net",
+              "point": "Today's two tests only cover the silver path."
+            }
+          ]
+        },
+        {
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
+        }
+      ]
     },
     {
       "id": "S1",
       "group": "Backlog",
       "title": "Extract Constant: TAX_RATE",
       "detail": "The 20 % rate is written three times: once `0.2`, twice `1.2`.",
-      "for": [
-        {
-          "who": "Responsibilities",
-          "point": "A tax change today means three edits."
-        },
-        {
-          "who": "Minimalist",
-          "point": "KEEP: removes a present, bug-prone duplication."
-        }
-      ],
       "code": {
         "before": "const net = gross / 1.2\n// …\nconst tax = net * 0.2\n// …\nconst shippingTtc = shipping * 1.2",
         "after": "const TAX_RATE = 0.2\nconst net = gross / (1 + TAX_RATE)\n// …\nconst tax = net * TAX_RATE\n// …\nconst shippingTtc = shipping * (1 + TAX_RATE)"
@@ -93,18 +121,35 @@
       "after": [
         "S0"
       ],
-      "brief": "Why: Responsibilities, Minimalist: one tax rule written three times (DRY).\nDo:\n- Add `const TAX_RATE = 0.2` at the top of `src/invoice.js`\n- Replace `0.2` with `TAX_RATE`, and both `1.2` with `(1 + TAX_RATE)`\nFence: the rest of `src/invoice.js`; no rounding change. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Constant TAX_RATE in invoice.js\nOn red: revert the step, report why, stop."
+      "brief": "Why: Responsibilities, Minimalist: one tax rule written three times (DRY).\nDo:\n- Add `const TAX_RATE = 0.2` at the top of `src/invoice.js`\n- Replace `0.2` with `TAX_RATE`, and both `1.2` with `(1 + TAX_RATE)`\nFence: the rest of `src/invoice.js`; no rounding change. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Constant TAX_RATE in invoice.js\nOn red: revert the step, report why, stop.",
+      "options": [
+        {
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Responsibilities",
+              "point": "A tax change today means three edits."
+            },
+            {
+              "who": "Minimalist",
+              "point": "KEEP: removes a present, bug-prone duplication."
+            }
+          ]
+        },
+        {
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
+        }
+      ]
     },
     {
       "id": "S2",
       "group": "Backlog",
       "title": "Rename Variable: grand → totalWithTax",
-      "for": [
-        {
-          "who": "Responsibilities",
-          "point": "'grand' is read 11 times and never says what it holds."
-        }
-      ],
       "code": {
         "before": "const grand = net + tax\nsendInvoice(grand)",
         "after": "const totalWithTax = net + tax\nsendInvoice(totalWithTax)"
@@ -112,18 +157,31 @@
       "after": [
         "S0"
       ],
-      "brief": "Why: Responsibilities: `grand` hides that the total includes tax.\nDo:\n- Rename the local `grand` to `totalWithTax` in `buildInvoice`, at its declaration and in `sendInvoice(grand)`\nFence: `sendInvoice` and its parameters: only the local variable changes. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Variable grand in buildInvoice\nOn red: revert the step, report why, stop."
+      "brief": "Why: Responsibilities: `grand` hides that the total includes tax.\nDo:\n- Rename the local `grand` to `totalWithTax` in `buildInvoice`, at its declaration and in `sendInvoice(grand)`\nFence: `sendInvoice` and its parameters: only the local variable changes. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Variable grand in buildInvoice\nOn red: revert the step, report why, stop.",
+      "options": [
+        {
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Responsibilities",
+              "point": "'grand' is read 11 times and never says what it holds."
+            }
+          ]
+        },
+        {
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
+        }
+      ]
     },
     {
       "id": "S3",
       "group": "Backlog",
       "title": "Remove Dead Code: exportCsv()",
-      "for": [
-        {
-          "who": "Minimalist",
-          "point": "No callers in the repo or in git history since it was added."
-        }
-      ],
       "metrics": [
         {
           "label": "Lines",
@@ -135,25 +193,32 @@
       "after": [
         "S0"
       ],
-      "brief": "Why: Minimalist: no callers in the repo or in git history.\nDo:\n- Delete `exportCsv()` and its entry in `module.exports`\n- Check `git grep exportCsv` returns nothing\nFence: the formatter it calls: `buildInvoice` still uses it. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Remove Dead Code exportCsv in invoice.js\nOn red: revert the step, report why, stop."
+      "brief": "Why: Minimalist: no callers in the repo or in git history.\nDo:\n- Delete `exportCsv()` and its entry in `module.exports`\n- Check `git grep exportCsv` returns nothing\nFence: the formatter it calls: `buildInvoice` still uses it. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Remove Dead Code exportCsv in invoice.js\nOn red: revert the step, report why, stop.",
+      "options": [
+        {
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Minimalist",
+              "point": "No callers in the repo or in git history since it was added."
+            }
+          ]
+        },
+        {
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
+        }
+      ]
     },
     {
       "id": "S4",
       "group": "Backlog",
       "title": "Extract Function: computeDiscount(tier, total)",
       "detail": "Pulls the tier switch out of the main function so the upcoming 'platinum' tier is a one-place edit.",
-      "for": [
-        {
-          "who": "Sequencing",
-          "point": "Make the change easy, then make the easy change: platinum lands next sprint."
-        }
-      ],
-      "against": [
-        {
-          "who": "Depth",
-          "point": "Fine only if it takes the rounding with it; a shallow wrapper would leak it."
-        }
-      ],
       "code": {
         "before": "if (tier === 'gold') discount = …\nelse if (tier === 'silver') discount = …\nelse discount = …",
         "after": "const discount = computeDiscount(tier, total)"
@@ -161,7 +226,32 @@
       "after": [
         "S0"
       ],
-      "brief": "Why: Responsibilities: the tier switch is the next change's target (platinum).\nDo:\n- Move the `if (tier === …)` chain into `function computeDiscount(tier, total)` in the same file\n- Call it as `const discount = computeDiscount(tier, total)`\nFence: each tier's rounding as it is: Gold keeps `Math.floor` (pinned by S0, a team-review question). Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Function computeDiscount in invoice.js\nOn red: revert the step, report why, stop."
+      "brief": "Why: Responsibilities: the tier switch is the next change's target (platinum).\nDo:\n- Move the `if (tier === …)` chain into `function computeDiscount(tier, total)` in the same file\n- Call it as `const discount = computeDiscount(tier, total)`\nFence: each tier's rounding as it is: Gold keeps `Math.floor` (pinned by S0, a team-review question). Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Extract Function computeDiscount in invoice.js\nOn red: revert the step, report why, stop.",
+      "options": [
+        {
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Sequencing",
+              "point": "Make the change easy, then make the easy change: platinum lands next sprint."
+            }
+          ],
+          "against": [
+            {
+              "who": "Depth",
+              "point": "Fine only if it takes the rounding with it; a shallow wrapper would leak it."
+            }
+          ]
+        },
+        {
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
+        }
+      ]
     },
     {
       "id": "S5",
@@ -172,19 +262,32 @@
       },
       "detail": "S1 keeps the rate as `0.2`; this one stores `20` and divides at the call site.",
       "why": "Changes the constant S1 introduces, not the invoice.",
-      "for": [
+      "brief": "Why: Responsibilities: a percentage reads the way the business says it.\nDo:\n- Rename `TAX_RATE` to `TAX_RATE_PCT` and store `20`\n- Divide by `100` at each of its three uses\nFence: the computed amounts: S0's tests stay green unchanged. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Constant TAX_RATE to TAX_RATE_PCT\nOn red: revert the step, report why, stop.",
+      "options": [
         {
-          "who": "Responsibilities",
-          "point": "A percentage reads the way the business says it."
-        }
-      ],
-      "against": [
+          "value": "approve",
+          "label": "Approve",
+          "recommended": true,
+          "for": [
+            {
+              "who": "Responsibilities",
+              "point": "A percentage reads the way the business says it."
+            }
+          ],
+          "against": [
+            {
+              "who": "Minimalist",
+              "point": "One more conversion for no new behavior."
+            }
+          ]
+        },
         {
-          "who": "Minimalist",
-          "point": "One more conversion for no new behavior."
+          "value": "decline",
+          "label": "Decline",
+          "negative": true,
+          "recommended": false
         }
-      ],
-      "brief": "Why: Responsibilities: a percentage reads the way the business says it.\nDo:\n- Rename `TAX_RATE` to `TAX_RATE_PCT` and store `20`\n- Divide by `100` at each of its three uses\nFence: the computed amounts: S0's tests stay green unchanged. Format only the lines you change.\nVerify: `npm test`, then the header's *Diff guard* on the staged change.\nCommit: refactor(invoice): Rename Constant TAX_RATE to TAX_RATE_PCT\nOn red: revert the step, report why, stop."
+      ]
     }
   ],
   "tensions": [

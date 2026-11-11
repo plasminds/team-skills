@@ -3,9 +3,9 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { RENDER } = require('./helpers');
+const { composedTemplate, RENDER } = require('./helpers');
 
-const TEMPLATE = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+const TEMPLATE = composedTemplate();
 const prompt = vm.runInNewContext(TEMPLATE.match(/\/\*PROMPT-START\*\/([\s\S]*?)\/\*PROMPT-END\*\//)[1]
   + '\n({ relyLines: relyLines, buildPrompt: buildPrompt, buildReview: buildReview, mootBy: mootBy, missingAfter: missingAfter, decisionsBlock: decisionsBlock, acceptRecommended: acceptRecommended, relyType: relyType, reverseAfter: reverseAfter, buildItemPrompt: buildItemPrompt, itemBlock: itemBlock })');
 

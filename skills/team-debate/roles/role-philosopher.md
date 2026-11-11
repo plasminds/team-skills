@@ -43,7 +43,7 @@ In Round 1, analyze the decision's underlying assumptions and name what would fa
 
 ## Output Format
 ### Position
-[Your stance, in one line]
+[Your stance, in one line, naming the option you back ("backs B"), or "none: drop the question"]
 
 ### Evidence
 [Checkable: file:line, doc, command output, measurement, or a quoted claim from another role that you refute. Open with the test it answers, as a question. A position without it is not counted. Start each line with its lens, `business` or `tech` (`bridge.md`, beside this file)]

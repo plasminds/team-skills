@@ -29,7 +29,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Those that bind the plan (`bridge.md`): id, lens, text, source, from the decision record's `## Constraints` and the profile's standing ones (`KS<n>`). One a *Structure* line states is listed by id only]
 
 ## Examples
-[Copied from the decision record's `## Examples`, each row with its decision id. Each row is the failing test of the step that implements it, which names the row. "None" when the record has none]
+[Copied from the decision record's `## Examples`, each row with its record id `E<n>` as its row id (a record with no ids: its decision id and a running number). Each row is the failing test of the step that implements it, which names the row by that id. "None" when the record has none]
 
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>]
@@ -64,13 +64,13 @@ Cite evidence and flag concrete plan defects, not vibes. The CTO greps the exist
 ## Gate page (gate writer)
 
 Build the page (`kind: "plan"`, `source` = the draft plan) by `team-view`'s `contract.md`, with the reachability file (`reach.md`): a risk it found unreachable goes to `settled` as `moot`, with its guard.
-- `summary` (labelled bullets): *Goal*, *Accepted trade-offs*, *Shape of the plan*.
-- `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`.
+- **Context**: no `summary`. A cover context row, first, holds a one-line `title` (≤ 70 characters), the *Goal* as its `why`, and a *Shape of the plan* fact; *Accepted trade-offs* becomes its own context row, one fact per trade-off labelled by its topic in 1-3 words. Facts are one or two sentences each, at most 4 per row, never a `; `-joined list. `story` is optional: absent, the page shows the context rows, then the cards.
+- `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`. Each entry is drawn by a context row's `outcome: n`; a sketch no row names warns.
 - No page `constraints`: the plan's *Constraints* go onto each card they bind (`contract.md` § *Bridge fields*).
 - **Each plan step** without a decision id: `minor`, `default: "approve"` — the steps fold into one block, approved at once, each declinable. A step that carries a decision or an accepted risk stays a card. A step's `title` is the move; its `detail` gives only what the title lacks (impact, risk), or is omitted. The size goes in `tags` (`"S"`, `"M"`, `"L"`). Add `code` when a step changes an existing interface.
-- **Each risk the reviewers raised that needs acceptance, with a majority** (`counting.md`): a weighty decision with options such as *accept / mitigate as proposed / rework*, with the reviewers' points in `for`/`against`. When the risk reopens a question already decided in the debate, add the debate's minority option too, labelled `reverses debate D<n>` with the debate record's id. Its arguments keep their reviewer's default lens (`bridge.md`); options with a cost carry `tradeoff`, and the item its `accepts`.
+- **Each risk the reviewers raised that needs acceptance, with a majority** (`counting.md`): a weighty decision with options such as *accept / mitigate as proposed / rework*, each reviewer's point in the `for` or `against` of the option it directly backs or opposes (never on the item: the renderer refuses it). When the risk reopens a question already decided in the debate, add the debate's minority option too, labelled `reverses debate D<n>` with the debate record's id. Its arguments keep their reviewer's default lens (`bridge.md`); options with a cost carry `tradeoff`, and the item its `accepts`.
 - **Each constraint found while planning**: a weighty decision carrying that constraint (`"status": "assumed"`), with the options *honor it* (the steps reworked to keep it, `recommended`) and *proceed without it* (`violates` its id). Choosing the second lifts it; the approval record writer records a lift in the record and the profile, and adds a kept constraint with the next free `K<n>` id (`SKILL.md` § *Approve & write*).
-- **Each reviewer concern kept against the debate's accepted trade-off** (your dispatch lists them): in the `against` of the step or risk it concerns, or a minor item when it concerns none.
+- **Each reviewer concern kept against the debate's accepted trade-off** (your dispatch lists them): in the `against` of the option it opposes on the step or risk it concerns (a step with default options writes `approve` and `decline` out: *Approve*, and *Decline* with `"negative": true`, the concern is Approve's `against`), or a minor item when it concerns none.
 - `tensions`: only risks the reviewers split on with no majority, by `counting.md`.
 - No step dependency graph: the order is the executor's concern, and the human approves the destination.
 

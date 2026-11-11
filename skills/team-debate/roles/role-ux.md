@@ -39,7 +39,7 @@ Analyze the decision from the user-experience perspective. Walk the user through
 
 ## Output Format
 ### Position
-[Your stance, in one line]
+[Your stance, in one line, naming the option you back ("backs B"), or "none: drop the question"]
 
 ### Evidence
 [Checkable: file:line, screenshot, audit finding, doc. Open with the test it answers, as a question. A position without it is not counted]

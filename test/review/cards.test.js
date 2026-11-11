@@ -10,7 +10,7 @@ const SCRIPT = path.join(ROOT, 'skills', 'team-review', 'cards.sh');
 
 // Writes the given seat files into a fresh run folder and runs cards.sh on it.
 function run(files) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cards-'));
+  const dir = require('../view/helpers').tmpDir('cards-');
   for (const [name, text] of Object.entries(files)) fs.writeFileSync(path.join(dir, name), text);
   const r = spawnSync('sh', [SCRIPT, dir], { encoding: 'utf8' });
   const out = path.join(dir, 'cards.md');

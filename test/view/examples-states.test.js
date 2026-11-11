@@ -3,9 +3,8 @@ const assert = require('node:assert');
 const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
-const { RENDER, writeGate, render, pageData } = require('./helpers');
+const { composedTemplate, RENDER, writeGate, render, pageData } = require('./helpers');
 
-const TEMPLATE = path.join(path.dirname(RENDER), 'template.html');
 const SVG = '<svg viewBox="0 0 40 20"><rect width="40" height="20" fill="var(--surface)"/></svg>';
 const row = (o) => Object.assign({ given: 'A copy exists', when: 'Click `Copy`', then: 'A **second** copy' }, o);
 
@@ -14,7 +13,7 @@ function gate(over, opt) {
     kind: 'debate', title: 'T', source: '.council/decisions/2026-10-14-x.md',
     decisions: [Object.assign({ id: 'D1', title: 'Copy the thing?', options: [
       Object.assign({ value: 'a', label: 'Copy', recommended: true }, opt || {}),
-      { value: 'b', label: 'Link' }] }, over || {})],
+      { value: 'b', label: 'Link' }, { value: 'none', label: 'Neither', negative: true }] }, over || {})],
     outcome: [{ view: 'ui', caption: 'The screen', after: { svg: SVG } }]
   });
 }
@@ -48,7 +47,7 @@ test('examples: rejects each malformed shape', () => {
 });
 
 test('examples: a lensed item leaves a row without lens is an error; a row lens or the item lens fills it', () => {
-  rejects(gate({ examples: [row({ lens: 'tech' }), row()] }), /has no lens/);
+  rejects(Object.assign(gate({ examples: [row({ lens: 'tech' }), row()] }), { kind: 'refactor' }), /has no lens/);
   const d = ok(gate({ lens: 'business', examples: [row()] }));
   assert.strictEqual(d.items[0].examples[0].lens, 'business');
 });
@@ -75,16 +74,15 @@ test('states: valid entries pass; bad ones are rejected', () => {
 });
 
 test('the page renders the Examples table, option rows and States row', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const script = html.match(/<script>([\s\S]*)<\/script>\s*<\/body>/) || html.match(/<script>([\s\S]*?)<\/script>/);
-  const src = fs.readFileSync(TEMPLATE, 'utf8');
+  const src = composedTemplate();
   assert.doesNotThrow(() => { for (const m of src.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(m[1]); });
   assert.match(html, /'ev\.examples': 'Examples', 'ev\.exGiven': 'Before', 'ev\.exWhen': 'What is done', 'ev\.exThen': 'After'/);
   assert.match(html, /'ev\.examples': 'Exemples', 'ev\.exGiven': 'Avant', 'ev\.exWhen': 'Ce que l\\'on fait', 'ev\.exThen': 'Après'/);
   assert.match(html, /'sum\.states': 'States'/);
   assert.match(html, /'sum\.states': 'États'/);
   assert.match(html, /\(o\.examples && o\.examples\.length\)/);
-  assert.match(html, /variant\(xg, opt\.value, piece\(tr, r\.lens, opt\.value !== first\)\)/);
   assert.match(html, /figures\(\[\{ svg: st\.svg, html: st\.html, src: st\.src, caption: st\.caption \}\]\)/);
   assert.ok(script);
   // the rendered page carries the rows for the page JS to draw

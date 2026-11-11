@@ -5,22 +5,21 @@ const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
 const { spawn, execFileSync } = require('node:child_process');
-const { RENDER, shareGate, render, pageData } = require('./helpers');
+const { composedTemplate, RENDER, shareGate, render, pageData, cover, tmpDir } = require('./helpers');
 const { mentions, projectFiles, trackedFiles, blobPrefix, forgeOf, repoOf, editorFor, editorArgs } = require('../../skills/team-view/lib/files');
 
-const TEMPLATE = path.join(path.dirname(RENDER), 'template.html');
 
 test('mentions reads backticked paths, path:line, at and the record, and skips code that is not a path', () => {
   const page = {
     source: '.council/reviews/r.md',
-    summary: [{ label: 'Scope', points: ['`src/a.js` and `test/a.test.js:12`'] }],
+    ...cover([{ label: 'Scope', text: '`src/a.js` and `test/a.test.js:12`' }]),
     items: [{ id: 'X', at: { path: 'src/b.js', line: 4 }, detail: ['`res.status(200).json({ ok: true })`', '`/etc/passwd`', '`../up.js`', '`src/c.js:3-9`'] }]
   };
   assert.deepStrictEqual(mentions(page).map(m => m.path).sort(), ['.council/reviews/r.md', 'src/a.js', 'src/b.js', 'src/c.js', 'test/a.test.js']);
 });
 
 test('projectFiles keeps the mentions that are files of the repo, sorted and once each', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-files-'));
+  const root = tmpDir('gate-files-');
   fs.mkdirSync(path.join(root, 'src'));
   fs.writeFileSync(path.join(root, 'src', 'a.js'), '');
   const page = { items: [{ id: 'X', detail: ['`src/a.js:3`', '`src/a.js`', '`src/gone.js`', '`src`'] }] };
@@ -36,7 +35,7 @@ test('blobPrefix turns an origin URL into a web prefix for GitHub and GitLab', (
 });
 
 function gitRepo() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-repo-'));
+  const root = tmpDir('gate-repo-');
   const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'feat');
   git('config', 'user.email', 't@t'); git('config', 'user.name', 't'); git('config', 'commit.gpgsign', 'false');
@@ -77,7 +76,7 @@ test('forgeOf names GitHub for github.com and GitLab for any other host, whose U
 });
 
 test('repoOf is null outside a git repo', () => {
-  assert.strictEqual(repoOf(fs.mkdtempSync(path.join(os.tmpdir(), 'gate-nogit-'))), null);
+  assert.strictEqual(repoOf(tmpDir('gate-nogit-')), null);
 });
 
 test('editorFor takes TEAM_VIEW_EDITOR, then the IDE Claude runs in, then code or idea on the PATH', () => {
@@ -122,7 +121,7 @@ test('the page lists the project files it names and the remote prefix, without c
 });
 
 function writeOutside(file) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-out-'));
+  const dir = tmpDir('gate-out-');
   const out = path.join(dir, 'g.gate.json');
   fs.copyFileSync(file, out);
   return out;
@@ -151,7 +150,7 @@ function serveRepoGate(t, env) {
 }
 
 function fakeEditor(name) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-ed-'));
+  const dir = tmpDir('gate-ed-');
   const bin = path.join(dir, name), log = path.join(dir, 'args');
   fs.writeFileSync(bin, `#!/bin/sh\necho "$@" > '${log}'\n`, { mode: 0o755 });
   return { bin, log };
@@ -189,7 +188,7 @@ test('the server says when no editor can be found', async t => {
 });
 
 test('the template links the files it names: the IDE when served, the remote repo otherwise', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /function fileRef\(/);
   assert.match(html, /fetch\('open', \{ method: 'POST'/);
   assert.match(html, /data\.repo && data\.repo\.files\.indexOf\(p\) >= 0/);
@@ -202,7 +201,6 @@ test('the template links the files it names: the IDE when served, the remote rep
   assert.match(html, /inline\(el\('span', 'rti'\), it\.title, true\)/);
   assert.match(html, /fileRef\(at\.path, at\.line, at\.path\)/);
   assert.match(html, /atNode\(el\('div', 'ebox loc'\), it\.at\)/);
-  assert.match(html, /atNode\(el\('span', 'cloc'\), it\.at\)/);
 });
 
 test('editorFor still reads the old CEO_VIEW_EDITOR, and TEAM_VIEW_EDITOR wins over it', () => {

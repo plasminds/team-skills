@@ -4,12 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
-const { RENDER, shareGate, writeGate, render, pageData } = require('./helpers');
+const { composedTemplate, RENDER, shareGate, writeGate, render, pageData } = require('./helpers');
 
-const TEMPLATE = path.join(path.dirname(RENDER), 'template.html');
 
 test('the template has a hidden Share button and no blocking confirm on reset', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /<button class="btn wide" id="share" type="button" hidden>Share<\/button>/);
   assert.doesNotMatch(html, /confirm\('Clear all decisions/);
   assert.match(html, /share\.hidden = data\.kind !== 'review';/);
@@ -100,7 +99,7 @@ test('--channels reaches the served page without changing its _rev', async t => 
 });
 
 test('the template links after both ways and flags a chosen item whose after ids are not chosen', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /missingAfter\(it, items, state\)/);
   assert.ok(html.includes(' come after this'));
   assert.ok(html.includes('after '));
@@ -112,34 +111,34 @@ test('the template links after both ways and flags a chosen item whose after ids
 });
 
 test('the Share dialog forces the review route when the reader gets a review', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /sel\.as === 'review'/);
   assert.match(html, /sel\.via = 'review'/);
 });
 
 test('the template makes unfilled figure marks take the text colour', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /\.figure svg \{[^}]*fill: currentColor;/);
 });
 
 test('the template defines every colour figures.md gives figure authors', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
-  const figures = fs.readFileSync(path.join(path.dirname(TEMPLATE), 'figures.md'), 'utf8');
+  const html = composedTemplate();
+  const figures = fs.readFileSync(path.join(path.dirname(RENDER), 'figures.md'), 'utf8');
   const names = [...new Set([...figures.matchAll(/var\((--[a-z0-9-]+)\)/g)].map(m => m[1]))];
   const rule = /\.figure svg \{([^}]*)\}/.exec(html)[1];
-  const tokens = fs.readFileSync(path.join(path.dirname(TEMPLATE), 'tokens.css'), 'utf8');
+  const tokens = fs.readFileSync(path.join(path.dirname(RENDER), 'tokens.css'), 'utf8');
   const root = /:root[^{]*\{([^}]*)\}/.exec(tokens)[1];
   names.forEach(n => assert.ok(rule.includes(n + ':') || root.includes(n + ':'), n + ' is not defined'));
 });
 
 test('the template takes its tokens from tokens.css', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = fs.readFileSync(path.join(path.dirname(RENDER), 'style.css'), 'utf8');
   assert.strictEqual(html.split('/*TOKENS*/').length - 1, 1);
   assert.ok(!html.includes(':root {'));
 });
 
 test('the rendered gate carries tokens.css verbatim', () => {
-  const tokens = fs.readFileSync(path.join(path.dirname(TEMPLATE), 'tokens.css'), 'utf8').replace(/\n$/, '');
+  const tokens = fs.readFileSync(path.join(path.dirname(RENDER), 'tokens.css'), 'utf8').replace(/\n$/, '');
   const file = writeGate(shareGate());
   assert.strictEqual(render(file).code, 0);
   const html = fs.readFileSync(file.replace(/(\.(ceo|gate))?\.json$/, '') + '.html', 'utf8');
@@ -148,7 +147,7 @@ test('the rendered gate carries tokens.css verbatim', () => {
 });
 
 test('text links are web links only, and plain text keeps them as words', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.ok(html.includes(String.raw`/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/`));
   assert.match(html, /if \(plain\) return document\.createTextNode\(label\);/);
   assert.match(html, /a\.rel = 'noopener noreferrer'/);
@@ -163,7 +162,7 @@ test('the server still accepts a CEO DECISIONS block', async t => {
 
 // Light theme: tokens.css carries a light block selected by data-view-theme on <html> and <body>; a startup script picks it.
 const vm = require('node:vm');
-const TOKENS = path.join(path.dirname(TEMPLATE), 'tokens.css');
+const TOKENS = path.join(path.dirname(RENDER), 'tokens.css');
 const tokenNames = block => [...block.matchAll(/(--[a-z0-9-]+)\s*:/g)].map(m => m[1]);
 function tokenBlocks() {
   const css = fs.readFileSync(TOKENS, 'utf8');
@@ -214,14 +213,14 @@ test('the light block sets no token that :root does not', () => {
 });
 
 test('the template CSS holds no colour literal but the scrim fallback', () => {
-  const css = /<style>([\s\S]*?)<\/style>/.exec(fs.readFileSync(TEMPLATE, 'utf8'))[1];
+  const css = fs.readFileSync(path.join(path.dirname(RENDER), 'style.css'), 'utf8');
   const hits = css.split('\n').filter(l => /#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(l));
   assert.strictEqual(hits.length, 1, hits.join('\n'));
   assert.match(hits[0], /dialog::backdrop \{ background: var\(--scrim, rgba\(10, 9, 8, \.72\)\); \}/);
 });
 
 test('pickTheme: saved over the viewer stamp over the system over dark', () => {
-  const { pickTheme } = vm.runInNewContext(themeRegion(fs.readFileSync(TEMPLATE, 'utf8')) + '\n({ pickTheme: pickTheme })');
+  const { pickTheme } = vm.runInNewContext(themeRegion(composedTemplate()) + '\n({ pickTheme: pickTheme })');
   assert.strictEqual(pickTheme('light', 'dark', false), 'light');
   assert.strictEqual(pickTheme('dark', 'light', true), 'dark');
   assert.strictEqual(pickTheme(null, 'light', false), 'light');
@@ -232,7 +231,7 @@ test('pickTheme: saved over the viewer stamp over the system over dark', () => {
 });
 
 test('the startup script sets both attributes and survives a throwing localStorage', () => {
-  const src = themeScript(fs.readFileSync(TEMPLATE, 'utf8'));
+  const src = themeScript(composedTemplate());
   assert.deepStrictEqual(both(runTheme(src, { saved: 'light' })), ['light', 'light']);
   assert.deepStrictEqual(both(runTheme(src, { stamp: 'light', systemLight: false })), ['light', 'light']);
   assert.deepStrictEqual(both(runTheme(src, {})), ['dark', 'dark']);
@@ -243,7 +242,7 @@ test('the startup script sets both attributes and survives a throwing localStora
 });
 
 test('nextTheme flips and clears storage when landing on the system theme', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const { nextTheme } = vm.runInNewContext(themeRegion(html) + '\n({ nextTheme: nextTheme })');
   assert.deepStrictEqual({ ...nextTheme('dark', 'dark') }, { theme: 'light', store: 'light' });
   assert.deepStrictEqual({ ...nextTheme('dark', 'light') }, { theme: 'light', store: null });
@@ -258,7 +257,7 @@ test('nextTheme flips and clears storage when landing on the system theme', () =
 });
 
 test('with no saved theme the page follows the system and the viewer live', () => {
-  const env = runTheme(themeScript(fs.readFileSync(TEMPLATE, 'utf8')), { systemLight: false });
+  const env = runTheme(themeScript(composedTemplate()), { systemLight: false });
   assert.strictEqual(env.mq.length, 1);
   assert.strictEqual(env.observers.length, 1);
   env.light = true; env.mq[0]();
@@ -272,7 +271,7 @@ test('with no saved theme the page follows the system and the viewer live', () =
 });
 
 test('the rendered page holds the light rule and html, body keep the ground', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /\nhtml, body \{[^}]*background: var\(--ground\);/);
   const file = writeGate(shareGate());
   assert.strictEqual(render(file).code, 0);
@@ -281,7 +280,7 @@ test('the rendered page holds the light rule and html, body keep the ground', ()
 });
 
 test('print is always light, and afterprint restores the theme', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /addEventListener\('beforeprint'/);
   assert.match(html, /addEventListener\('afterprint'/);
   const env = runTheme(themeScript(html), {});
@@ -292,7 +291,7 @@ test('print is always light, and afterprint restores the theme', () => {
 });
 
 test('the theme toggle leads the actions and d toggles it', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   assert.match(html, /<body>\n<script>\n\/\*THEME-START\*\//);
   assert.match(html, /<div class="actions">\s*<button class="btn ghost" id="theme" type="button"[^>]*>[\s\S]*?<\/button>\s*<button class="btn ghost" id="reset"/);
   assert.match(html, /else if \(k === 'd'\) viewTheme\.toggle\(\);/);
@@ -307,9 +306,9 @@ test('the theme toggle leads the actions and d toggles it', () => {
 
 // fr/en chrome: one label table, CHROME_TEXT, in its own region; makeL(lang) gives L(key, vars) and Lp(key, n, vars).
 const chromeRegion = html => /\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1];
-const loadChrome = () => vm.runInNewContext(chromeRegion(fs.readFileSync(TEMPLATE, 'utf8')) + '\n({ CHROME_TEXT: CHROME_TEXT, makeL: makeL })');
+const loadChrome = () => vm.runInNewContext(chromeRegion(composedTemplate()) + '\n({ CHROME_TEXT: CHROME_TEXT, makeL: makeL })');
 // Strings the same in both languages on purpose.
-const SAME_IN_BOTH = ['title.suffix', 'opt.ok', 'section.tensions', 'lens.count', 'card.vote', 'card.note', 'card.kindTension', 'ev.option', 'row.titleChosen', 'share.withLabel', 'legend.note', 'tag.tests', 'tag.types', 'tag.performance', 'tag.conventions'];
+const SAME_IN_BOTH = ['title.suffix', 'opt.ok', 'section.tensions', 'lens.count', 'card.vote', 'card.note', 'card.kindTension', 'ev.option', 'row.titleChosen', 'share.withLabel', 'legend.note', 'tag.tests', 'tag.types', 'tag.performance', 'tag.conventions', 'story.colQuestion'];
 // Computed lookups go through fixed lists: the gate kinds the top bar names.
 const kinds = ['debate', 'plan', 'refactor', 'review', 'kickoff', 'decision', 'acceptance'];
 // The template's REVIEW_TAGS list and the chrome key each tag looks up (error-handling → tag.errorHandling).
@@ -354,7 +353,7 @@ test('L falls back to English, then to the key, and fills placeholders; Lp picks
 });
 
 test('L and Lp are never shadowed, and no L() result is joined with +', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const rest = html.replace(chromeRegion(html), '');
   const decls = [...rest.matchAll(/(?:\bvar\b|\blet\b|\bconst\b|,)\s*(Lp?)\s*=(?!=)/g)].map(m => m[0].trim());
   assert.deepStrictEqual(decls, [', L =', ', Lp =']);
@@ -388,7 +387,6 @@ const PINNED_EN = {
   'card.yourChoice': 'Your choice',
   'card.hintMany': 'Press 1–{max} or click',
   'arg.noneFor': 'Nobody argued for it.',
-  'ev.tradeoffs': 'Trade-offs',
   'ev.howDone': 'How it gets done',
   'card.stake': 'What’s at stake',
   'lens.noEvidence': 'No {lens} evidence on this card.',
@@ -417,23 +415,21 @@ test('step 8 keys: French has its own words for the sampled keys and uses vous',
   });
   assert.strictEqual(fr.L('card.yourChoice'), 'Votre choix');
   assert.strictEqual(fr.L('sum.target'), 'Cible');
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const table = chromeRegion(html);
   assert.doesNotMatch(table.slice(table.indexOf('  fr: {')), /\b(ton|ta|tes|tu|toi)\b/);
 });
 
 test('step 8 plurals: counted strings read in both languages', () => {
-  const { makeL } = loadChrome();
+  const { makeL, CHROME_TEXT } = loadChrome();
   const en = makeL('en'), fr = makeL('fr');
-  assert.strictEqual(en.Lp('rel.baseFor', 1), 'Base for 1 card');
-  assert.strictEqual(en.Lp('rel.baseFor', 3), 'Base for 3 cards');
-  assert.strictEqual(fr.Lp('rel.baseFor', 0), 'Base de 0 carte');
-  assert.strictEqual(fr.Lp('rel.baseFor', 1), 'Base de 1 carte');
-  assert.strictEqual(fr.Lp('rel.baseFor', 2), 'Base de 2 cartes');
-  assert.strictEqual(en.Lp('lens.hidden', 1, { lens: 'Biz' }), '1 Biz argument hidden by the lens.');
-  assert.strictEqual(en.Lp('lens.hidden', 2, { lens: 'Biz' }), '2 Biz arguments hidden by the lens.');
-  assert.strictEqual(fr.Lp('lens.hidden', 0, { lens: 'Métier' }), '0 argument Métier masqué par la lentille.');
-  assert.strictEqual(fr.Lp('lens.hidden', 2, { lens: 'Métier' }), '2 arguments Métier masqués par la lentille.');
+  assert.match(en.Lp('card.refinedBy', 1, { ids: 'D1' }), /^D1 refines this card/);
+  assert.match(en.Lp('card.refinedBy', 3, { ids: 'D1, D2, D3' }), /^D1, D2, D3 refine this card/);
+  assert.match(fr.Lp('card.refinedBy', 0, { ids: 'D1' }), /^D1 précise cette carte/);
+  assert.match(fr.Lp('card.refinedBy', 1, { ids: 'D1' }), /^D1 précise cette carte/);
+  assert.match(fr.Lp('card.refinedBy', 2, { ids: 'D1, D2' }), /^D1, D2 précisent cette carte/);
+  // D3: control removed. The lens filter's hidden-argument counts are gone with it.
+  assert.ok(!('lens.hidden' in CHROME_TEXT.en) && !('lens.hidden' in CHROME_TEXT.fr));
   assert.strictEqual(en.Lp('ev.replace', 1), 'Replace 1 line with');
   assert.strictEqual(en.Lp('ev.replaceFrom', 4, { line: 9 }), 'Replace 4 lines from line 9 with');
   assert.strictEqual(fr.Lp('ev.replace', 1), 'Remplacer 1 ligne par');
@@ -452,7 +448,7 @@ test('step 8 plurals: counted strings read in both languages', () => {
 });
 
 test('step 8: sentences built from pieces are whole keys, and no plural() caller is left', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const rest = html.replace(chromeRegion(html), '');
   ["'Base for '", "' still to decide.'", "' hidden by the lens.'", "'Pre-filled by the reviewer: '", "'Found by '", "'Asked by '", "' of ' + k.all", "'Replace '"]
     .forEach(f => assert.ok(!rest.includes(f), f));
@@ -460,7 +456,7 @@ test('step 8: sentences built from pieces are whole keys, and no plural() caller
 });
 
 // Step 9: list, filters, help, completeness. The template's own keys against the table, in both directions.
-const templateRest = () => { const html = fs.readFileSync(TEMPLATE, 'utf8'); return html.replace(chromeRegion(html), ''); };
+const templateRest = () => { const html = composedTemplate(); return html.replace(chromeRegion(html), ''); };
 
 test('completeness (a): every L() and Lp() key the template uses exists in en and fr', () => {
   const { CHROME_TEXT } = loadChrome();
@@ -480,7 +476,7 @@ test('completeness (b): no key of the table is unused', () => {
   const { CHROME_TEXT } = loadChrome();
   const used = new Set([...templateRest().matchAll(/\bLp?\(\s*'([a-z]+\.[A-Za-z]+)'/g)].map(m => m[1]));
   kinds.forEach(k => used.add('kind.' + k));
-  reviewTags(fs.readFileSync(TEMPLATE, 'utf8')).forEach(t => used.add(tagKey(t)));
+  reviewTags(composedTemplate()).forEach(t => used.add(tagKey(t)));
   assert.deepStrictEqual(Object.keys(CHROME_TEXT.en).filter(k => !used.has(k)), []);
 });
 
@@ -523,11 +519,11 @@ test('step 9: no plural() is left, and the list, filters, help and share picker 
     "'Defaults applied", "'No item matches", "'Not needed'", "'To decide'", "'Decisions reset.'", "'All decided'", "'Answer it first'"]
     .forEach(f => assert.ok(!rest.includes(f), f));
   const { CHROME_TEXT } = loadChrome();
-  ['side.hide', 'row.note', 'filter.clear', 'filter.allTags', 'filter.anyStatus', 'help.title', 'help.move', 'side.widenTitle', 'share.whatFile'].forEach(k => {
+  ['side.narrow', 'row.note', 'filter.clear', 'filter.allTags', 'filter.anyStatus', 'help.title', 'help.move', 'side.widenTitle', 'share.whatFile'].forEach(k => {
     assert.ok(CHROME_TEXT.en[k] && CHROME_TEXT.fr[k], k);
     assert.ok(rest.includes("'" + k + "'"), k);
   });
-  assert.strictEqual(CHROME_TEXT.en['side.hide'], 'Hide the list');
+  assert.strictEqual(CHROME_TEXT.en['side.narrow'], 'Narrow the list');
   assert.strictEqual(CHROME_TEXT.en['filter.clear'], 'Clear filters');
   assert.strictEqual(CHROME_TEXT.fr['filter.clear'], 'Effacer les filtres');
   assert.strictEqual(CHROME_TEXT.en['toast.reset'], 'Decisions reset.');
@@ -550,7 +546,7 @@ test('every built-in option label lib/gate.js writes is shown in the page langua
 });
 
 test('the theme toggle is an icon only, at every width: its name is in aria-label and title', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const btn = /<button[^>]*id="theme"[^>]*>([\s\S]*?)<\/button>/.exec(html);
   assert.ok(btn, 'no #theme button');
   assert.match(btn[0], /aria-label="Switch to light theme"/);
@@ -559,7 +555,7 @@ test('the theme toggle is an icon only, at every width: its name is in aria-labe
 });
 
 test('review tags show in the page language: each lens and severity of team-review has an en and fr name', () => {
-  const html = fs.readFileSync(TEMPLATE, 'utf8');
+  const html = composedTemplate();
   const chrome = require('node:vm').runInNewContext(/\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1] + '\n({ CHROME_TEXT: CHROME_TEXT, makeL: makeL })');
   const md = fs.readFileSync(path.join(path.dirname(RENDER), '..', 'team-review', 'templates.md'), 'utf8');
   const list = name => new RegExp('^- ' + name + ': <([^>]+)>', 'm').exec(md)[1].split('|').map(s => s.trim());

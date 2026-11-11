@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const { shareGate, writeGate, render, pageData } = require('./helpers');
+const { shareGate, writeGate, render, pageData, cover } = require('./helpers');
 
 function load(overrides) {
   const gate = shareGate(overrides);
@@ -187,7 +187,7 @@ test('a left line names the option taken, unless it is plain leave or decline', 
 });
 
 test('all findings left as is: no comment, no count, the body keeps the summary and lists them', () => {
-  const rv = load({ summary: [{ label: 'Verdict', text: 'Mergeable' }] }).review({
+  const rv = load(cover([{ label: 'Verdict', text: 'Mergeable' }])).review({
     S1: { choice: 'decline' }, F1: { choice: 'ask' }, T1: { choice: 'Minimalist' }
   });
   assert.deepStrictEqual(rv.comments, []);

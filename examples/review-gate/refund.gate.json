@@ -5,34 +5,28 @@
   "source": ".council/reviews/2026-10-14-refund-route.md",
   "lang": "en",
   "preamble": "# Mission: fix the findings you chose on branch refund-route\n\n## Context\n- Repo `acme/shop`, branch `refund-route`, reviewed commit `9b1e4c7a2f3d5e6b8c0a1d2e3f4a5b6c7d8e9f01`.\n- Scope: `src/routes/refunds.js` and `test/routes/refunds.test.js`. Stay in these files.\n\n## Baseline\n- `npm test`: 58 tests green.\n\n## Rules\n- Each fix gets a failing test first that reproduces it, then the fix.\n- One finding per commit (`fix(refunds): …`).\n- Never change an existing test's expected value except where a finding says so.\n- Don't push.\n\nIf `HEAD` is not `9b1e4c7`, the branch has moved since the review: find code by symbol, not by line number, and tell me what differs.",
-  "summary": [
+  "context": [
     {
-      "label": "Verdict",
-      "text": "Not mergeable: one confirmed blocker"
-    },
-    {
-      "label": "Blockers",
-      "points": [
-        "SE-1: any logged-in user can refund any invoice"
-      ]
-    },
-    {
-      "label": "Not raised",
-      "points": [
-        "med, unsure: the gateway may already reject a refund above the captured amount (CR-4)",
-        "outside the diff: src/routes/invoices.js has the same missing ownership check"
-      ]
-    },
-    {
-      "label": "For team-refactor",
-      "points": [
-        "refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do"
-      ]
-    },
-    {
-      "label": "Recommendation",
-      "points": [
-        "Request changes"
+      "id": "I0",
+      "title": "Refund route: not mergeable as it stands",
+      "why": "Not mergeable: one confirmed blocker.",
+      "facts": [
+        {
+          "label": "Blockers",
+          "text": "SE-1: any logged-in user can refund any invoice"
+        },
+        {
+          "label": "Not raised",
+          "text": "Med, unsure: the gateway may already reject a refund above the captured amount (CR-4). Outside the diff, src/routes/invoices.js has the same missing ownership check."
+        },
+        {
+          "label": "For team-refactor",
+          "text": "refunds.js and invoices.js each load and authorize an invoice their own way; one loader would do"
+        },
+        {
+          "label": "Recommendation",
+          "text": "Request changes"
+        }
       ]
     }
   ],

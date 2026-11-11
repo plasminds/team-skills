@@ -17,7 +17,7 @@ const LENSES = ['business', 'tech'];
 const STATUSES = ['confirmed', 'assumed', 'contested'];
 const MAX_BRIDGE = { tradeoff: 80, accepts: 160 };
 // What a tension side passes on to the option that sides with it.
-const SIDE_KEYS = ['brief', 'suggestion', 'tradeoff', 'violates', 'code', 'metrics', 'examples', 'figures', 'accepts'];
+const SIDE_KEYS = ['brief', 'suggestion', 'tradeoff', 'violates', 'code', 'metrics', 'examples', 'figures', 'accepts', 'for', 'against'];
 // --share: the reader has neither this machine nor the .council/ folder.
 const LANGS = ['en', 'fr'];
 const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.council\//;
@@ -25,26 +25,92 @@ const LOCAL_PATH = /(?:^|[\s`'"(])(\/home\/|\/Users\/|\/tmp\/|[A-Za-z]:\\)|\.cou
 const SHA = /\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/;
 // kind "acceptance": a page that presents a pushed branch case by case. Nothing on it is decided.
 const ACCEPTANCE_TOP = ['decisions', 'tensions', 'questions', 'settled', 'rejected', 'outcome', 'preamble', 'preset'];
-const CASE_KEYS = ['id', 'group', 'title', 'steps', 'expected', 'figures', 'unshown', 'tech'];
+const CASE_KEYS = ['id', 'group', 'title', 'steps', 'expected', 'figures', 'unshown', 'tech', 'example'];
+const EXAMPLE_KEYS = ['id', 'given', 'when', 'then'];
+const EXAMPLE_ID = /^E[1-9][0-9]*$/;
 const TECH_KEYS = ['how', 'files', 'data'];
 const REPO_PATH = /^(?!\.{1,2}\/)[\w.@+-]+(?:\/(?!\.{1,2}(?:\/|$))[\w.@+-]+)*$/;
 const COMMIT = /^[0-9a-f]{7,40}$/i;
+
+const STORY_KINDS = ['debate', 'council'];
+// A weighty card is a story id: a decision not marked minor, or a tension.
+const weighty = it => (it.kind === 'decision' && !it.minor) || it.kind === 'tension';
+
+// story: the order of the page's context rows and weighty cards, as an id list. Returns that order on a deciding gate (every kind but acceptance)
+// (the given ids, then every weighty card they leave out, in default order), else undefined. `items` is linkItems' order.
+function checkStory(data, items, context, errors, warnings) {
+  const STORY = data.kind !== 'acceptance';
+  if (data.story != null && !STORY) { errors.push('"story" is not read on acceptance gates'); return undefined; }
+  if (!STORY) return undefined;
+  const byId = new Map(items.map(it => [it.id, it]));
+  const cards = items.filter(weighty);
+  const inStory = new Set(cards.map(it => it.id));
+  // The card a refinement hangs under in the story: follow "on" to the first weighty card.
+  const parentOf = it => {
+    const seen = new Set([it.id]);
+    let cur = it.on && byId.get(it.on.id);
+    while (cur && !inStory.has(cur.id) && cur.on && !seen.has(cur.id)) { seen.add(cur.id); cur = byId.get(cur.on.id); }
+    return cur && inStory.has(cur.id) ? cur.id : null;
+  };
+  // Default order: context rows, then each top-level weighty card followed depth-first by the cards that refine it.
+  const dflt = context.map(c => c.id);
+  (function walk(parent) {
+    cards.filter(it => parentOf(it) === parent).forEach(it => { dflt.push(it.id); walk(it.id); });
+  })(null);
+  let order = dflt;
+  if (data.story != null) {
+    if (!Array.isArray(data.story) || !data.story.length) { errors.push('"story" must be a non-empty array of ids'); return undefined; }
+    if (data.story.some(v => v && typeof v === 'object')) {
+      errors.push('"story" is now a list of ids ("C1", "D1", ...): sections { "title", "show" } are no longer read');
+    }
+    const rows = new Set(context.map(c => c.id));
+    order = [];
+    data.story.forEach((v, i) => {
+      if (v && typeof v === 'object') return;
+      if (typeof v !== 'string') { errors.push(`story[${i}] must be an id string`); return; }
+      const it = byId.get(v);
+      if (!rows.has(v) && (!it || (it.kind !== 'decision' && it.kind !== 'tension'))) errors.push(`story[${i}] "${v}" is not a context row, a decision or a tension`);
+      else if (!rows.has(v) && !weighty(it)) errors.push(`story[${i}] "${v}" is a minor item: minor items stay in their own section`);
+      else if (order.includes(v)) errors.push(`story[${i}] "${v}" is named twice`);
+      else order.push(v);
+    });
+    context.filter(c => !order.includes(c.id)).forEach(c => warnings.push(`context row "${c.id}" is not in "story": it is not shown`));
+    dflt.filter(id => inStory.has(id) && !order.includes(id)).forEach(id => {
+      warnings.push(`${id} is not in "story": it is listed after the story's ids`);
+      order.push(id);
+    });
+  }
+  // K12: a refinement comes right after its parent or the parent's earlier refinements; a card comes after what it needs.
+  const pos = new Map(order.map((id, i) => [id, i]));
+  const descends = (id, root) => {
+    const seen = new Set();
+    for (let p = parentOf(byId.get(id) || {}); p && !seen.has(p); p = parentOf(byId.get(p))) { if (p === root) return true; seen.add(p); }
+    return false;
+  };
+  order.forEach((id, i) => {
+    const it = byId.get(id);
+    if (!it) return;
+    const parent = parentOf(it);
+    if (parent && !(pos.get(parent) < i && order.slice(pos.get(parent) + 1, i).every(x => descends(x, parent)))) {
+      errors.push(`${id} refines ${parent}: put it right after ${parent} in story`);
+    }
+    (Array.isArray(it.after) ? it.after : []).forEach(n => {
+      if (pos.has(n) && pos.get(n) > i) errors.push(`${id} needs ${n}: put ${n} before ${id} in story`);
+    });
+  });
+  return order;
+}
 
 // Reads and validates the gate JSON. Every problem accumulates into `errors` (the caller prints them).
 function loadGate(src, { share: SHARE, preset: PRESET }) {
   const data = JSON.parse(fs.readFileSync(src, 'utf8'));
   const baseDir = path.dirname(path.resolve(src));
   const errors = [];
+  const warnings = [];
   if (!data.title) errors.push('missing "title"');
   const ACCEPTANCE = data.kind === 'acceptance';
   if (!ACCEPTANCE && (!Array.isArray(data.decisions) || !data.decisions.length)) errors.push('"decisions" must be a non-empty array');
-  if (data.summary != null) {
-    if (!Array.isArray(data.summary)) errors.push('"summary" must be an array of bullets — strings or { "label", "text" | "points" } — not a paragraph');
-    else data.summary.forEach((b, i) => {
-      if (typeof b === 'string') return;
-      if (!b || typeof b !== 'object' || (!b.text && !(Array.isArray(b.points) && b.points.length))) errors.push(`summary[${i}] needs "text" or "points"`);
-    });
-  }
+  if (data.summary != null) errors.push('"summary" is not read: put the page\'s cover in a context row (its why and facts), and an outcome in a context row\'s "outcome"');
   if (data.metrics) errors.push('top-level "metrics" is not supported — put each metric in the "metrics" of the item it measures');
 
   // Images are embedded as data URIs so the page is one self-contained file.
@@ -126,10 +192,12 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (v == null) return;
     if (!Array.isArray(v) && typeof v !== 'string') { errors.push(`${where}.${key} must be a string or an array of bullets`); return; }
     const text = textOf(v);
-    if (text.length > MAX[key]) errors.push(`${where}.${key} is ${text.length} characters (max ${MAX[key]}) — keep the facts the title lacks, as bullets`);
+    const long = key === 'detail' && data.kind !== 'acceptance';
+    const maxText = long ? 600 : MAX[key], maxBullet = long ? 200 : MAX.bullet;
+    if (text.length > maxText) errors.push(`${where}.${key} is ${text.length} characters (max ${maxText}) — keep the facts the title lacks, as bullets`);
     const bullets = Array.isArray(v) ? v : v.split('\n').filter(l => /^\s*[-•]\s/.test(l));
     if (bullets.length > MAX.bullets) errors.push(`${where}.${key} has ${bullets.length} bullets (max ${MAX.bullets})`);
-    bullets.forEach((b, j) => { if (String(b).length > MAX.bullet) errors.push(`${where}.${key} bullet ${j + 1} is ${String(b).length} characters (max ${MAX.bullet})`); });
+    bullets.forEach((b, j) => { if (String(b).length > maxBullet) errors.push(`${where}.${key} bullet ${j + 1} is ${String(b).length} characters (max ${maxBullet})`); });
   }
 
   // Each field has one job: the title names the question, detail gives the facts, options are the answers.
@@ -150,6 +218,9 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     item.figures = (item.figures || []).concat(item.images || []);
     delete item.images;
     item.figures.forEach((f, j) => embed(f, `${where}.figures[${j}]`));
+    if (item.unillustrated != null && (typeof item.unillustrated !== 'string' || !item.unillustrated.trim())) {
+      errors.push(`${where}.unillustrated must be a non-empty string: why this card cannot be drawn`);
+    }
     checkOwnEvidence(item, where);
     checkArguments(item, where);
     checkOptions(item.options, where);
@@ -164,7 +235,108 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     checkLens(item, where);
     checkBridge(item, where);
     concerns(item);
+    // T1: a debate card draws in its own "figures"; an outcome entry is drawn by a context row.
+    if (data.kind !== 'acceptance' && item.outcome != null) errors.push(`${where} ("${item.id}").outcome is not read on a card: put its drawing in the card's "figures"`);
+    checkKeys(item, where, item.id);
+    item.options.forEach(o => (Array.isArray(o.metrics) ? o.metrics : []).forEach((m, j) => {
+      if (m && m.key != null) errors.push(`${where} ("${item.id}") option "${o.value}".metrics[${j}].key is read on a card or a context row only`);
+    }));
     return item;
+  }
+
+  // key: true marks a metric the story shows large, at most 3 per card or context row.
+  function checkKeys(holder, where, id) {
+    if (!Array.isArray(holder.metrics)) return;
+    let keys = 0;
+    holder.metrics.forEach((m, j) => {
+      if (!m || m.key == null) return;
+      if (m.key !== true) errors.push(`${where}.metrics[${j}].key must be true or absent`);
+      else keys++;
+    });
+    if (keys > 3) warnings.push(`${id} has ${keys} key metrics: the page shows 3 large, the rest in the evidence`);
+  }
+
+  // A context row's facts (labelled sentences) and cases (parallel situations, each with a small drawing).
+  const nonEmpty = v => typeof v === 'string' && v.trim();
+  function checkFacts(c, where) {
+    if (c.facts == null) return;
+    if (!Array.isArray(c.facts)) { errors.push(`${where}.facts must be an array of { "label", "text" }`); return; }
+    c.facts.forEach((f, j) => {
+      const w = `${where}.facts[${j}]`;
+      if (!f || typeof f !== 'object' || Array.isArray(f)) { errors.push(`${w} must be an object { "label", "text" }`); return; }
+      Object.keys(f).filter(k => !['label', 'text'].includes(k)).forEach(k => errors.push(`${w} takes no "${k}": only label, text`));
+      ['label', 'text'].forEach(k => { if (!nonEmpty(f[k])) errors.push(`${w}.${k} must be a non-empty string`); });
+    });
+    if (c.facts.length > 4) warnings.push(`${c.id} has ${c.facts.length} facts: keep to 4 or fewer`);
+  }
+  function checkCases(c, where) {
+    if (c.cases == null) return;
+    if (!Array.isArray(c.cases)) { errors.push(`${where}.cases must be an array of { "title", "tag"?, "figure"?, "text" }`); return; }
+    c.cases.forEach((k, j) => {
+      const w = `${where}.cases[${j}]`;
+      if (!k || typeof k !== 'object' || Array.isArray(k)) { errors.push(`${w} must be an object { "title", "tag"?, "figure"?, "text" }`); return; }
+      Object.keys(k).filter(x => !['title', 'tag', 'figure', 'text'].includes(x)).forEach(x => errors.push(`${w} takes no "${x}": only title, tag, figure, text`));
+      ['title', 'text'].forEach(x => { if (!nonEmpty(k[x])) errors.push(`${w}.${x} must be a non-empty string`); });
+      if (k.tag != null) {
+        if (!nonEmpty(k.tag)) errors.push(`${w}.tag must be a non-empty string`);
+        else if (k.tag.length > 24) warnings.push(`${c.id} case ${j} tag is ${k.tag.length} characters: keep a tag to 24 or fewer`);
+      }
+      if (k.figure != null) {
+        if (typeof k.figure !== 'object' || Array.isArray(k.figure)) errors.push(`${w}.figure must be one figures entry`);
+        else embed(k.figure, `${w}.figure`);
+      }
+    });
+    if (!c.cases.length) errors.push(`${where}.cases is empty: leave it out, or give at least 2 cases`);
+    else if (c.cases.length < 2) warnings.push(`${c.id} has 1 case: cases are parallel situations, give at least 2`);
+    const tags = new Set(c.cases.map(k => k && k.tag).filter(nonEmpty));
+    if (tags.size > 3) warnings.push(`${c.id} has ${tags.size} distinct case tags: the page has 3 tones, so tags past the third look alike`);
+  }
+
+  // context: the rows the story tells between cards. Never decided, never counted.
+  const CONTEXT_KEYS = ['id', 'title', 'why', 'detail', 'outcome', 'figures', 'metrics', 'facts', 'cases', 'note'];
+  function checkContext(data, items, outcome, errors) {
+    if (data.context == null) return [];
+    if (!Array.isArray(data.context)) { errors.push('"context" must be an array of { "id", "title", "why"?, "detail"?, "outcome"?, "figures"?, "metrics"?, "facts"?, "cases"?, "note"? }'); return []; }
+    const used = new Set(items.map(it => it.id));
+    return data.context.filter((c, i) => {
+      const where = `context[${i}]`;
+      if (!c || typeof c !== 'object' || Array.isArray(c) || typeof c.id !== 'string' || !c.id || typeof c.title !== 'string' || !c.title) {
+        errors.push(`${where} needs "id" and "title"`); return false;
+      }
+      Object.keys(c).filter(k => !CONTEXT_KEYS.includes(k)).forEach(k => errors.push(`${where} takes no "${k}": only ${CONTEXT_KEYS.join(', ')}`));
+      if (c.id.startsWith('_')) errors.push(`${where} id "${c.id}" is reserved: ids starting with "_" are the page's own`);
+      else if (used.has(c.id)) errors.push(`${where} id "${c.id}" is already used`);
+      used.add(c.id);
+      if (c.outcome != null && (!Number.isInteger(c.outcome) || c.outcome < 0 || c.outcome >= outcome.length)) errors.push(`${where}.outcome ${c.outcome}: the gate has ${outcome.length} outcome entries`);
+      if (c.metrics != null && !Array.isArray(c.metrics)) errors.push(`${where}.metrics must be an array`);
+      if (c.figures != null && !Array.isArray(c.figures)) errors.push(`${where}.figures must be an array`);
+      if (Array.isArray(c.figures)) c.figures.forEach((f, j) => embed(f, `${where}.figures[${j}]`));
+      checkText(c, 'why', where);
+      checkText(c, 'detail', where);
+      checkKeys(c, where, c.id);
+      checkFacts(c, where);
+      checkCases(c, where);
+      if (c.note != null && (typeof c.note !== 'string' || !c.note.trim())) errors.push(`${where}.note must be a non-empty string`);
+      return true;
+    });
+  }
+
+  // kind "acceptance": the top-level examples list, copied from the decision record's `## Examples` (the renderer reads no
+  // record, so it checks a case's example only against this list). Returns the ids, or null when the list is absent or unusable.
+  function acceptanceExamples() {
+    if (data.examples == null) return null;
+    if (!Array.isArray(data.examples)) { errors.push('"examples" must be an array of { id, given, when, then }'); return null; }
+    const ids = [];
+    data.examples.forEach((e, i) => {
+      const where = `examples[${i}]`;
+      if (!e || typeof e !== 'object' || Array.isArray(e)) { errors.push(`${where} must be an object`); return; }
+      if (Object.keys(e).some(k => !EXAMPLE_KEYS.includes(k))) errors.push(`${where} takes only ${EXAMPLE_KEYS.join(', ')}`);
+      if (typeof e.id !== 'string' || !EXAMPLE_ID.test(e.id)) errors.push(`${where}.id must be an id like "E3"`);
+      else if (ids.includes(e.id)) errors.push(`examples id "${e.id}" is named twice`);
+      else ids.push(e.id);
+      ['given', 'when', 'then'].forEach(k => { if (typeof e[k] !== 'string' || !e[k].trim()) errors.push(`${where}.${k} must be a non-empty string`); });
+    });
+    return ids;
   }
 
   // kind "acceptance": the cases to present, each with its screenshots (or why there are none) and a technical part.
@@ -173,6 +345,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     if (typeof data.branch !== 'string' || !data.branch.trim()) errors.push('kind "acceptance" needs "branch": the presented branch');
     if (typeof data.commit !== 'string' || !COMMIT.test(data.commit)) errors.push('kind "acceptance" needs "commit": the presented head, 7-40 hex characters');
     if (data.lang != null && !LANGS.includes(data.lang)) errors.push(`"lang" must be one of ${LANGS.join(', ')}`);
+    const exampleIds = acceptanceExamples();
     if (!Array.isArray(data.cases) || !data.cases.length) { errors.push('kind "acceptance" needs "cases": a non-empty array'); return []; }
     return data.cases.map((c, i) => {
       const where = `cases[${i}]`;
@@ -183,6 +356,11 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       if (!Array.isArray(c.steps) || !c.steps.length || c.steps.some(s => typeof s !== 'string' || !s.trim())) errors.push(`${name} needs "steps": a non-empty array of strings`);
       if (typeof c.expected !== 'string' || !c.expected.trim()) errors.push(`${name} needs "expected": the expected result`);
       if (c.group != null && (typeof c.group !== 'string' || !c.group.trim())) errors.push(`${name}.group must be a non-empty string`);
+      if (c.example != null) {
+        if (typeof c.example !== 'string' || !EXAMPLE_ID.test(c.example)) errors.push(`${where}.example must be an id like "E3"`);
+        else if (data.examples == null) errors.push(`${where}.example needs a top-level "examples" list to check it against`);
+        else if (exampleIds && !exampleIds.includes(c.example)) errors.push(`${where}.example "${c.example}" is not in "examples"`);
+      }
       if (c.figures != null && !Array.isArray(c.figures)) errors.push(`${name}.figures must be an array`);
       const figures = Array.isArray(c.figures) ? c.figures : [];
       if (c.unshown != null && (typeof c.unshown !== 'string' || !c.unshown.trim())) errors.push(`${name}.unshown must be a non-empty string: why the case could not be shown`);
@@ -241,6 +419,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     checkExamples(item.examples, `${where} ("${item.id}")`);
     item.options.forEach(o => {
       const at = `${where} ("${item.id}") option "${o.value}"`;
+      checkArguments(o, at);
       checkExamples(o.examples, at);
       ['metrics', 'figures'].forEach(k => { if (o[k] != null && !Array.isArray(o[k])) errors.push(`${at}.${k} must be an array`); });
       if (Array.isArray(o.figures)) o.figures.forEach((f, j) => embed(f, `${at}.figures[${j}]`));
@@ -270,6 +449,8 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     });
   }
 
+  // The lens a kind of gate assumes for a line that names none (C5).
+  const KIND_LENS = { debate: 'business', council: 'business', kickoff: 'business', plan: 'tech' };
   // lens: the item's default; each argument, metric and figure may carry its own. An item with none renders as before.
   function checkLens(item, where) {
     const oneOf = `must be one of ${LENSES.join(', ')}`;
@@ -284,11 +465,12 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       });
     };
     ['for', 'against', 'metrics', 'examples', 'figures'].forEach(k => collect(item, k, where));
-    item.options.forEach(o => ['metrics', 'examples', 'figures'].forEach(k => collect(o, k, `${where} option "${o.value}"`)));
+    item.options.forEach(o => ['for', 'against', 'metrics', 'examples', 'figures'].forEach(k => collect(o, k, `${where} option "${o.value}"`)));
     if (item.lens == null && !entries.some(x => x.e.lens != null)) return;
-    // Every entry lands in one tab: its own lens, else the item's.
+    // Every entry gets a lens: its own, else the item's, else the kind's default. Review and refactor have none: those refuse.
+    const dflt = item.lens != null ? item.lens : KIND_LENS[data.kind];
     entries.forEach(({ e, at }) => {
-      if (e.lens == null && item.lens != null) e.lens = item.lens;
+      if (e.lens == null && dflt != null) e.lens = dflt;
       if (e.lens == null) errors.push(`${at} has no lens and its item none to give — set "lens" on the entry or on the item`);
     });
     const lenses = new Set(entries.map(x => x.e.lens));
@@ -357,6 +539,22 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const where = `decisions[${i}]`;
     if (!d.id || !d.title) errors.push(`${where} needs "id" and "title"`);
     const item = Object.assign({ kind: 'decision' }, d);
+    // A debate decision with its own options carries one negative option, worded for the question; its arguments
+    // go on the options, never on the question.
+    if (STORY_KINDS.includes(data.kind) && d.id && Array.isArray(d.options) && d.options.length) {
+      const neg = d.options.filter(o => o && o.negative).length;
+      if (!neg) errors.push(`${d.id} has no negative option: add one with "negative": true and a label that says no to this question`);
+      else if (neg > 1) errors.push(`${d.id} has ${neg} negative options: keep exactly one, with "negative": true and a label that says no to this question`);
+    }
+    if (d.id && ['for', 'against'].some(k => Array.isArray(d[k]) && d[k].length)) {
+      errors.push(Array.isArray(d.options) && d.options.length
+        ? `${d.id} has arguments on the question: put each on the option it backs or opposes directly (its "for" or "against"), on several if it applies to several`
+        : `${d.id} has arguments on the question: write its options out ("approve" labelled "Approve", and "decline" labelled "Decline" with "negative": true) and put each argument on the option it backs or opposes directly; arguments for approving are Approve's "for", against approving Approve's "against"`);
+    }
+    // The page shows the negative option last, whatever its place in the JSON (display order only; ids are unchanged).
+    if (Array.isArray(item.options) && item.options.some(o => o && o.negative)) {
+      item.options = item.options.filter(o => !(o && o.negative)).concat(item.options.filter(o => o && o.negative));
+    }
     if (!item.options || !item.options.length) {
       item.options = [
         { value: 'approve', label: 'Approve', recommended: d.recommended !== 'decline' },
@@ -376,6 +574,9 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const title = String(t.topic || t.title || '').replace(new RegExp('^' + id + '\\s*[—:-]\\s*'), '');
     const item = Object.assign({}, t, { kind: 'tension', id, title, group: 'Tensions' });
     delete item.topic;
+    if (['for', 'against'].some(k => Array.isArray(t[k]) && t[k].length)) {
+      errors.push(`${id} has arguments on the question: put each on the side it backs (sides[].for / sides[].against)`);
+    }
     if (!item.options || !item.options.length) {
       item.options = (t.sides || []).map((s, j) => Object.assign({
         value: String(s.who || `side ${j + 1}`).replace(/\|/g, '/'),
@@ -392,6 +593,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const where = `rejected[${i}]`;
     if (!r.id || !r.title) errors.push(`${where} needs "id" and "title"`);
     const item = Object.assign({}, r, { kind: 'rejected', group: 'Considered and rejected' });
+    if (['for', 'against'].some(k => Array.isArray(r[k]) && r[k].length)) errors.push(`${r.id || where} has arguments on the item: put each on the option it backs or opposes ("revive" / "keep-rejected" …)`);
     if (r.reason && !r.why) item.why = 'Rejected because: ' + r.reason;
     delete item.reason;
     if (!item.options || !item.options.length) {
@@ -411,6 +613,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     // unverified: what would settle a line the verifier could not confirm, or never checked.
     if (s.unverified != null && (typeof s.unverified !== 'string' || !s.unverified.trim())) errors.push(`${where} ("${s.id}").unverified must be a non-empty string`);
     const item = Object.assign({}, s, { kind: 'settled', group: 'Settled without you' });
+    if (['for', 'against'].some(k => Array.isArray(s[k]) && s[k].length)) errors.push(`${s.id || where} has arguments on the item: put each on the option it backs or opposes ("reopen" / "ok" …)`);
     if (!item.options || !item.options.length) item.options = [{ value: 'ok', label: 'OK', recommended: true }, { value: 'reopen', label: 'Reopen' }];
     if (item.default == null) item.default = 'ok';
     items.push(finish(item, where));
@@ -421,6 +624,7 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     const where = `questions[${i}]`;
     if (!q.id || !q.title || !q.source || !q.who) errors.push(`${where} needs "id", "title", "source" and "who"`);
     const item = Object.assign({}, q, { kind: 'question', group: 'Questions for the author' });
+    if (['for', 'against'].some(k => Array.isArray(q[k]) && q[k].length)) errors.push(`${q.id || where} has arguments on the item: put each on the option it backs or opposes ("drop" / "ask" …)`);
     if (!item.options || !item.options.length) item.options = [{ value: 'ask', label: 'Ask the author', recommended: true }, { value: 'drop', label: 'Drop', negative: true }];
     if (item.default == null) item.default = 'ask';
     items.push(finish(item, where));
@@ -486,8 +690,10 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
 
   let preset = null;
   // --share: every outcome that leads to work carries a brief the reader's Claude can follow alone.
-  if (SHARE) {
-    if (data.kind !== 'review') errors.push('--share needs kind "review": only a team-review gate is shared with the branch owner');
+  if (SHARE && data.kind !== 'review') {
+    // K13: any other kind goes as a file with no work order: no preamble, SHA or brief, no preset.
+    if (PRESET) errors.push('--preset needs a review gate: only a team-review share carries a preset');
+  } else if (SHARE) {
     if (data.lang != null && !LANGS.includes(data.lang)) errors.push(`"lang" must be one of ${LANGS.join(', ')}`);
     if (!data.preamble) errors.push('--share needs "preamble": repo, branch, reviewed commit SHA, scope, baseline, rules (see contract.md, Share fields)');
     else if (!SHA.test(data.preamble)) errors.push('"preamble" names no commit SHA — give the reviewed commit, so the reader can tell when HEAD has moved');
@@ -550,7 +756,40 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
       o.on.when.forEach(v => { if (!target.options.some(x => x.value === v)) errors.push(`${where}.on.when names "${v}", not an option of "${target.id}"`); });
     }
   });
-  return { data, items: ordered, outcome, errors, preset };
+  // D2: a debate card with nothing drawn is warned about (writer), nothing on the page. A4: so is a kickoff scope item
+  // (lens "business"; the stack and conventions tail is "tech"). Old "council" gates stay as they were.
+  if (data.kind === 'debate' || data.kind === 'kickoff') {
+    const has = x => x && ((Array.isArray(x.examples) && x.examples.length) || (Array.isArray(x.figures) && x.figures.length));
+    items.filter(it => it.kind === 'decision' || it.kind === 'tension').forEach(it => {
+      if (data.kind === 'kickoff' && it.lens !== 'business') return;
+      if (has(it) || (it.options || []).some(has) || outcome.some(o => o.on && o.on.id === it.id)) return;
+      if (!it.unillustrated) warnings.push(`${it.id} is not illustrated: give it examples${STORY_KINDS.includes(data.kind) ? ' or' : ','} a figure${STORY_KINDS.includes(data.kind) ? '' : ' or an outcome'}, or say why in "unillustrated"`);
+    });
+  }
+  const context = checkContext(data, items, outcome, errors);
+  // A context row's title is its list row's: over 70 characters it warns the writer, acceptance included; nothing is cut.
+  const over70 = x => { if (typeof x.title === 'string' && x.title.length > 70) warnings.push(`${x.id} title is ${x.title.length} characters: keep a list title under 70`); };
+  if (data.kind === 'acceptance') context.forEach(over70);
+  // A deciding page shows the story: what no context row or card holds is not on it.
+  if (data.kind !== 'acceptance') {
+    if (data.kind === 'review' && !context.length) warnings.push('a review gate with no context row posts a review body with no verdict: put the cover first');
+    outcome.forEach((o, i) => { if (!context.some(c => c.outcome === i)) warnings.push(`outcome[${i}] is not shown: name it in a context row's "outcome"`); });
+    if (Array.isArray(data.figures) && data.figures.length) warnings.push('"figures" are not shown on a deciding gate: put each on the card or context row it shows');
+    // A list title is the row and the card's headline: over 70 characters it warns the writer; nothing is cut.
+    [...items, ...context].forEach(over70);
+    // An option label is one row of the card's choice: over 60 characters it warns the writer; nothing is cut.
+    items.forEach(it => (Array.isArray(it.options) ? it.options : []).forEach(o => {
+      if (o && typeof o.label === 'string' && o.label.length > 60) warnings.push(`${it.id} option "${o.value}" label is ${o.label.length} characters: keep it to 60 or less; the card's text can carry the rest`);
+    }));
+    // The pane shows one option at a time, so one figure on two options says nothing about either.
+    const shown = o => new Set((Array.isArray(o.figures) ? o.figures : []).map(f => f && (f.svg || f.src || f.html)).filter(Boolean));
+    items.filter(it => Array.isArray(it.options)).forEach(it => it.options.forEach((a, i) => it.options.slice(i + 1).forEach(b => {
+      const fa = shown(a);
+      if ([...shown(b)].some(f => fa.has(f))) warnings.push(`${it.id} options "${a.value}" and "${b.value}" show the same figure: give an option a figure only where it lands differently`);
+    })));
+  }
+  const story = checkStory(data, ordered, context, errors, warnings);
+  return { data, items: ordered, outcome, errors, warnings, preset, story, context };
 }
 
 module.exports = { loadGate };

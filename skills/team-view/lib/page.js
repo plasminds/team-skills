@@ -2,13 +2,15 @@
 const crypto = require('crypto');
 
 // Both pages keep the briefs: the evidence pane shows how each option gets done, which weighs on the choice.
-function buildPage({ data, items, outcome, preset, channels, share: SHARE }) {
+function buildPage({ data, items, outcome, preset, channels, share: SHARE, story, context }) {
   // lang drives every page's chrome and prompt text, local gates too.
-  const page = { kind: data.kind === 'council' ? 'debate' : data.kind, title: data.title, date: data.date, source: data.source, summary: data.summary, outcome, figures: data.figures || [], items, lang: data.lang || 'en' };
+  const page = { kind: data.kind === 'council' ? 'debate' : data.kind, title: data.title, date: data.date, source: data.source, outcome, figures: data.figures || [], items, lang: data.lang || 'en' };
   // An acceptance page names what it presents: the branch and its head.
-  if (page.kind === 'acceptance') Object.assign(page, { branch: data.branch, commit: data.commit });
+  if (page.kind === 'acceptance') Object.assign(page, { branch: data.branch, commit: data.commit }, data.examples ? { examples: data.examples } : {});
+  // A deciding page reads its order and its context rows, both computed once by loadGate; an acceptance page, its context rows only.
+  Object.assign(page, page.kind === 'acceptance' ? { context } : { story, context });
   if (SHARE) {
-    Object.assign(page, { mode: 'share', preamble: data.preamble }, preset ? { preset } : {});
+    Object.assign(page, { mode: 'share' }, page.kind === 'review' ? { preamble: data.preamble } : {}, preset ? { preset } : {});
     delete page.source; // a path in the sharer's repo
   }
   // Content hash: saved browser state is keyed by it, so an edited gate starts with fresh decisions.

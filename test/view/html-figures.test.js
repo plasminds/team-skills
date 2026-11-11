@@ -2,16 +2,15 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { RENDER, writeGate, render, pageData } = require('./helpers');
+const { composedTemplate, RENDER, writeGate, render, pageData } = require('./helpers');
 
-const TEMPLATE = path.join(path.dirname(RENDER), 'template.html');
 const HTML = '<style>.a{display:grid}</style><div class="a" style="background:var(--surface)">Screen</div>';
 
 function gate(after, extra) {
   return Object.assign({
     kind: 'debate', title: 'T', source: '.council/decisions/2026-10-14-x.md',
     decisions: [{ id: 'D1', title: 'Copy the thing?', options: [
-      { value: 'a', label: 'Copy', recommended: true }, { value: 'b', label: 'Link' }] }],
+      { value: 'a', label: 'Copy', recommended: true }, { value: 'b', label: 'Link' }, { value: 'none', label: 'Neither', negative: true }] }],
     outcome: [{ view: 'ui', caption: 'The screen', after }]
   }, extra || {});
 }
@@ -89,6 +88,6 @@ test('an inlined .html src is validated too', () => {
 });
 
 test('template renders html figures in a shadow root', () => {
-  const t = fs.readFileSync(TEMPLATE, 'utf8');
+  const t = composedTemplate();
   assert.match(t, /attachShadow\(\{ mode: 'open' \}\)/);
 });

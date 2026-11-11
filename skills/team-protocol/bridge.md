@@ -28,7 +28,7 @@ What an option gains and costs, one line per lens. A cost with no evidence (`cou
 
 **Accepted trade-off.** The costs of the option the human chose, recorded with who accepted them (`the human`, or `auto-accept`) and, when the roles named one, the condition to revisit them.
 
-A trade-off is a cost knowingly taken on. It is neither a tension (a question with no majority, `counting.md`) nor a dissent (a minority view, which goes in `against`).
+A trade-off is a cost knowingly taken on. It is neither a tension (a question with no majority, `counting.md`) nor a dissent (a minority view, which goes on the option it opposes).
 
 ## Structural choices and constraints
 

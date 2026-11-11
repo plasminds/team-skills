@@ -18,7 +18,7 @@ How: <one or two lines for a developer>
 Source: <the MR/PR line, ticket or commit the case comes from>
 ```
 
-Each row of a decision record's `## Examples` that the branch implements is a case (the record a plan the branch follows names, or one the MR/PR links): `given` becomes its Data, `when` its Steps, `then` its Expected, and its Source is the record and the row's decision id. Only what the branch changes or adds, as a user sees it. A case nobody can see in the app (a cron, a migration) is left out and named in one line at the end, under `Not visible:`.
+Each row of a decision record's `## Examples` that the branch implements is a case (the record a plan the branch follows names, or one the MR/PR links): `given` becomes its Data, `when` its Steps, `then` its Expected, and its Source is the record and the row's id `E<n>` (a record with no ids: its decision id). Only what the branch changes or adds, as a user sees it. A case nobody can see in the app (a cron, a migration) is left out and named in one line at the end, under `Not visible:`.
 
 ## Personal-data list (personal-data seat)
 
@@ -28,6 +28,8 @@ Each row of a decision record's `## Examples` that the branch implements is a ca
 
 `.council/acceptance/<topic>/<topic>.acceptance.json`, by `contract.md` § *Acceptance pages*, in the conversation's `lang`:
 - `title`: `Recette — <what the branch does>` (`Acceptance — …` in English); `branch`, `commit` (short SHA of the presented head), `date`.
-- `summary`: *What the branch brings* (one line), *Environment* (the env and the test data created), *Not shown* (each `unshown` case with its reason, and the `Not visible:` line of the cases list), as labelled bullets in `lang`.
+- **Cover**: no `summary`, no `story`. The first context row, in `lang`: `title` what the branch does (≤ 70 characters), `why` what it brings in one line, `facts` *Environment* (the env and the test data created) and *Not shown* (each `unshown` case with its reason, and the `Not visible:` line of the cases list), one or two sentences each. The page lists it first, then the cases in their Rule sections.
 - One case per checked line of the cases list: `group` = its Rule, `steps`, `expected`, `figures` (paths relative to the JSON, a caption saying what to look at), or `unshown`; `tech` from its How, Files and Data.
+- `example`: on each case that replays a record row, that row's `E<n>` from its `Source` line. A record with no ids: no `example`.
+- `examples`: the top-level list, the record's rows copied verbatim (`id`, `given`, `when`, `then`), one per row the plan's branch follows, cited or not. A record with no ids: no `examples`.
 - No customer data in any text: describe it ("a customer's email").

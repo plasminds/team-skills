@@ -2,6 +2,20 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.28.0 — 2026-11-10
+
+- **Story.** Every debate card opens as a story: the question, key numbers, one drawing, then one row per option. `story` is an id list; context rows open the page, the recap closes it; a context row can carry labelled facts, cases with a small drawing each, and a source note. The list is open or a 52px rail. Saved choices on a debate page start fresh.
+- **Evidence pane.** A debate card keeps the three panes and the always-visible evidence pane: it follows the picked option (else the recommended), with its for and against, trade-off, own evidence and constraint status; *Evidence for* (`[` `]`) shows another option; the whole question sits below. The pane folds to a rail (`e`) and is absent when empty; the card's `accepts` sits in the recommended option's trade-off.
+- **Every kind.** Plan, refactor, review, kickoff and acceptance pages take the debate page's shape: the list in story order with a recap, option rows, the evidence pane. No `summary`: a cover context row opens every page and gives the posted review its verdict. Arguments sit on options only, as the direct for and against of that choice.
+- **No option.** Every debate question shows a negative option worded for it; arguments on the question itself are gone: they back or oppose that option.
+- **Illustration warning.** The renderer warns the gate writer on a debate card with nothing drawn; nothing on the page.
+- **Lenses.** No lens filter, tabs or keys outside acceptance; a line reads "for the business" or "for the build" only where it differs from its card's default; on debate pages arguments carry no lens label.
+- **Copy decisions.** One plain sentence per question, then the block.
+- **The business decider** in PRODUCT.md.
+- **File share.** `--share` works on every kind: no record path, no keycap legend, a cover line with what is asked and how many, and on a phone a folded line on how to send it back; a review keeps its work order.
+- **Example ids.** `E<n>` in the record's examples, cited by plan tests and by acceptance cases; an acceptance page shows "Example E3 from the specification" (folded) and lists the examples no case covers.
+- **Kickoff.** A scope item with nothing drawn warns the gate writer.
+
 ## 0.27.0 — 2026-11-10
 
 - **Examples.** An item or an option can carry `examples`, given / when / then rows shown as a table in the evidence pane. The decision record keeps the chosen rows; team-plan makes each a test, team-acceptance a case.

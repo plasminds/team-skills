@@ -8,6 +8,7 @@
   --pro: #9db6ff; --pro-bg: #1b2440; --con: #e8935a; --con-bg: #36220f;
   --add-bg: #1f2b1d; --del-bg: #33201c;
   --sel: #4b4438; --scroll: #4a4641; --primary: #3a3631; --primary-hover: #45403a; --flash: #3f3a33; --del-ink: #f3c2b8; --add-ink: #cdeec8;
+  --num: #6ec3f4;
   --pane-lift: 0 1px 0 rgba(255, 255, 255, .025) inset, 0 10px 28px -16px rgba(0, 0, 0, .7);
   --scrim: rgba(10, 9, 8, .72);
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Noto Sans", "Adwaita Sans", Cantarell, Ubuntu, "Helvetica Neue", Arial, sans-serif;
@@ -25,6 +26,9 @@
   --pro: #27459a; --pro-bg: #dfe5f7; --con: #7d390e; --con-bg: #f4dfcc;
   --add-bg: #dcead3; --del-bg: #f4dcd5;
   --sel: #d2c6b0; --scroll: #b8afa1; --primary: #e1d7c6; --primary-hover: #d8cdba; --flash: #d0c5b2; --del-ink: #7a2519; --add-ink: #21501d;
+  --num: #0a5c8f;
   --pane-lift: 0 1px 0 rgba(255, 252, 246, .7) inset, 0 10px 28px -16px rgba(74, 52, 28, .32);
   --scrim: rgba(58, 48, 38, .38);
 }
+/* deck scale, the same in both themes: a debate card's key numbers, readable across a meeting room */
+:root { --deck-num: clamp(30px, 1.3rem + 1.4vw, 44px); }

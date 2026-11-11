@@ -3,9 +3,9 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { RENDER } = require('./helpers');
+const { composedTemplate, RENDER } = require('./helpers');
 
-const html = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+const html = composedTemplate();
 const src = html.slice(html.indexOf('/*SHARE-START*/'), html.indexOf('/*SHARE-END*/'));
 const { shareChoices, shareBlock, shareDefault } = vm.runInNewContext(src + '\n({ shareChoices: shareChoices, shareBlock: shareBlock, shareDefault: shareDefault })');
 const all = g => { const c = shareChoices(g); return Object.fromEntries(c.what.concat(c.where).map(x => [x.id, x])); };

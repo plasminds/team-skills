@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
-const { shareGate, writeGate, render, pageData, RENDER } = require('./helpers');
+const { composedTemplate, shareGate, writeGate, render, pageData, RENDER, cover } = require('./helpers');
 
 const loadEn = html => require('node:vm').runInNewContext(/\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1] + '\n({ CHROME_TEXT: CHROME_TEXT })').CHROME_TEXT;
-const TEMPLATE = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+const TEMPLATE = composedTemplate();
 const Q = { id: 'A11', title: 'Which document is spec 4.5?', source: 'MR !12', who: 'Intent', why: 'The diff cites it.' };
 
 function page(gate, ...flags) {
@@ -99,7 +99,7 @@ test('prompt: an undecided question counts as asked, and French', () => {
 });
 
 test('review: asked questions sit in the body right after the summary, never as threads', () => {
-  const b = builders(shareGate({ questions: [Q, Q2], summary: [{ label: 'Verdict', text: 'Mergeable' }] }));
+  const b = builders(shareGate({ questions: [Q, Q2], ...cover([{ label: 'Verdict', text: 'Mergeable' }]) }));
   const rv = b.review({ S1: { choice: 'approve' }, A11: { choice: 'ask', note: 'see the ticket' }, A12: { choice: 'drop' } });
   assert.ok(!rv.comments.some(c => /^A1[12]$/.test(c.id)));
   const q = rv.body.indexOf("### Questions for the author\nAnswer them in a reply on the merge/pull request.\n- A11 — Which document is spec 4.5? — `MR !12`\n  What's at stake: The diff cites it.\n  Reviewer's note: see the ticket");

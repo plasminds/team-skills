@@ -5,13 +5,19 @@
   "lang": "en",
   "branch": "feat-invoice-export",
   "commit": "9b1e4c7a2f",
-  "summary": [
-    { "label": "What the branch brings", "text": "Invoices can be exported as a CSV file from the invoice list, filtered by period." },
-    { "label": "Environment", "text": "Staging, with three test invoices created for this page." },
-    { "label": "Not shown", "points": ["C3: the export of more than 10,000 invoices needs a data set staging does not have."] }
+  "context": [
+    { "id": "I0", "title": "Invoice CSV export, ready to try", "why": "Invoices can be exported as a CSV file from the invoice list, filtered by period.",
+      "facts": [
+        { "label": "Environment", "text": "Staging, with three test invoices created for this page." },
+        { "label": "Not shown", "text": "C3: the export of more than 10,000 invoices needs a data set staging does not have." }
+      ] }
+  ],
+  "examples": [
+    { "id": "E1", "given": "Three invoices dated in October 2026", "when": "Export CSV is pressed for October 2026", "then": "A CSV with three lines downloads" },
+    { "id": "E2", "given": "No invoice in January 2020", "when": "Export CSV is pressed for January 2020", "then": "No file downloads and a message says there is nothing to export" }
   ],
   "cases": [
-    { "id": "C1", "group": "Export", "title": "Export the invoices of a month",
+    { "id": "C1", "group": "Export", "title": "Export the invoices of a month", "example": "E1",
       "steps": ["Open Invoices", "Pick the period October 2026", "Click **Export CSV**"],
       "expected": "A file `invoices-2026-10.csv` downloads, one line per invoice of October.",
       "figures": [ { "src": "export/c1-bouton.png", "caption": "The Export CSV button beside the period filter" },

@@ -60,13 +60,69 @@ test('acceptance: case refusals', () => {
   failsWith(two, /duplicate id "C1"/);
 });
 
-test('acceptance: nothing comes back, so no server, no auto-accept, no share', () => {
+test('acceptance: nothing comes back, so no server and no auto-accept; --share writes it as a file', () => {
   failsWith(acceptanceGate(), /--serve and --accept-recommended do not apply/, '--accept-recommended');
   failsWith(acceptanceGate(), /--serve and --accept-recommended do not apply/, '--serve', '--no-open');
-  failsWith(acceptanceGate(), /--share needs kind "review"/, '--share');
+  const file = writeAcceptance(acceptanceGate());
+  assert.strictEqual(render(file, '--share').code, 0);
+  assert.ok(fs.existsSync(file.replace(/\.gate\.json$/, '.share.html')));
 });
 
 test('acceptance: tech.files count as files the page names', () => {
   const found = mentions({ items: [{ id: 'C1', tech: { files: ['src/export.js'] } }] }).map(m => m.path);
   assert.deepStrictEqual(found, ['src/export.js']);
+});
+
+// D4: the record's example ids, copied into a top-level "examples" list; a case may cite one.
+const EX = (id, n) => ({ id, given: 'Given ' + (n || id), when: 'When ' + (n || id), then: 'Then ' + (n || id) });
+const withExamples = (examples, cites) => acceptanceGate(Object.assign({ lang: 'en' }, examples === undefined ? {} : { examples }, {
+  cases: acceptanceGate().cases.map((c, i) => (i === 0 && cites ? Object.assign({}, c, { example: cites }) : c))
+}));
+
+test('D4-1: a case that cites an example in the list renders, and the page data carries both', () => {
+  const file = writeAcceptance(withExamples([EX('E3')], 'E3'));
+  const r = render(file);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const data = pageData(htmlOf(file));
+  assert.deepStrictEqual(data.examples, [EX('E3')]);
+  assert.strictEqual(data.items[0].example, 'E3');
+  assert.strictEqual(data.items[1].example, undefined);
+});
+
+test('D4-3: a case that cites an id outside the list is refused, an empty list counts', () => {
+  failsWith(withExamples([EX('E3')], 'E9'), /cases\[0\]\.example "E9" is not in "examples"/);
+  failsWith(withExamples([], 'E9'), /cases\[0\]\.example "E9" is not in "examples"/);
+});
+
+test('D4-4: a case with example and no examples list is refused', () => {
+  failsWith(withExamples(undefined, 'E3'), /cases\[0\]\.example needs a top-level "examples" list to check it against/);
+});
+
+test('D4: an example id must look like E3', () => {
+  ['e3', '3', 'E0', 'E03', 'E'].forEach(bad => failsWith(withExamples([EX('E3')], bad), /example must be an id like "E3"/));
+  failsWith(acceptanceGate({ examples: [EX('E3')], cases: [Object.assign({}, acceptanceGate().cases[0], { example: 3 })] }), /example must be an id like "E3"/);
+});
+
+test('D4: examples rows are checked: four keys, a valid unique id, three non-empty texts, an array', () => {
+  failsWith(withExamples([Object.assign(EX('E1'), { extra: 'x' })]), /examples\[0\] takes only id, given, when, then/);
+  failsWith(withExamples([EX('E1'), EX('E1')]), /examples id "E1" is named twice/);
+  failsWith(withExamples([EX('x1')]), /examples\[0\]\.id must be an id like "E3"/);
+  failsWith(withExamples([Object.assign(EX('E1'), { when: ' ' })]), /examples\[0\]\.when must be a non-empty string/);
+  failsWith(withExamples([Object.assign(EX('E1'), { given: undefined })]), /examples\[0\]\.given must be a non-empty string/);
+  failsWith(withExamples('E1'), /"examples" must be an array/);
+  failsWith(withExamples(['E1']), /examples\[0\] must be an object/);
+});
+
+test('D4: a long example text is kept as written, no length cap', () => {
+  const long = 'x'.repeat(400);
+  const file = writeAcceptance(withExamples([Object.assign(EX('E1'), { given: long })]));
+  assert.strictEqual(render(file).code, 0);
+  assert.strictEqual(pageData(htmlOf(file)).examples[0].given, long);
+});
+
+test('D4-5: examples that no case cites are legal', () => {
+  const file = writeAcceptance(withExamples([EX('E1'), EX('E2')]));
+  const r = render(file);
+  assert.strictEqual(r.code, 0, r.stderr);
+  assert.deepStrictEqual(pageData(htmlOf(file)).examples.map(e => e.id), ['E1', 'E2']);
 });

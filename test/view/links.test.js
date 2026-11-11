@@ -89,14 +89,14 @@ test('settled items take ok under --accept-recommended', () => {
 test('page-level constraints are rejected; item constraints bind their options', () => {
   const k = { id: 'K1', lens: 'tech', text: 'No new DB', source: 'CLAUDE.md:3', status: 'confirmed' };
   fails(gate([{ id: 'D1', title: 'd' }], { constraints: [k] }), /page-level "constraints" are not supported/);
-  const data = ok(gate([{ id: 'D1', title: 'd', constraints: [k], options: [{ value: 'a', label: 'Keep', recommended: true }, { value: 'b', label: 'Add a DB', violates: ['K1'] }] }]));
+  const data = ok(gate([{ id: 'D1', title: 'd', constraints: [k], options: [{ value: 'a', label: 'Keep', recommended: true }, { value: 'b', label: 'Add a DB', violates: ['K1'] }, { value: 'none', label: 'Neither', negative: true }] }]));
   assert.strictEqual(data.constraints, undefined);
   assert.deepStrictEqual(byId(data).D1.bridge.map(x => x.id), ['K1']);
 });
 
 test('one constraint may be copied onto every card it binds; an option on either may violate it', () => {
   const k = { id: 'K1', lens: 'tech', text: 'No new DB', source: 'ADR-3', status: 'confirmed' };
-  const opts = v => [{ value: 'a', label: 'Keep', recommended: true }, { value: 'b', label: 'Add a DB', violates: v }];
+  const opts = v => [{ value: 'a', label: 'Keep', recommended: true }, { value: 'b', label: 'Add a DB', violates: v }, { value: 'none', label: 'Neither', negative: true }];
   const data = ok(gate([
     { id: 'D1', title: 'one', constraints: [k], options: opts(['K1']) },
     { id: 'D2', title: 'two', constraints: [Object.assign({}, k)], options: opts(['K1']) }
@@ -121,7 +121,7 @@ test('the old name "needs" is read as "after"; both on one item is rejected', ()
 });
 
 test('"on.when" names options of the target; a valid one stays on the item', () => {
-  const opts = [{ value: 'ws', label: 'WS' }, { value: 'hand', label: 'Hand' }];
+  const opts = [{ value: 'ws', label: 'WS' }, { value: 'hand', label: 'Hand' }, { value: 'none', label: 'Neither', negative: true }];
   fails(gate([{ id: 'D1', title: 'd', options: opts }, { id: 'M3', title: 'm', on: { id: 'D1', when: ['zip'] } }]),
     /"M3"\.on\.when names "zip", not an option of "D1"/);
   const data = ok(gate([{ id: 'D1', title: 'd', options: opts }, { id: 'M3', title: 'm', on: { id: 'D1', when: ['ws'] } }]));

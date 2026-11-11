@@ -4,10 +4,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const vm = require('node:vm');
-const { shareGate, writeGate, render, pageData, RENDER } = require('./helpers');
+const { composedTemplate, shareGate, writeGate, render, pageData, RENDER, tmpDir } = require('./helpers');
 
 const loadEn = html => require('node:vm').runInNewContext(/\/\*CHROME-START\*\/([\s\S]*?)\/\*CHROME-END\*\//.exec(html)[1] + '\n({ CHROME_TEXT: CHROME_TEXT })').CHROME_TEXT;
-const TEMPLATE = fs.readFileSync(path.join(path.dirname(RENDER), 'template.html'), 'utf8');
+const TEMPLATE = composedTemplate();
 const A1 = { id: 'A1', title: 'Is the rate cached?', answer: 'No', source: 'src/rate.js:3', who: 'Recon' };
 const A2 = { id: 'A2', title: 'Does the mail retry?', answer: 'No, it is only logged', source: 'src/mail.js:9', who: 'Correctness', unverified: 'run the mail spec' };
 
@@ -84,7 +84,7 @@ test('the Share button refuses while a finding is left with no note', () => {
 });
 
 function presetFile(text) {
-  const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'preset-')), 'block.txt');
+  const f = path.join(tmpDir('preset-'), 'block.txt');
   fs.writeFileSync(f, text);
   return f;
 }

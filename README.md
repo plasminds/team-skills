@@ -2,7 +2,7 @@
 
 **Agent-team skills for [Claude Code](https://claude.com/claude-code).** Instead of one model giving one opinion, these skills dispatch a *team* of agents, each in its own isolated context. The agents debate with evidence, a gate kills speculative work, and **you, the human, make the final call** on a local HTML decision page. A review can be handed on from there: the owner of the branch you reviewed gets a page to decide on alone.
 
-![The gate page on a refactoring backlog, a three-pane console: the card list with rails (S5 refines S1 by a solid elbow, S1 and the others come after S0 by dashed ones), card S1 in the centre with its For and Against, and in the evidence pane its before/after code and, unfolded under How it gets done, its Step Card](docs/view.png)
+![The gate page on a refactoring backlog, in three panes: the list in story order (the cover and context rows, then the cards: S1 to S4 hang under S0 by dashed elbows, as they come after it, and S5 under S1 by a solid one, as it refines it; settled and rejected items below, the recap last), card S1 in the centre with its option rows, and the evidence pane on Approve: its For, the before/after code and, unfolded under How it gets done, its Step Card](docs/view.png)
 
 ## The skills
 
@@ -15,12 +15,12 @@
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
 | [`team-acceptance`](skills/team-acceptance/SKILL.md) | Acceptance page (recette) of a pushed branch: each case with its steps, expected result and screenshots taken on a running env, a business view and a technical one. Nothing to decide. |
-| [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page: a three-pane console: the list of cards with rails for what refines or follows what, the current card (arguments tagged Biz or Tech, your choice), and its evidence (trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner. |
+| [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page in three panes, the same for every skill: the list in story order (a cover, context rows, the cards, a recap), the current card (what's at stake, key numbers, one drawing, your choice as one row per option), and the evidence pane that follows the option shown (its for and against, trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); cards that build on another hang under it, a dashed rail for needs-it-first and a solid one for refines; what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner; `--share` writes any gate as a standalone file. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
 ## Which skill?
 
-![A review gate of the refund route in the console, the security blocker SE-1 current with the list of findings beside it, and in the evidence pane its file linked to GitHub and the fix's instructions for the coding agent](docs/review-gate.png)
+![A review gate of the refund route: the cover row and the findings in the list, the security blocker SE-1 current with Fix and Leave as option rows, and in the evidence pane, on Fix, the instructions for the coding agent and its file linked to GitHub](docs/review-gate.png)
 
 | Skill | Question | When |
 |-------|----------|------|
@@ -122,11 +122,11 @@ node skills/team-view/render.js examples/refactor-gate/invoice.gate.json --serve
 node skills/team-view/render.js examples/refactor-gate/invoice.gate.json --accept-recommended
 ```
 
-[`examples/debate-gate/`](examples/debate-gate) holds a debate gate with both lenses: constraints on cards (never on the page), an option that breaks one, the bridge, and the lens switch. D1 weighs both lenses; its evidence pane switches between Both, Biz and Tech (`l`, `b`, `t`). D2 is tech only and D3 business only, so the Filter menu can hide them.
+[`examples/debate-gate/`](examples/debate-gate) holds a debate gate told as a story (`story` puts D3 before D1): two context rows (the cover with its key numbers, and the invoices page before and after), then the questions. Each option carries its own for and against; each question has a No option worded for it; constraints sit on cards, and an option that breaks one shows a Breaks badge. The evidence pane follows the option you pick, else the recommended one; `[` `]` show another without picking it, and `e` folds the pane.
 
-![A debate gate: card D1 current with Biz and Tech marks, its arguments tagged by lens, and in the evidence pane the Both | Biz | Tech switch, its constraint, the trade-off table with the recommended row, and the option that lifts K2](docs/debate-gate.png)
+![A debate gate: card D1 current with its key number and three option rows (Build in-house recommended, Third-party service with a Breaks K2 badge, Neither: keep the manual export), and in the evidence pane, on Build in-house, its For and Against by role, its trade-off, constraint K2 holding, and the whole question's comparison table](docs/debate-gate.png)
 
-[`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send.
+[`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send. Any other kind goes as a file with `render.js <gate.json> --share`: no record path, no key legend, and a cover line saying what the reader is asked.
 
 ![The Share dialog with "A review on the merge/pull request" selected](docs/review-share.png)
 
@@ -140,9 +140,9 @@ Or hand it over as a pending review on the pull request, which you submit yourse
 node skills/team-view/render.js examples/review-gate/refund.gate.json --share --preset=examples/review-gate/refund.share.txt --review=github --head=<sha> --diff=examples/review-gate/refund.diff
 ```
 
-Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `l` / `b` / `t` switch the evidence between both lenses, Biz and Tech, `/` searches, `[` narrows or hides the list, `z` opens the full summary, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut.
+Keyboard: `←`/`→` `↑`/`↓` (or `j`/`k`) move between cards, `1`–`9` choose an option, `Tab` cycles the options, `Enter` chooses, `u` jumps to the next card to decide, `r` takes the recommended option, `n` writes a note, `[` `]` show the previous or next option in the evidence pane without choosing it, `e` folds the evidence pane, `/` searches, `a` accepts every recommendation, `s` sends (served) and `c` copies, and `?` lists every shortcut. The list folds to a rail of ids with the arrow in its header. On an acceptance page `l` switches the evidence between both lenses, Business and Technical.
 
-[`examples/acceptance/`](examples/acceptance) holds an acceptance page: `export.acceptance.json` and the page it renders, with nothing to decide (`node skills/team-view/render.js examples/acceptance/export.acceptance.json`).
+[`examples/acceptance/`](examples/acceptance) holds an acceptance page: `export.acceptance.json` and the page it renders, with nothing to decide: a cover row, then the cases in their rule sections (`node skills/team-view/render.js examples/acceptance/export.acceptance.json`).
 
 ## Changelog
 

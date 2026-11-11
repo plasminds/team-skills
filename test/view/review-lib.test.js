@@ -1,4 +1,5 @@
 const test = require('node:test');
+const { composedTemplate } = require('./helpers');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -38,6 +39,6 @@ test('buildReviewPayloads throws on an over-long body; loadReviewBuilder needs a
   const buildReview = () => ({ body: 'x'.repeat(60001), comments: [] });
   assert.throws(() => buildReviewPayloads({ page: { items: [] }, buildReview, platform: 'github', head: 'abc1234' }), /the review body is 60001 characters/);
   assert.throws(() => loadReviewBuilder('<html></html>'), /PROMPT/);
-  const tpl = fs.readFileSync(path.join(__dirname, '../../skills/team-view/template.html'), 'utf8');
+  const tpl = composedTemplate();
   assert.strictEqual(typeof loadReviewBuilder(tpl), 'function');
 });

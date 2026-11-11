@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { render, pageData } = require('./helpers');
+const { render, pageData, tmpDir } = require('./helpers');
 
 const EX = path.join(__dirname, '..', '..', 'examples');
 
@@ -13,12 +13,12 @@ function copyTo(dir, rel) {
   return to;
 }
 
-test('the refactor example renders and is not shareable', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+test('the refactor example renders and shares as a file (K13)', () => {
+  const dir = tmpDir('ex-');
   const file = copyTo(dir, 'refactor-gate/invoice.gate.json');
   fs.cpSync(path.join(EX, 'refactor-gate', 'invoice'), path.join(dir, 'invoice'), { recursive: true }); // the figures it references
   assert.strictEqual(render(file).code, 0);
-  assert.strictEqual(render(file, '--share').code, 1);
+  assert.strictEqual(render(file, '--share').code, 0);
   // Each step carries its Step Card as its brief; the tension's side that keeps the file as it is has none.
   const data = pageData(fs.readFileSync(file.replace(/\.gate\.json$/, '.html'), 'utf8'));
   data.items.filter(it => it.kind === 'decision').forEach(it => assert.match(it.brief || '', /^Do:/m, it.id + ' has no Step Card'));
@@ -28,7 +28,7 @@ test('the refactor example renders and is not shareable', () => {
 });
 
 test('the review example renders, shares, and builds a GitHub review that lists the left finding in its body', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const dir = tmpDir('ex-');
   const file = copyTo(dir, 'review-gate/refund.gate.json');
   const diff = path.join(EX, 'review-gate/refund.diff');
   const preset = path.join(EX, 'review-gate/refund.share.txt');
@@ -47,7 +47,7 @@ test('the review example renders, shares, and builds a GitHub review that lists 
 });
 
 test('the debate example shows both lenses, its constraints, and auto-accept lifts nothing', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const dir = tmpDir('ex-');
   const file = copyTo(dir, 'debate-gate/export.gate.json');
   fs.cpSync(path.join(EX, 'debate-gate', 'export'), path.join(dir, 'export'), { recursive: true }); // the outcome's sketches
   assert.strictEqual(render(file).code, 0);
@@ -64,8 +64,9 @@ test('the debate example shows both lenses, its constraints, and auto-accept lif
   assert.deepStrictEqual(byId.D3.lenses, ['business']);
   assert.strictEqual(byId.D2.lensTabs, undefined);
   assert.strictEqual(byId.D3.lensTabs, undefined);
-  assert.ok(byId.D2.for.concat(byId.D2.against).every(a => a.lens === 'tech'));
-  assert.ok(byId.D3.for.concat(byId.D3.against).every(a => a.lens === 'business'));
+  const argsOf = it => [it, ...it.options].flatMap(x => (x.for || []).concat(x.against || [])); // item-level and on the options
+  assert.ok(argsOf(byId.D2).length > 0 && argsOf(byId.D2).every(a => a.lens === 'tech'));
+  assert.ok(argsOf(byId.D3).length > 0 && argsOf(byId.D3).every(a => a.lens === 'business'));
   assert.strictEqual(byId.D4.lensTabs, undefined);
   const r = render(file, '--accept-recommended');
   assert.strictEqual(r.code, 0, r.stderr);
@@ -74,7 +75,7 @@ test('the debate example shows both lenses, its constraints, and auto-accept lif
 });
 
 test('a .ceo.json copy of an example still renders to <name>.html', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const dir = tmpDir('ex-');
   const file = path.join(dir, 'export.ceo.json');
   fs.copyFileSync(path.join(EX, 'debate-gate', 'export.gate.json'), file);
   fs.cpSync(path.join(EX, 'debate-gate', 'export'), path.join(dir, 'export'), { recursive: true });
@@ -83,7 +84,7 @@ test('a .ceo.json copy of an example still renders to <name>.html', () => {
 });
 
 test('the acceptance example renders, prints its size, and refuses to be served', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ex-'));
+  const dir = tmpDir('ex-');
   const file = copyTo(dir, 'acceptance/export.acceptance.json');
   fs.cpSync(path.join(EX, 'acceptance', 'export'), path.join(dir, 'export'), { recursive: true });
   const r = render(file);
@@ -94,4 +95,31 @@ test('the acceptance example renders, prints its size, and refuses to be served'
   assert.ok(data.items.length >= 2 && data.items.every(it => it.kind === 'case'));
   assert.ok(data.items.some(it => it.unshown), 'the example shows a case that could not be shown');
   assert.notStrictEqual(render(file, '--serve', '--no-open').code, 0);
+});
+
+test('the debate example shared as a file matches the committed export.share.html (K13)', () => {
+  const dir = tmpDir('ex-');
+  const file = copyTo(dir, 'debate-gate/export.gate.json');
+  fs.cpSync(path.join(EX, 'debate-gate', 'export'), path.join(dir, 'export'), { recursive: true });
+  const r = render(file, '--share');
+  assert.strictEqual(r.code, 0, r.stderr);
+  const fresh = fs.readFileSync(path.join(dir, 'export.share.html'), 'utf8');
+  const committed = fs.readFileSync(path.join(EX, 'debate-gate', 'export.share.html'), 'utf8');
+  assert.strictEqual(fresh, committed, 'export.share.html is stale: re-render the debate example with --share');
+  assert.strictEqual(pageData(fresh).mode, 'share');
+});
+
+test('the acceptance example lists two spec examples and one case cites E1 (D4)', () => {
+  const dir = tmpDir('ex-');
+  const file = copyTo(dir, 'acceptance/export.acceptance.json');
+  fs.cpSync(path.join(EX, 'acceptance', 'export'), path.join(dir, 'export'), { recursive: true });
+  const r = render(file);
+  assert.strictEqual(r.code, 0, r.stderr);
+  const fresh = fs.readFileSync(file.replace(/\.json$/, '.html'), 'utf8');
+  const data = pageData(fresh);
+  assert.strictEqual(data.examples.length, 2);
+  const citing = data.items.filter(it => it.example);
+  assert.strictEqual(citing.length, 1);
+  assert.strictEqual(citing[0].example, 'E1');
+  assert.strictEqual(fresh, fs.readFileSync(path.join(EX, 'acceptance', 'export.acceptance.html'), 'utf8'));
 });

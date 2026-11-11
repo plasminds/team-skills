@@ -19,7 +19,7 @@ Presents what a pushed branch does, case by case: the steps, the expected result
 
 | Agent | Type | Model | Tool budget | Receives | Writes by `templates.md` |
 |-------|------|-------|-------------|----------|--------------------------|
-| Cases | analyst | sonnet | ~25 | branch, base, MR/PR, profile, the decision record whose `## Examples` the branch implements | *Cases list* |
+| Cases | analyst | sonnet | ~25 | branch, base, MR/PR, profile, the decision record whose `## Examples` the branch implements (the cases seat reads the row ids `E<n>` from it) | *Cases list* |
 | Maker | maker | sonnet | ~60 | the checked cases list, the agreed writes, `contract.md` | the capture script, the data, the screenshots, *Acceptance page* |
 | Personal data | analyst | sonnet | ~2 per screenshot | the screenshots and the cases list's page text | *Personal-data list* |
 

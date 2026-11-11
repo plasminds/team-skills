@@ -91,12 +91,12 @@ Status: draft
 ```
 
 **REQUIRED SUB-SKILL:** use `team-view` (`kind: "kickoff"`, `source` = the kickoff record); the gate writer builds and renders the page. Map it like this:
-- `summary` (labelled bullets): *What*, *Who*, *Why*, *v1 in one line*.
+- **Context**: no `summary`. A cover context row, first, holds a one-line `title` (≤ 70 characters), *What* as its `why`, and the facts *Who*, *Why*, *v1 in one line*, one or two sentences each, never a `; `-joined list. `story` is optional: absent, context rows then cards.
 - `settled`: what the restate and the roles settled without the human.
 - **Constraints**: onto the cards they bind (`contract.md` § *Bridge fields*), never page level.
-- `outcome`: the v1 sketches from step 4.
-- **Each scope item**: a routine decision with options *In v1 / Later / Out*, and `"lens": "business"`.
-- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the roles' alternatives, with the majority's option marked and the roles' arguments in `for`/`against`. Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).
+- `outcome`: the v1 sketches from step 4, each drawn by a context row's `outcome: n`.
+- **Each scope item**: a routine decision with options *In v1 / Later / Out*, `"lens": "business"`, and an example, a mockup or states for it (`examples`, `figures`, or an `outcome` entry whose `on` names it); a scope item that cannot be drawn says why in `unillustrated`. The renderer warns on one with neither.
+- **Each direction choice with a majority** (stack, architecture, UX principles): a weighty decision whose options are the roles' alternatives, with the majority's option marked and each role's argument in the `for` or `against` of the option it directly backs or opposes (an item-level argument is refused). Each option carries its `tradeoff`, and the item its `accepts` (`bridge.md`).
 - **The initial structure**: always on the page, as a direction choice like the ones above (or a tension), so the scaffolding workflow builds a layout the human chose instead of inventing one.
 - `tensions`: direction choices with no majority, by `counting.md`. *To revisit* stays in the kickoff record, off the page.
 
