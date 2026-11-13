@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.31.2 — 2026-11-13
+
+- **Comparison table columns.** The options table no longer squeezes its number columns to one letter wide: words break only between words, numbers stay on one line, and a wide table scrolls.
+
 ## 0.31.1 — 2026-11-13
 
 - **Drawings at full size.** A card's drawing is no longer capped at 30% of the view height, which shrank tall drawings and before/after blocks; the option rows stay in view in the decide bar.

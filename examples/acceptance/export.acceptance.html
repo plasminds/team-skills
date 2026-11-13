@@ -708,7 +708,10 @@ dialog.zoom p:empty { display: none; }
 .story-page .btable tr.shown td { background: var(--cur); }
 .story-page .btable td.num { font-variant-numeric: tabular-nums; }
 .story-page .ocomp td.o { width: auto; min-width: 7em; }
-.story-page .ocomp th, .story-page .ocomp td { overflow-wrap: anywhere; }
+/* break-word, not anywhere: anywhere lets a column shrink to one letter, so long trade-off text crushes the number
+   columns; break-word keeps each column at least its longest word wide and the box scrolls instead. */
+.story-page .ocomp th, .story-page .ocomp td { overflow-wrap: break-word; }
+.story-page .ocomp td.num { white-space: nowrap; }
 .story-page .ev-scroll > .accfoot { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--edge); border-radius: 10px; background: var(--foot); }
 /* The evidence pane folds like the list: closed, a slim rail on the right; with nothing to show (body.ev-none) it is gone and
    the card takes its width. Desktop and tablet only: on a phone the Evidence tab shows it. */
