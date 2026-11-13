@@ -31,6 +31,9 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Examples
 [Copied from the decision record's `## Examples`, each row with its record id `E<n>` as its row id (a record with no ids: its decision id and a running number). Each row is the failing test of the step that implements it, which names the row by that id. "None" when the record has none]
 
+## Review Focus
+[Up to five inputs or states no *Examples* row names that are most likely to break what the plan builds (an empty list, a missing field, a second call, a value at the limit), from the CTO's review: each with the step whose failing test pins it. "None" when the steps take no outside input]
+
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>][, one-way: <what a revert would not undo> (`execution.md` § *One-way changes*)]
 2. ...
@@ -48,12 +51,12 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Verification
 [How we confirm each step and the whole works]
 - After the final review, offer `team-review` on the executed diff (own branch); its intent is this plan and the decision record
-- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, no check weakened: [every item of `team-protocol` § *Weakened checks*, written out: the executing session may not load team-protocol]
+- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no check weakened: [every item of `team-protocol` § *Weakened checks*, written out: the executing session may not load team-protocol]
 ```
 
 ## Review (reviewers)
 
-- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*; no step breaks a `tech` constraint of *Constraints*.
+- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*; no step breaks a `tech` constraint of *Constraints*; proposes the *Review Focus* lines: the inputs and states no *Examples* row names that would most likely break the result, each given to the step whose failing test pins it.
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped; no step breaks a `business` constraint or exceeds an accepted trade-off (e.g. a second duplicated pipeline where one was accepted).
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).

@@ -163,6 +163,12 @@ On red: revert your fix, report why, go on with your next card.
 
 Executors run the cards in order. For each: write the test, run it and see it fail, fix, see it pass, run *Verify*, commit test and fix together. A test that passes before the fix means the scenario does not reproduce: don't fix, reply `blocked — does not reproduce`. Two exceptions, named in the card's *Test first*: a *tests* finding, where the test is the fix and may pass at once (`Commit: test(<scope>): …`); a finding with no behavior to pin (a rename, a type annotation), `Test first: none — <why>`, where *Verify* carries the type check. A card from an intake (`HO`) whose *Fix* names a refactor's pinning test: *Test first* changes that test's expected value to the fixed behavior and shows it red, and the card names the test, so the change is announced (`team-protocol` § *Weakened checks*). When the repo's commit convention differs from the `Commit:` line, use the repo's. Reply with one line per finding: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
 
+## Execution (orchestrator)
+
+By `team-protocol` § *Execution*. The steps are the Fix cards; each executor (sonnet) gets its batch's Fix cards and the exec brief's header. Each fix goes test-first by § *Fix card*, one commit per finding; the executor replies one line per finding: the commit hash, `blocked — <reason>` or `stopped — <the diff guard's hit>`. After each batch, run the exec brief's quality gates: red → `git revert` that fix's commit yourself (a revert is not a patch), report it, and go on with the next batch.
+
+Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their finding's commit (`team-protocol` § *Execution*), each with the Fix card it names. Complete the record (`team-protocol` § *Writers*); its *Notes* count as *Not raised* lines for the next review. Delete the exec brief, the run folder and the author's note. Every later Recon reads this record (`team-protocol` § *Code scope*): an audit's known debt is not reopened.
+
 ## Final review (reviewer)
 
 Rerun the quality gates from the exec brief's header, then read the full diff against the exec brief:

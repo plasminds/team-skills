@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.31.0 — 2026-11-13
+
+- **Review Focus.** A plan lists up to five inputs or states no example names that are most likely to break it, each pinned by its step's failing test; the CTO reviewer proposes them and the final review checks them.
+- **Second fixup on opus.** After a failed re-check, the second fixup runs on opus.
+- **Skill size.** A test keeps every SKILL.md under 20,000 bytes, the size Claude Code re-attaches whole after a compaction. team-review's execution moved to its `templates.md`, test-first by its Fix card alone, no TDD skill named.
+
 ## 0.30.1 — 2026-11-13
 
 - **How they fit.** The diagram shows team-doubt, run by team-plan on a one-way step, with no gate.

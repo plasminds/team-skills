@@ -124,11 +124,7 @@ A separate synthesizer agent writes the review by `templates.md` § *Synthesis*:
 
 **Own branch, audit.** Read the decisions block (team-view steps 4–5), or on an auto-accept run, the synthesis (`team-protocol` § *Auto-accept*). The record writer writes the record and the exec brief. When the page returns a share block instead of a decisions block, proceed as for someone else's branch: follow team-view's *Share*; the record writer records `Status: shared`; no exec brief, no execution. Otherwise hand off (`team-protocol` § *Handoff*), whatever the number of fixes, with the prompt `execute the review fixes in <exec brief path>`.
 
-**Execute** by `team-protocol` § *Execution*, from the exec brief, on a clean tree. The steps are the Fix cards; each executor (sonnet) gets its batch's Fix cards and the exec brief's header. Each fix goes test-first (`superpowers:test-driven-development`, or the profile's TDD skill when it lists one), one commit per finding; the executor replies one line per finding: the commit hash, `blocked — <reason>` or `stopped — <the diff guard's hit>`. After each batch, run the exec brief's quality gates: red → `git revert` that fix's commit yourself (a revert is not a patch), report it, and go on with the next batch.
-
-Last, the final reviewer runs § *Final review*. Its `fix` findings go to fresh executors as `fixup!` commits of their finding's commit (`team-protocol` § *Execution*), each with the Fix card it names. Complete the record (`team-protocol` § *Writers*); its *Notes* count as *Not raised* lines for the next review. Delete the exec brief, the run folder and the author's note. Every later Recon reads this record (`team-protocol` § *Code scope*): an audit's known debt is not reopened.
-
-Then name the next step. In a sweep, its next command (`team-protocol` § *Sweep*). Otherwise, when the record's *For team-refactor* list is not empty, hand off (`team-protocol` § *Handoff*) with the prompt `team-refactor the For team-refactor lines of <record path>` (team-refactor § *Intake*); when it is empty, say so in one line.
+**Execute** by `templates.md` § *Execution*, from the exec brief, on a clean tree, then name the next step. In a sweep, its next command (`team-protocol` § *Sweep*). Otherwise, when the record's *For team-refactor* list is not empty, hand off (`team-protocol` § *Handoff*) with the prompt `team-refactor the For team-refactor lines of <record path>` (team-refactor § *Intake*); when it is empty, say so in one line.
 
 ## Intake
 
