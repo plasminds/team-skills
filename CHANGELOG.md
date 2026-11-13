@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.31.1 — 2026-11-13
+
+- **Drawings at full size.** A card's drawing is no longer capped at 30% of the view height, which shrank tall drawings and before/after blocks; the option rows stay in view in the decide bar.
+
 ## 0.31.0 — 2026-11-13
 
 - **Review Focus.** A plan lists up to five inputs or states no example names that are most likely to break it, each pinned by its step's failing test; the CTO reviewer proposes them and the final review checks them.

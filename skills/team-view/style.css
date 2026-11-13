@@ -595,9 +595,10 @@ dialog.zoom p:empty { display: none; }
 .story-page .kbef { font-size: .55em; font-weight: 600; letter-spacing: 0; color: var(--ink-2); }
 .story-page .karr { font-size: .55em; font-weight: 600; color: var(--ink-3); }
 .story-page .kl { max-width: 30ch; font-size: 15px; line-height: 1.35; color: var(--ink-2); }
-/* The drawing, centred, capped so the option rows stay in a 1440 by 900 view. */
+/* The drawing at its own size, never capped in height: the option rows sit in the decide bar below the scroll, always in
+   view, and a height cap would only shrink the drawing's text. */
 .story-page .sdraw .figure, .story-page .sdraw .shots figure { margin: 0; }
-.story-page .sdraw img, .story-page .sdraw svg { max-height: 30vh; max-width: 100%; object-fit: contain; margin-left: 0; margin-right: auto; }
+.story-page .sdraw img, .story-page .sdraw svg { max-width: 100%; object-fit: contain; margin-left: 0; margin-right: auto; }
 .story-page .sdraw .shots { justify-items: start; }
 .story-page .sdraw .shots img { width: auto; }
 /* Arguments: the words For and Against say the side; the + and − glyphs take the For and Against hues (blue and copper,
