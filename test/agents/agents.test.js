@@ -14,7 +14,7 @@ const AGENTS = {
   'team-maker': { model: 'sonnet', disallowed: ['Agent'] },
 };
 const TYPES = ['analyst', 'judge', 'maker'];
-const CALLERS = ['team-debate', 'team-plan', 'team-review', 'team-refactor', 'team-acceptance'];
+const CALLERS = ['team-debate', 'team-plan', 'team-review', 'team-refactor', 'team-acceptance', 'team-doubt'];
 
 // Flat `key: value` frontmatter; surrounding double quotes are dropped.
 function frontmatter(text) {

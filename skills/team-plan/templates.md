@@ -32,7 +32,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Copied from the decision record's `## Examples`, each row with its record id `E<n>` as its row id (a record with no ids: its decision id and a running number). Each row is the failing test of the step that implements it, which names the row by that id. "None" when the record has none]
 
 ## Steps
-1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>]
+1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>][, one-way: <what a revert would not undo> (`execution.md` § *One-way changes*)]
 2. ...
 
 ## Execution economy
@@ -40,6 +40,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 - Batches: [the batch rule of `team-protocol` § *Execution*, written out in full, or the project's own], one commit per step
 - Reviews: the *Verification* commands after each batch, opus for the final whole-branch review; a red batch or a `fix` finding goes to a fresh executor, never a resumed one; fixups re-checked by `team-protocol` § *Execution*
 - Diff guard: [the commands of `team-protocol` § *Code scope*, filled in for this project; each executor runs them on its staged change before each commit]
+- One-way steps: [their numbers, or "none"]; each gets `team-doubt` once its batch is green, before the next batch (team-plan § *Execution*)
 
 ## Risks & Mitigations
 [From CTO/PO review]

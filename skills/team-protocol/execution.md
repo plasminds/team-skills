@@ -45,3 +45,7 @@ A change weakens a check when it brings any of these:
 - a stub or an empty `catch` where the work should be.
 
 A caller writes "no check weakened (`team-protocol` § *Weakened checks*)" and adds its own items. A final reviewer fails a diff that holds one.
+
+## One-way changes
+
+A change is one-way when reverting its commit does not undo it: it changes a contract others rely on (a public API, an event, a file format, a URL), migrates or deletes data, moves money or sends messages. It is team-debate's depth test, applied to a commit. team-plan doubts a one-way step before going on (`team-doubt`); team-review asks how each one is undone.

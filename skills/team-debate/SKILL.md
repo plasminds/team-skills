@@ -1,6 +1,6 @@
 ---
 name: team-debate
-description: 'Use before the code exists, to debate a decision point that deserves more than one perspective: choosing between approaches, an architecture, an "are we sure?" before implementing. Also when the user asks for the council, a debate, or a PO, CTO or UX view on a choice. Not for reviewing code that exists: team-review (is it right?) or team-refactor (is it well-shaped?).'
+description: 'Use before the code exists, to debate a decision point that deserves more than one perspective: choosing between approaches, an architecture, an "are we sure?" before implementing. Also when the user asks for the council, a debate, or a PO, CTO or UX view on a choice. Not for code that exists: team-review (is it right?), team-refactor (is it well-shaped?) or team-doubt (does this one claim hold?).'
 ---
 
 # team-debate

@@ -37,6 +37,11 @@
     { "skill": "team-review", "prompt": "Look for swallowed errors and missing tests in this branch" },
     { "skill": "team-review", "prompt": "Sweep the phase-12 branch: review every zone, refactor only where it's needed." },
 
+    { "skill": "team-doubt", "prompt": "Are we sure this refund handler is idempotent before I merge?" },
+    { "skill": "team-doubt", "prompt": "Double-check that this migration is reversible" },
+    { "skill": "team-doubt", "prompt": "Prove me wrong: this cache is thread-safe" },
+    { "skill": "team-doubt", "prompt": "Does the fix really cover every caller of parseDate?" },
+
     { "skill": "team-acceptance", "prompt": "Make a cahier de recette for the invoice branch" },
     { "skill": "team-acceptance", "prompt": "Take screenshots of what this branch does in the app, case by case" },
     { "skill": "team-acceptance", "prompt": "Build an acceptance page for the pushed branch" },

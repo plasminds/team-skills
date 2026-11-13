@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.30.0 — 2026-11-13
+
+- **team-doubt.** One claim about existing code goes to one fresh agent that gets the code, the contract and the facts the code does not show, never the author's reasoning, and tries to break it. A fix is doubted again by a new agent, up to three rounds. Answer in chat; no run folder, page or record.
+- **One-way changes.** A change that reverting its commit does not undo (a public contract, data, money, messages) is defined once in `execution.md`. team-plan marks such a step and runs team-doubt on it before the next batch. team-review's brief lists each with its way back; the Correctness seat cards one with none, and the record keeps a *One-way* line.
+- **Descriptions.** team-debate's sends a claim about existing code to team-doubt; team-review's names the sweep.
+
 ## 0.29.2 — 2026-11-13
 
 - **Routing check.** A test ranks every skill's description against sample prompts, superpowers' skills included; each prompt must reach its own skill first. CI runs the whole suite on push and pull request.
