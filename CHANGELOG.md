@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.30.1 — 2026-11-13
+
+- **How they fit.** The diagram shows team-doubt, run by team-plan on a one-way step, with no gate.
+
 ## 0.30.0 — 2026-11-13
 
 - **team-doubt.** One claim about existing code goes to one fresh agent that gets the code, the contract and the facts the code does not show, never the author's reasoning, and tries to break it. A fix is doubted again by a new agent, up to three rounds. Answer in chat; no run folder, page or record.

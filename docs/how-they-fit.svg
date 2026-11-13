@@ -60,20 +60,24 @@
   <path class="head" d="M236 421 L244 426 L236 431 Z"/>
   <path class="wire" d="M404 438 H672"/>
   <path class="head" d="M672 433 L680 438 L672 443 Z"/>
-  <!-- dashed: refactor <-> review hand-off, plan -> review -->
+  <!-- dashed: refactor <-> review hand-off, plan -> review, plan -> doubt -->
   <path class="dash" d="M364 276 V304"/>
   <path class="head" d="M359 304 L364 312 L369 304 Z"/>
   <path class="dash" d="M284 312 V284"/>
   <path class="head" d="M279 284 L284 276 L289 284 Z"/>
-  <path class="dash" d="M524 188 V246 A4 4 0 0 1 524 254 V318 Q524 326 516 326 H412"/>
+  <path class="dash" d="M464 188 V246 A4 4 0 0 1 464 254 V318 Q464 326 456 326 H412"/>
   <path class="head" d="M412 321 L404 326 L412 331 Z"/>
+  <path class="dash" d="M556 188 V246 A4 4 0 0 1 556 254 V264"/>
+  <path class="head" d="M551 264 L556 272 L561 264 Z"/>
   <text class="sub" x="372" y="291">suspected bugs</text>
   <text class="sub" x="372" y="305">→ intake</text>
   <text class="sub" x="292" y="291">structure</text>
   <text class="sub" x="292" y="305">→ intake</text>
   <text x="228" y="476" class="sub"><tspan class="mono">sweep</tspan> · review → refactor where asked → intake review</text>
-  <text class="sub" x="516" y="214" text-anchor="end">offered after</text>
-  <text class="sub" x="516" y="228" text-anchor="end">execution</text>
+  <text class="sub" x="472" y="214">offered after</text>
+  <text class="sub" x="472" y="228">execution</text>
+  <text class="sub" x="564" y="214">one-way</text>
+  <text class="sub" x="564" y="228">step</text>
   <text class="sub" x="624" y="344" text-anchor="end">Share → owner</text>
   <text class="sub" x="624" y="432" text-anchor="end">page · nothing to decide</text>
 
@@ -101,6 +105,10 @@
   <rect class="box" x="244" y="312" width="160" height="52" rx="6"/>
   <text class="name" x="324" y="334" text-anchor="middle">team-review</text>
   <text class="sub" x="324" y="352" text-anchor="middle">panel → verified findings</text>
+
+  <rect class="box" x="488" y="272" width="136" height="52" rx="6"/>
+  <text class="name" x="556" y="294" text-anchor="middle">team-doubt</text>
+  <text class="sub" x="556" y="312" text-anchor="middle">one claim → verdict</text>
 
   <rect class="box" x="244" y="400" width="160" height="52" rx="6"/>
   <text class="name" x="324" y="422" text-anchor="middle">team-acceptance</text>
