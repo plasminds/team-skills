@@ -1,6 +1,6 @@
 ---
 name: team-review
-description: "Use when a change needs reviewing before it merges — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge, and in the session that wrote a change, to leave its author's note for the review panel (a file under .council/, not the merge request's description or a comment on it). Not for restructuring code that works: team-refactor."
+description: "Use when a change needs reviewing before it is approved or merged — a merge or pull request, a branch (yours or a colleague's), or an audit of a path or module for bugs, security holes, swallowed errors, missing tests, slow paths or a gap with what was asked. Also when the user asks for a code review, a security review, or whether a branch is ready to merge, and in the session that wrote a change, to leave its author's note for the review panel (a file under .council/, not the merge request's description or a comment on it). Not for restructuring code that works: team-refactor."
 ---
 
 # team-review

@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.29.2 — 2026-11-13
+
+- **Routing check.** A test ranks every skill's description against sample prompts, superpowers' skills included; each prompt must reach its own skill first. CI runs the whole suite on push and pull request.
+- **Descriptions.** team-debate's says "to debate a decision point"; team-review's says "before it is approved or merged".
+
 ## 0.29.1 — 2026-11-12
 
 - **Sides on a decision refused.** A decision carrying `sides` is refused: its choices fell back to Approve and Decline. Write each side as an option, or make it a tension.

@@ -1,0 +1,53 @@
+{
+  "companions": {
+    "_source": "superpowers 7.0.2 SKILL.md descriptions, copied 2026-11-13; the companions the README names. Update when a new version changes one.",
+    "superpowers:brainstorming": "You MUST use this before any creative work - creating features, building components, adding functionality, modifying behavior, or planning anything new, in software or out of it (a talk, a business, a renovation).",
+    "superpowers:writing-plans": "Use when you have a spec or requirements for a multi-step task, before touching code",
+    "superpowers:executing-plans": "Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available",
+    "superpowers:requesting-code-review": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
+    "superpowers:verification-before-completion": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
+    "superpowers:systematic-debugging": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes"
+  },
+  "cases": [
+    { "skill": "team-scan", "prompt": "Scan this project for the debate." },
+    { "skill": "team-scan", "prompt": "Write the project profile before we run the council" },
+    { "skill": "team-scan", "prompt": "The stack changed since the profile was written, rescan it" },
+
+    { "skill": "team-debate", "prompt": "Run the debate: should we move from REST to tRPC?" },
+    { "skill": "team-debate", "prompt": "Should we pick Postgres or DynamoDB for the event store? I want the CTO and UX view" },
+    { "skill": "team-debate", "prompt": "Convene the council on whether to split the monolith" },
+    { "skill": "team-debate", "prompt": "Before implementing, are we sure about this architecture?" },
+
+    { "skill": "team-plan", "prompt": "Plan the debate's decision." },
+    { "skill": "team-plan", "prompt": "The decision is recorded under .council/decisions, now plan how to carry it out" },
+    { "skill": "team-plan", "prompt": "Execute the plan this skill wrote for the billing decision" },
+
+    { "skill": "team-kickoff", "prompt": "Start a brand-new project in this empty directory: vision, scope, stack" },
+    { "skill": "team-kickoff", "prompt": "Kick off a new project; I want several perspectives before the first line of code" },
+
+    { "skill": "team-refactor", "prompt": "Refactor src/billing — it's a god function nobody wants to touch." },
+    { "skill": "team-refactor", "prompt": "Clean up this legacy module, it has no tests and too much duplication" },
+    { "skill": "team-refactor", "prompt": "What would Uncle Bob say about this class? Apply SOLID" },
+    { "skill": "team-refactor", "prompt": "This code is over-engineered, cut it down, YAGNI" },
+
+    { "skill": "team-review", "prompt": "Review !142 before I approve it." },
+    { "skill": "team-review", "prompt": "Review my branch before I open the MR." },
+    { "skill": "team-review", "prompt": "Audit src/auth for security." },
+    { "skill": "team-review", "prompt": "Is this pull request ready to merge?" },
+    { "skill": "team-review", "prompt": "Look for swallowed errors and missing tests in this branch" },
+    { "skill": "team-review", "prompt": "Sweep the phase-12 branch: review every zone, refactor only where it's needed." },
+
+    { "skill": "team-acceptance", "prompt": "Make a cahier de recette for the invoice branch" },
+    { "skill": "team-acceptance", "prompt": "Take screenshots of what this branch does in the app, case by case" },
+    { "skill": "team-acceptance", "prompt": "Build an acceptance page for the pushed branch" },
+
+    { "skill": "team-view", "prompt": "Show me the backlog as an HTML page in the browser" },
+    { "skill": "team-view", "prompt": "Share the review gate with the owner of the branch" },
+    { "skill": "team-view", "prompt": "I want a visual view of the plan to approve it" },
+
+    { "skill": "superpowers:brainstorming", "prompt": "Let's brainstorm a new onboarding feature" },
+    { "skill": "superpowers:writing-plans", "prompt": "Write an implementation plan for this spec" },
+    { "skill": "superpowers:systematic-debugging", "prompt": "The tests fail with a null pointer, find the bug" },
+    { "skill": "superpowers:verification-before-completion", "prompt": "I'm done, confirm everything passes before I commit" }
+  ]
+}
