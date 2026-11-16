@@ -30,7 +30,7 @@ Role review (parallel): CTO (technical soundness, sequencing, risk) + system ske
         ↓
 Reconcile review feedback → revised plan
         ↓
-Reachability: every `unverified` premise checked; unreachable risks → Settled
+Reachability: every case the plan handles beyond Examples, and every `unverified` premise, checked; unreachable ones leave the plan → Settled
         ↓
 Write draft to <Plan location>/YYYY-MM-DD-<topic>.md (profile's Run preferences)
         ↓
@@ -66,7 +66,7 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 | Agent | Type | Model | Tool budget |
 |-------|------|-------|-------------|
 | Evidence pass, spike | analyst | sonnet (opus for a design spike) | ~20 |
-| Reachability check | analyst | sonnet | ~10 |
+| Reachability check | analyst | sonnet | ~20 |
 | Keystone writer | maker | opus | ~30 |
 | Other writers | maker | sonnet | ~25 |
 | Fixers (review defects, the human's rulings) | maker | sonnet | ~20 |
@@ -77,7 +77,7 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 ### 4. Reconcile
 Fold review feedback into a revised plan. One fixer per round takes every defect at once and writes the amendment's line under `## Plan gate` in the decision record. Its brief adds: "Add nothing unasked; list your own additions first." Before the approval pass, one consolidation pass deletes superseded rules and their references. Where a reviewer's concern conflicts with the debate's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*).
 
-Before the gate writer, check every `unverified` premise in the review files by `reachability.md` § *Reachability check* (agent id `reach`); the gate writer gets its file.
+Before the gate writer, the `reach` agent (`reachability.md` § *Reachability check*) checks every `unverified` premise in the review files and, whether marked or not, every case the revised plan handles that no *Examples* row names: each *Review Focus* line, each risk, each guard, branch or test row a step adds for a case. A reviewer who cites where a case would break has not shown it occurs, and leaves no marker; so the check reads the plan, not the markers. A case it finds unreachable or only the data can tell: one fixer takes them all out of the steps, the code and its test, before the gate writer. The gate writer gets `reach.md`.
 
 ### 5. Approve & write
 The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top.
@@ -103,7 +103,7 @@ Rules of this skill's own, on top of `team-protocol` § *Execution*:
 2. The executor writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
 3. After each batch, run the *Verification* commands yourself. Red → one fresh executor gets the failure output, the batch's steps and their commits, and fixes it as a `fixup!` of the step at fault. Still red → stop and ask the human. Never resume the batch's executor.
 4. A step marked `one-way`, once its batch is green: run `team-doubt` on it before the next batch. The step's sentence is the claim, its commit's diff the artifact, the plan's *Outcome* and *Constraints* the contract. A confirmed break goes to a fresh executor as a `fixup!` of that step, and team-doubt checks the fix; a break still confirmed after its third round → stop and ask the human.
-5. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
+5. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no test that fabricates its state (`team-protocol` § *Execution*), no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
 
@@ -122,6 +122,8 @@ The shared ones are in `team-protocol`. These are the planner's own.
 | "It's approved, I'll start executing here" | Execution starts from the plan file, in a fresh session. |
 | "The profile lists superpowers' execution skill, I'll use it" | Only when the human names it. Otherwise `team-protocol` § *Execution*: a fresh agent per batch and per fix, never a resumed one. |
 | "The plan's header says REQUIRED SUB-SKILL: subagent-driven-development" | That line comes from the planning skill's format, not from the human. Execute by *Execution*. |
+| "No path reaches this guard, but keep it, just in case" | A guard no path reaches is dead code, tested only by a state the test fabricates. Don't write it; handle the case when a path appears. |
+| "Parity with the domain's guard: copy its predicate" | Each term stays only if some reachable state makes it alone false (`reachability.md`). |
 
 ## Red Flags
 
@@ -134,4 +136,6 @@ The shared ones are in `team-protocol`. These are the planner's own.
 - An accepted trade-off overridden without a note
 - A step that exceeds an accepted trade-off (a second copy where one was accepted)
 - A step that breaks a constraint of the plan's *Constraints* with no gate decision
+- A step, *Review Focus* line or risk that handles a case with no *Examples* id and no path that produces it, or one the plan says is never reached
+- A `reach` check that read only the `unverified` markers
 - Code written during planning

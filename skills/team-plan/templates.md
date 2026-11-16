@@ -6,7 +6,7 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 ## Plan (writers)
 
-Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. A format's line that names its own execution skill (superpowers' "REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development …") becomes `Execute with: team-plan § Execution`. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the human sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Each step does its layer's job the way the profile's `## Layer practices` says, unless *Structure* names the departure. A claim about how a value is stored quotes its declaration (`reachability.md` § *Today's rules are in the code*). Use the project's plan format if one exists; otherwise:
+Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. A format's line that names its own execution skill (superpowers' "REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development …") becomes `Execute with: team-plan § Execution`. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the human sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Each step does its layer's job the way the profile's `## Layer practices` says, unless *Structure* names the departure. A claim about how a value is stored quotes its declaration (`reachability.md` § *Today's rules are in the code*). A step handles only states today's code produces: each guard, branch or test row for a case names an *Examples* id or the use case or screen that produces the case (`file:line`); a case the plan finds no path reaches is not written, not even as a defensive guard. Use the project's plan format if one exists; otherwise:
 
 ```markdown
 # Plan — {topic}
@@ -32,7 +32,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Copied from the decision record's `## Examples`, each row with its record id `E<n>` as its row id (a record with no ids: its decision id and a running number). Each row is the failing test of the step that implements it, which names the row by that id. "None" when the record has none]
 
 ## Review Focus
-[Up to five inputs or states no *Examples* row names that are most likely to break what the plan builds (an empty list, a missing field, a second call, a value at the limit), from the CTO's review: each with the step whose failing test pins it. "None" when the steps take no outside input]
+[Up to five inputs or states today's code produces, that no *Examples* row names and that are most likely to break what the plan builds (an empty list, a missing field, a second call, a value at the limit), from the CTO's review: each with the use case or screen that produces it (`file:line`) and the step whose failing test pins it. A state no path produces is no line; fewer than five is fine. "None" when no such state exists]
 
 ## Steps
 1. [Concrete, verifiable step] — Size: S|M|L[, design-heavy: <reason>][, one-way: <what a revert would not undo> (`execution.md` § *One-way changes*)]
@@ -51,23 +51,23 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 ## Verification
 [How we confirm each step and the whole works]
 - After the final review, offer `team-review` on the executed diff (own branch); its intent is this plan and the decision record
-- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no check weakened: [every item of `team-protocol` § *Weakened checks*, written out: the executing session may not load team-protocol]
+- Final whole-branch review (opus): nothing smuggled in or dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no test that fabricates its state (`team-protocol` § *Execution*), no check weakened: [every item of `team-protocol` § *Weakened checks*, written out: the executing session may not load team-protocol]
 ```
 
 ## Review (reviewers)
 
-- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*, a departure from the profile's `## Layer practices` included: a step whose data access, entry point, presenter or tests depart from their layer's line without one is a defect, and so is a departure whose stated limit holds only for the shape picked; no step breaks a `tech` constraint of *Constraints*; proposes the *Review Focus* lines: the inputs and states no *Examples* row names that would most likely break the result, each given to the step whose failing test pins it.
+- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*, a departure from the profile's `## Layer practices` included: a step whose data access, entry point, presenter or tests depart from their layer's line without one is a defect, and so is a departure whose stated limit holds only for the shape picked; no step breaks a `tech` constraint of *Constraints*; proposes the *Review Focus* lines: the inputs and states today's code produces, each with the use case or screen that produces it (`file:line`), that no *Examples* row names and that would most likely break the result, each given to the step whose failing test pins it.
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped; no step breaks a `business` constraint or exceeds an accepted trade-off (e.g. a second duplicated pipeline where one was accepted).
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).
 
-Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case first names the path that reaches it in today's code (`team-protocol` § *Agent contract*); a case the code excludes is no defect. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
+Cite evidence and flag concrete plan defects, not vibes. The CTO greps the existing tests before raising a test risk. A defect that depends on a case first names the path that reaches it in today's code (`team-protocol` § *Agent contract*): the use case or screen that produces the case, never the line where the case would break; a case the code excludes is no defect. A defect that depends on a case in the data carries evidence the case occurs; without it the card reads "occurrence unknown" and offers no rework.
 
 **Outcome sketches.** The CTO draws the `system` view: the architecture or workflow the plan delivers, and the same diagram for today. UX draws the `ui` view: a wireframe of the target screen, and a screenshot of today's screen when the app runs (a sketch of it otherwise). Each writes SVG files to `.council/gates/YYYY-MM-DD-<topic>/` (`system-before.svg`, `system-after.svg`, `ui-before.png|svg`, `ui-after.svg`), following *Outcome* in `team-view`'s `contract.md` and `figures.md` (copies in the run folder). A reviewer who cannot draw the result reports that as a plan defect: the plan doesn't say what it builds.
 
 ## Gate page (gate writer)
 
-Build the page (`kind: "plan"`, `source` = the draft plan) by `team-view`'s `contract.md`, with the reachability file (`reach.md`): a risk it found unreachable goes to `settled` as `moot`, with its guard.
+Build the page (`kind: "plan"`, `source` = the draft plan) by `team-view`'s `contract.md`, with the reachability file (`reach.md`): a case it found unreachable goes to `settled` as `moot`, with its guard; a case only the data can tell is a decision, *leave it unhandled* (`recommended`) or *handle it*, with the query in its `detail`.
 - **Context**: no `summary`. A cover context row, first, holds a one-line `title` (≤ 70 characters), the *Goal* as its `why`, and a *Shape of the plan* fact; *Accepted trade-offs* becomes its own context row, one fact per trade-off labelled by its topic in 1-3 words. Facts are one or two sentences each, at most 4 per row, never a `; `-joined list. `story` is optional: absent, the page shows the context rows, then the cards.
 - `outcome`: the reviewers' sketches in `.council/gates/YYYY-MM-DD-<topic>/`, `system` and/or `ui`, each with `before` and `after`. Each entry is drawn by a context row's `outcome: n`; a sketch no row names warns.
 - No page `constraints`: the plan's *Constraints* go onto each card they bind (`contract.md` § *Bridge fields*).

@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.33.0 — 2026-11-16
+
+- **Only states the app produces.** A plan handles a case only when a use case or screen produces it today. team-plan's reachability check reads every case the plan handles, not only the reviewers' `unverified` markers, and takes the unreachable ones out of the steps. A case only the data can tell is left unhandled unless the human picks otherwise.
+- **No fabricated states.** An executor whose test would need a raw SQL write or an impossible Mock stops and asks; the final review fails such a test.
+
 ## 0.32.0 — 2026-11-16
 
 - **Layer practices.** team-scan writes how most files of each layer do its job, counted, with an example file. Departing from one is a structural choice the human makes, seeing what the practice cannot do; team-plan's CTO review and team-review's Craft seat check it.
