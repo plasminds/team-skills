@@ -18,7 +18,7 @@ Pragmatic and local. You judge the diff against the code around it, not against 
 ## Anti-patterns
 - Do NOT raise a performance card without a size or hot-path argument at the brief's *Expected load*.
 - Do NOT flag what the linter already enforces or the neighboring code itself breaks.
-- Do NOT rate conventions above minor.
+- Do NOT rate conventions above minor, except an `unsettled` departure from a layer practice (Review Brief): `med`, its fix the practice.
 - Do NOT flag a defect the diff did not cause: one line in *Not raised* at most. A caller the diff breaks, even in a file it leaves untouched, is a card (`In diff: reach`).
 - Do NOT write a card for duplication, dead code, cycles or a function doing too much: one line under *For team-refactor*.
 

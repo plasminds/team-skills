@@ -71,7 +71,7 @@ How business and tech meet on one decision is set by `bridge.md` (copied to the 
 
 ## Structural choices
 
-A structural choice is any of: a new package or module, a new layer, a dependency direction or import rule, a public contract other code builds on, a folder convention. Each is expensive to undo, so the human makes it as a choice between options, with a recommendation. A writer never settles one, and an `approve` on a routine step that happens to create one is not that choice. The caller says where its structural choices reach the human. A settled one that later work could break also becomes a constraint (`bridge.md` § *Structural choices and constraints*). A choice the user sees (a screen's layout or placement, wording, a flow) is the human's in the same way. A spike answers a fact; it never settles one of these.
+A structural choice is any of: a new package or module, a new layer, a dependency direction or import rule, a public contract other code builds on, a folder convention, a departure from a layer practice (`bridge.md` § *Departures*). Each is expensive to undo, so the human picks it among options, with a recommendation. A writer never settles one; an `approve` on a routine step that creates one is not that choice. The caller says where its structural choices reach the human. A settled one that later work could break also becomes a constraint (`bridge.md` § *Structural choices and constraints*). A choice the user sees (a screen's layout, wording, a flow) is the human's in the same way. A spike answers a fact; it never settles one.
 
 ## Settled without the human
 

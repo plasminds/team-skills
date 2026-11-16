@@ -6,6 +6,8 @@ For team-debate and team-plan, whose cards rest on what the code does today. A c
 
 What the system allows, blocks or guarantees today is what its guards enforce, even when it takes several modules to see it. "Can this case happen?" or "what stops X?" is answered from the code, never asked of the human. The human answers what should change, and what the code can't hold: intent, contracts outside it, the data's history.
 
+How a value is stored (a column's type, a date's format, a payload's shape) is quoted from the declaration the store reads (the column mapping, the schema, the migration), never from the language type of the field that holds it.
+
 ## Lifecycle map
 
 When a decision touches an entity with states (a status enum, a flag that gates actions), the evidence pass maps it in its file, before any role sits:

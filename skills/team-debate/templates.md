@@ -27,7 +27,9 @@ holds it, then the PO's suggested side and why]
 ### Structural choices
 [Every one the roles named (`team-protocol` § *Structural choices*): a settled
 one points to the Majority Call or consensus point that settles it; the others
-say "left to the plan" and why they can wait. "None" when the direction makes none]
+say "left to the plan" and why they can wait. "None" when the direction makes none.
+A line that says what a part avoids ("without loading the aggregates") also says
+how it does its job: the layer's practice, or the departure and who picked it]
 
 ### Settled
 [Question → answer — source — who, for each item settled without the human]

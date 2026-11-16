@@ -33,3 +33,7 @@ A trade-off is a cost knowingly taken on. It is neither a tension (a question wi
 ## Structural choices and constraints
 
 Only choices whose breach cannot be repaired inside the plan become K. A settled structural choice (`team-protocol` § *Structural choices*) that later work could break becomes a `tech` constraint, `confirmed`: a dependency direction or import rule, a public contract, a folder convention. Its source is where the human settled it: the debate gate (`<record path>, D<n>`) or the plan's *Structure* (`<plan path>, Structure`). A new package, module or layer is a decision, not a constraint: it stays in the plan's *Structure*, and only the rules it comes with become constraints. The record holds the constraints table once.
+
+## Departures
+
+The profile's `## Layer practices` (`team-scan`) says how most files of each layer do its job. Doing it another way is a structural choice (`team-protocol` § *Structural choices*), never an implementation detail a writer picks. Its options are the practice and the departure. The departure's case names what the practice cannot do here, with its evidence (`file:line`, a doc, an output). A limit that holds only for the shape already picked ("a pair has no entity", when its rows live in one) is not one. With none, the recommendation is the practice. A profile without the section: the evidence pass or Recon counts the layers it needs by `team-scan` § *What to detect* item 12.

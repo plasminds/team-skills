@@ -6,7 +6,7 @@ A pointer to a `team-protocol` section means that section of `team-protocol.md`,
 
 ## Plan (writers)
 
-Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. A format's line that names its own execution skill (superpowers' "REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development …") becomes `Execute with: team-plan § Execution`. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the human sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Use the project's plan format if one exists; otherwise:
+Whatever the format, add `Status: draft`, the decision file's path and the final-review bullet of *Verification* below. A format's line that names its own execution skill (superpowers' "REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development …") becomes `Execute with: team-plan § Execution`. Traces cite decision ids only; a reviewer defect becomes a plain sentence; no run-folder paths. About 40 lines per task, 800 per plan; beyond, offer the human sub-plans. A step that changes a screen gives its states, exact copy and accessibility. Each step does its layer's job the way the profile's `## Layer practices` says, unless *Structure* names the departure. A claim about how a value is stored quotes its declaration (`reachability.md` § *Today's rules are in the code*). Use the project's plan format if one exists; otherwise:
 
 ```markdown
 # Plan — {topic}
@@ -23,7 +23,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 [Copied from the decision record's `## Accepted trade-offs`: each cost, who accepted it, and its revisit condition when one was named]
 
 ## Structure
-[Each structural choice the plan makes (`team-protocol` § *Structural choices*), one line each, with who settled it: "the decision" or "the human, before drafting". A line whose rule is a constraint carries its id (`K3`). "None" when the plan makes none]
+[Each structural choice the plan makes (`team-protocol` § *Structural choices*), one line each, with who settled it: "the decision" or "the human, before drafting". A line whose rule is a constraint carries its id (`K3`). "None" when the plan makes none. A departure from a layer practice is one: the practice, what the step does instead, what the practice cannot do here (`file:line`), who settled it]
 
 ## Constraints
 [Those that bind the plan (`bridge.md`): id, lens, text, source, from the decision record's `## Constraints` and the profile's standing ones (`KS<n>`). One a *Structure* line states is listed by id only]
@@ -56,7 +56,7 @@ _From debate decision: .council/decisions/YYYY-MM-DD-<topic>.md_
 
 ## Review (reviewers)
 
-- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*; no step breaks a `tech` constraint of *Constraints*; proposes the *Review Focus* lines: the inputs and states no *Examples* row names that would most likely break the result, each given to the step whose failing test pins it.
+- **CTO** — technical soundness, correct sequencing, testability, risk, adherence to quality gates; every structural choice a step makes is in *Structure*, a departure from the profile's `## Layer practices` included: a step whose data access, entry point, presenter or tests depart from their layer's line without one is a defect, and so is a departure whose stated limit holds only for the shape picked; no step breaks a `tech` constraint of *Constraints*; proposes the *Review Focus* lines: the inputs and states no *Examples* row names that would most likely break the result, each given to the step whose failing test pins it.
 - **PO** — scope fidelity to the decision, value ordering, nothing smuggled in or dropped; no step breaks a `business` constraint or exceeds an accepted trade-off (e.g. a second duplicated pipeline where one was accepted).
 - **UX** — dispatched whenever the plan changes something a user sees: flow, states, accessibility, copy; no step breaks a `business` constraint or exceeds an accepted trade-off on what the user meets.
 - **Ad-hoc specialist** — if the decision implicates another domain (e.g. a Performance Analyst for a perf change).

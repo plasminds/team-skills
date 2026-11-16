@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.32.0 — 2026-11-16
+
+- **Layer practices.** team-scan writes how most files of each layer do its job, counted, with an example file. Departing from one is a structural choice the human makes, seeing what the practice cannot do; team-plan's CTO review and team-review's Craft seat check it.
+- **Ask how, not for examples.** The evidence passes of team-plan and team-debate first ask how the code does a job today, never for examples of an assumed shape.
+- **Stored types quoted.** A claim about a column's type or a stored format quotes the declaration the store reads.
+
 ## 0.31.2 — 2026-11-13
 
 - **Comparison table columns.** The options table no longer squeezes its number columns to one letter wide: words break only between words, numbers stay on one line, and a wide table scrolls.

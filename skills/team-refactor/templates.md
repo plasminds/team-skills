@@ -14,6 +14,7 @@ The *only* shared context for the panel, so panelists don't each re-read the sam
 - **Intent**: the plan or decision record behind the scope, by path, when one exists (`.council/decisions/`, the project's plans). Panelists drop any hand-off line the Intent already answers.
 - Quality-gate commands, each with its result (`team-protocol` § *Code scope*).
 - *Settled*, *Ungated*, *Unformatted*, *Known flakes* and the *Diff guard*, by `team-protocol` § *Code scope*
+- **Layer practices**: the profile's lines for the layers in scope, and each file in scope that departs from its line, with the way it takes instead
 - Upcoming change, if the user named one (Sequencing orders toward it)
 - For a diff scope: the changed line ranges per file (`git diff --unified=0`), so panelists can tell new code from old.
 - Static-analysis leads: if the profile lists dead-code or import-cycle tools, run them on the scope and list their hits as leads. A lead is not a finding: static analysis misses dynamic imports, config references and codegen, so a panelist verifies each by hand before citing it. The profile's `(machine)` tools (crapper, dryer, ast-grep) run by `machine-tools.md` § *Run recipes*, each lead list opening with the mode line of `machine-tools.md` § *Mode line*; their hits are leads too (`machine-tools.md` § *Leads, not findings*).
@@ -81,7 +82,7 @@ version of each side, each side's step as a Step Card, and a suggested default]
 - **Low cards.** A `low` card never becomes a step; it goes to *Leave alone*.
 - **Conflicts.** A card the gate kept but two panelists conflict on is settled by `counting.md`; a card's `Evidence` line is the evidence `counting.md` counts. A majority's move is a step, with the dissent in the `against` of its Approve option. With no majority, it is a tension, neither side's step is in *Steps*, and the tension names the slot where the winning side's step goes. The record writer puts the chosen side's step in that slot once the human picks a side.
 - **Caps are yours, not the human's.** At most 8 steps after Step 0; the rest go in *Next run*. A long backlog gets rubber-stamped.
-- **Structural choices** (`team-protocol` § *Structural choices*). A step that makes one (a new package or module, a dependency rule, a folder convention) is a major decision, its options including leaving the structure as it is. A new layer or a changed public contract is beyond a refactor: recommend `team-debate` instead of deciding here.
+- **Structural choices** (`team-protocol` § *Structural choices*). A step that makes one (a new package or module, a dependency rule, a folder convention, a departure from a layer practice) is a major decision, its options including leaving the structure as it is. A new layer or a changed public contract is beyond a refactor: recommend `team-debate` instead of deciding here.
 - **Options**, for the gate writer and, on an auto-accept run, the record writer (`team-protocol` § *Auto-accept*). Each step is `approve`, recommended, unless you recommend `decline` (say why). An optional step, or one that makes a structural choice, lists its options with one recommended, or none and why. Each tension lists its sides with your suggested one; each rejected card is `keep-rejected` by default. A step that contradicts something the human stated also gets `Tags: corrects <premise>`.
 
 ## Gate page (gate writer)
