@@ -2,6 +2,14 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.34.0 — 2026-11-17
+
+- **Screenshots are the case.** On an acceptance page, a case's screenshots fill its card, one under the other; its steps, expected result and cited example move to the evidence pane under Business.
+- **Only what the branch shows.** Each case names what its screenshots frame (`Shows:`). The maker shoots only that, in the state after the last step, cropped on it at double resolution, and looks at each shot before reporting. Menus, forms, dialogs and pages the steps only pass through are not shot.
+- **Data plan with the cases.** The cases seat also writes the test sets, the shooting order and every write with what it sends outside the app, so step 2 lists them without another agent.
+- **Short Not shown.** The cover's *Not shown* names the cases; each reason stays on its card, a case shown in part included.
+- **Fewer questions, fewer surprises.** The cases seat answers from the code what the code can tell. A personal-data keep holds for the rest of the run.
+
 ## 0.33.0 — 2026-11-16
 
 - **Only states the app produces.** A plan handles a case only when a use case or screen produces it today. team-plan's reachability check reads every case the plan handles, not only the reviewers' `unverified` markers, and takes the unreachable ones out of the steps. A case only the data can tell is left unhandled unless the human picks otherwise.

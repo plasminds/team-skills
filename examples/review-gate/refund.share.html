@@ -321,6 +321,14 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .not-replayed .nr-ex { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; }
 .not-replayed .nr-ex .cid { display: inline-block; margin-bottom: 4px; }
 @media (max-width: 760px) { .exdl { grid-template-columns: 1fr; gap: 0; } .exdl dd { margin-bottom: 6px; } }
+/* A case's screenshots are its card: one under the other, at the width of the card, each caption saying what to look at.
+   Its steps and expected result read in the evidence pane, at the pane's size. */
+.case-shots .shots { grid-template-columns: 1fr; gap: 22px; margin-top: 18px; }
+.case-shots .shots img { width: auto; max-width: 100%; max-height: 72vh; }
+.case-shots figcaption { font-size: 14.5px; color: var(--ink-2); margin-top: 6px; max-width: 72ch; }
+.c-ev .replays { margin-top: 4px; }
+.c-ev .steps { font-size: 14.5px; }
+.c-ev .lead { font-size: 15px; }
 .unshown { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; color: var(--ink-2); }
 .ebox.loc.files > .fref, .ebox.loc.files > code { display: block; }
 .opt:disabled .rectag { color: var(--ink-3); background: var(--raised); }
@@ -635,9 +643,10 @@ dialog.zoom p:empty { display: none; }
 .story-page .kbef { font-size: .55em; font-weight: 600; letter-spacing: 0; color: var(--ink-2); }
 .story-page .karr { font-size: .55em; font-weight: 600; color: var(--ink-3); }
 .story-page .kl { max-width: 30ch; font-size: 15px; line-height: 1.35; color: var(--ink-2); }
-/* The drawing, centred, capped so the option rows stay in a 1440 by 900 view. */
+/* The drawing at its own size, never capped in height: the option rows sit in the decide bar below the scroll, always in
+   view, and a height cap would only shrink the drawing's text. */
 .story-page .sdraw .figure, .story-page .sdraw .shots figure { margin: 0; }
-.story-page .sdraw img, .story-page .sdraw svg { max-height: 30vh; max-width: 100%; object-fit: contain; margin-left: 0; margin-right: auto; }
+.story-page .sdraw img, .story-page .sdraw svg { max-width: 100%; object-fit: contain; margin-left: 0; margin-right: auto; }
 .story-page .sdraw .shots { justify-items: start; }
 .story-page .sdraw .shots img { width: auto; }
 /* Arguments: the words For and Against say the side; the + and − glyphs take the For and Against hues (blue and copper,
@@ -707,7 +716,10 @@ dialog.zoom p:empty { display: none; }
 .story-page .btable tr.shown td { background: var(--cur); }
 .story-page .btable td.num { font-variant-numeric: tabular-nums; }
 .story-page .ocomp td.o { width: auto; min-width: 7em; }
-.story-page .ocomp th, .story-page .ocomp td { overflow-wrap: anywhere; }
+/* break-word, not anywhere: anywhere lets a column shrink to one letter, so long trade-off text crushes the number
+   columns; break-word keeps each column at least its longest word wide and the box scrolls instead. */
+.story-page .ocomp th, .story-page .ocomp td { overflow-wrap: break-word; }
+.story-page .ocomp td.num { white-space: nowrap; }
 .story-page .ev-scroll > .accfoot { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--edge); border-radius: 10px; background: var(--foot); }
 /* The evidence pane folds like the list: closed, a slim rail on the right; with nothing to show (body.ev-none) it is gone and
    the card takes its width. Desktop and tablet only: on a phone the Evidence tab shows it. */
@@ -2215,19 +2227,21 @@ function makeL(lang) {
     var tg = el('div', 'tags'); tg.appendChild(el('span', 'tag', L('card.kindCase')));
     if (it.group) tg.appendChild(inline(el('span', 'tag'), it.group));
     body.appendChild(tg);
+    // The screenshots are the card: what the branch shows, in the state after the last step. A case with none says why.
+    if (it.figures.length) { var sh = figures(it.figures); sh.className = 'case-shots'; sh.setAttribute('aria-label', L('case.screens')); body.appendChild(sh); }
+    if (it.unshown) blk(body, L('case.unshown')).appendChild(inline(el('p', 'unshown'), it.unshown));
+    main.appendChild(body);
+    // The business text goes in the pane: the example it replays, what we do, what we expect.
+    var evb = pane.evb, biz = el('div', 'evb'), nBiz = 0, nTech = 0;
+    biz.dataset.lens = 'business';
     if (it.example) {
       var spec = (data.examples || []).filter(function (e) { return e.id === it.example; })[0];
-      if (spec) { var rp = el('details', 'replays'); rp.appendChild(el('summary', null, L('ex.replays', { id: spec.id }))); rp.appendChild(exampleDl(spec)); body.appendChild(rp); }
+      if (spec) { var rp = el('details', 'replays'); rp.appendChild(el('summary', null, L('ex.replays', { id: spec.id }))); rp.appendChild(exampleDl(spec)); biz.appendChild(rp); }
     }
     var steps = el('ol', 'steps');
     it.steps.forEach(function (s) { steps.appendChild(inline(el('li'), s)); });
-    blk(body, L('case.steps')).appendChild(steps);
-    blk(body, L('case.expected')).appendChild(inline(el('p', 'lead'), it.expected));
-    main.appendChild(body);
-    var evb = pane.evb, biz = el('div', 'evb'), nBiz = 0, nTech = 0;
-    biz.dataset.lens = 'business';
-    if (it.figures.length) { biz.appendChild(el('h3', 'eh', L('case.screens'))); biz.appendChild(figures(it.figures)); nBiz++; }
-    if (it.unshown) { biz.appendChild(el('h3', 'eh', L('case.unshown'))); biz.appendChild(inline(el('p', 'unshown'), it.unshown)); nBiz++; }
+    biz.appendChild(el('h3', 'eh', L('case.steps'))); biz.appendChild(steps); nBiz++;
+    biz.appendChild(el('h3', 'eh', L('case.expected'))); biz.appendChild(inline(el('p', 'lead'), it.expected));
     evb.appendChild(biz);
     var t = it.tech || {}, tech = el('div', 'evb');
     tech.dataset.lens = 'tech';

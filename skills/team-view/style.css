@@ -281,6 +281,14 @@ svg.ic { width: 16px; height: 16px; flex: none; display: block; }
 .not-replayed .nr-ex { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; }
 .not-replayed .nr-ex .cid { display: inline-block; margin-bottom: 4px; }
 @media (max-width: 760px) { .exdl { grid-template-columns: 1fr; gap: 0; } .exdl dd { margin-bottom: 6px; } }
+/* A case's screenshots are its card: one under the other, at the width of the card, each caption saying what to look at.
+   Its steps and expected result read in the evidence pane, at the pane's size. */
+.case-shots .shots { grid-template-columns: 1fr; gap: 22px; margin-top: 18px; }
+.case-shots .shots img { width: auto; max-width: 100%; max-height: 72vh; }
+.case-shots figcaption { font-size: 14.5px; color: var(--ink-2); margin-top: 6px; max-width: 72ch; }
+.c-ev .replays { margin-top: 4px; }
+.c-ev .steps { font-size: 14.5px; }
+.c-ev .lead { font-size: 15px; }
 .unshown { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--raised); font-size: 14.5px; color: var(--ink-2); }
 .ebox.loc.files > .fref, .ebox.loc.files > code { display: block; }
 .opt:disabled .rectag { color: var(--ink-3); background: var(--raised); }

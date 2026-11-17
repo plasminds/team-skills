@@ -902,19 +902,21 @@ var viewTheme = (function () {
     var tg = el('div', 'tags'); tg.appendChild(el('span', 'tag', L('card.kindCase')));
     if (it.group) tg.appendChild(inline(el('span', 'tag'), it.group));
     body.appendChild(tg);
+    // The screenshots are the card: what the branch shows, in the state after the last step. A case with none says why.
+    if (it.figures.length) { var sh = figures(it.figures); sh.className = 'case-shots'; sh.setAttribute('aria-label', L('case.screens')); body.appendChild(sh); }
+    if (it.unshown) blk(body, L('case.unshown')).appendChild(inline(el('p', 'unshown'), it.unshown));
+    main.appendChild(body);
+    // The business text goes in the pane: the example it replays, what we do, what we expect.
+    var evb = pane.evb, biz = el('div', 'evb'), nBiz = 0, nTech = 0;
+    biz.dataset.lens = 'business';
     if (it.example) {
       var spec = (data.examples || []).filter(function (e) { return e.id === it.example; })[0];
-      if (spec) { var rp = el('details', 'replays'); rp.appendChild(el('summary', null, L('ex.replays', { id: spec.id }))); rp.appendChild(exampleDl(spec)); body.appendChild(rp); }
+      if (spec) { var rp = el('details', 'replays'); rp.appendChild(el('summary', null, L('ex.replays', { id: spec.id }))); rp.appendChild(exampleDl(spec)); biz.appendChild(rp); }
     }
     var steps = el('ol', 'steps');
     it.steps.forEach(function (s) { steps.appendChild(inline(el('li'), s)); });
-    blk(body, L('case.steps')).appendChild(steps);
-    blk(body, L('case.expected')).appendChild(inline(el('p', 'lead'), it.expected));
-    main.appendChild(body);
-    var evb = pane.evb, biz = el('div', 'evb'), nBiz = 0, nTech = 0;
-    biz.dataset.lens = 'business';
-    if (it.figures.length) { biz.appendChild(el('h3', 'eh', L('case.screens'))); biz.appendChild(figures(it.figures)); nBiz++; }
-    if (it.unshown) { biz.appendChild(el('h3', 'eh', L('case.unshown'))); biz.appendChild(inline(el('p', 'unshown'), it.unshown)); nBiz++; }
+    biz.appendChild(el('h3', 'eh', L('case.steps'))); biz.appendChild(steps); nBiz++;
+    biz.appendChild(el('h3', 'eh', L('case.expected'))); biz.appendChild(inline(el('p', 'lead'), it.expected));
     evb.appendChild(biz);
     var t = it.tech || {}, tech = el('div', 'evb');
     tech.dataset.lens = 'tech';
