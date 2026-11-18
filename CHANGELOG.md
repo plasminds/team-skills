@@ -2,6 +2,13 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.35.0 — 2026-11-18
+
+- **Footprint.** What a run changes outside the code (CI jobs and schedules, dependencies, removals, behavior users meet, your own work, invented thresholds) is never a minor item or a default. Each one is a card in its own *Outside the code* section, and *Accept recommended* leaves it open.
+- **Footprint sweep.** team-plan sweeps the revised plan for these before the gate, and again before each sub-plan's first batch. An executor's settled-alone choice in one of these classes goes to you after its batch.
+- **Labels name what they add.** An option that adds a job, a dependency or a removal says so in its label.
+- **Fewer, not folded.** Writers add no CI job, dependency or removal a step does not need. A plan with sub-plans asks each sub-plan's items before it starts, not all at the gate. Over ~10 items, or a plan over ~800 lines, the run offers to split the decision first; the renderer warns over 10 footprint cards.
+
 ## 0.34.0 — 2026-11-17
 
 - **Screenshots are the case.** On an acceptance page, a case's screenshots fill its card, one under the other; its steps, expected result and cited example move to the evidence pane under Business.

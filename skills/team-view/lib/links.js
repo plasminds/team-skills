@@ -13,19 +13,26 @@ function order(ids, depsOf) {
   return { order: out, loop: null };
 }
 
-// The section a card renders in, as template.html builds them: decision groups, then tensions, questions, minor, settled, rejected.
+// The section a card renders in, as template.html builds them: decision groups, then footprint, tensions, questions, minor, settled, rejected.
 function sectionOf(it) {
+  if (it.footprint != null) return 'Outside the code';
   if (it.kind === 'tension') return 'Tensions';
   if (it.kind === 'question') return 'Questions for the author';
   if (it.kind === 'settled') return 'Settled without you';
   if (it.kind === 'rejected') return 'Considered and rejected';
   return it.minor ? 'Minor items' : 'group:' + (it.group || 'Decisions');
 }
-const FIXED = ['Tensions', 'Questions for the author', 'Minor items', 'Settled without you', 'Considered and rejected'];
+const FIXED = ['Outside the code', 'Tensions', 'Questions for the author', 'Minor items', 'Settled without you', 'Considered and rejected'];
 
 // Validates "on", sets it.block (the root's id) on each linked card, and returns the items in answering order.
 function linkItems(items, errors) {
   const byId = new Map(items.map(it => [it.id, it]));
+  // A footprint card stands alone in its section: the step it comes from is named in its "source", not linked.
+  items.forEach(it => {
+    if (it.footprint == null) return;
+    if (it.on != null) { errors.push(`"${it.id}" is a footprint card: it takes no "on" — name the step or card it comes from in its "source" or "detail"`); delete it.on; }
+    if (Array.isArray(it.after) && it.after.length) { errors.push(`"${it.id}" is a footprint card: it takes no "after" — name the step or card it comes from in its "source" or "detail"`); delete it.after; }
+  });
   items.forEach(it => {
     if (it.on == null) return;
     const o = it.on;
@@ -37,6 +44,7 @@ function linkItems(items, errors) {
     const target = byId.get(o.id);
     if (!target) return bad(`"${it.id}".on names unknown id "${o.id}"`);
     if (UNLINKABLE.includes(target.kind)) return bad(`"${it.id}".on names ${target.kind} item "${o.id}": a card is about a decision or a tension`);
+    if (target.footprint != null) return bad(`"${it.id}".on names footprint card "${o.id}": a footprint card stands alone in its section`);
     if (o.when != null) {
       const vals = (target.options || []).map(x => x.value);
       const w = Array.isArray(o.when) ? o.when : [o.when];

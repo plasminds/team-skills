@@ -8,7 +8,7 @@
     var byId = {}; items.forEach(function (it) { byId[it.id] = it; });
     var ctx = {}; (data.context || []).forEach(function (c) { ctx[c.id] = true; });
     var ids = data.story || (data.context || []).map(function (c) { return c.id; }).concat(items.filter(function (it) {
-      return (it.kind === 'decision' && !it.minor) || it.kind === 'tension';
+      return (it.kind === 'decision' && !it.minor && it.footprint == null) || it.kind === 'tension';
     }).map(function (it) { return it.id; }));
     var rows = [], at = {};
     // The row a card hangs under: follow "on" to the first card already in the list.

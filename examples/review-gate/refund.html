@@ -889,6 +889,9 @@ const CHROME_TEXT = {
     'list.findings': 'Findings', 'list.decisions': 'Decisions', 'list.cards': 'Cards',
     'section.decisions': 'Decisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions for the author',
     'section.minor': 'Minor items', 'section.settled': 'Settled without you', 'section.rejected': 'Considered and rejected',
+    'section.footprint': 'Outside the code', 'row.footprint': 'What this changes beyond the code: answer each one, Accept recommended leaves them open.',
+    'footprint.ci': 'CI and infrastructure', 'footprint.deps': 'Dependency or licence', 'footprint.surface': 'New repo surface', 'footprint.removal': 'Removal',
+    'footprint.behavior': 'Behavior users see', 'footprint.yourWork': 'Your own work', 'footprint.threshold': 'Invented threshold',
     'server.opened': 'Opened {path} in your editor.', 'server.gone': 'The page is no longer served: open {path} yourself.',
     'server.notJson': 'not JSON', 'server.notAFile': 'Not a file this page names.',
     'server.noEditor': 'No editor found: set TEAM_VIEW_EDITOR to its command (code, idea…) and render again.',
@@ -1148,6 +1151,9 @@ const CHROME_TEXT = {
     'list.findings': 'Constats', 'list.decisions': 'Décisions', 'list.cards': 'Cartes',
     'section.decisions': 'Décisions', 'section.tensions': 'Tensions', 'section.questions': 'Questions pour l\'auteur',
     'section.minor': 'Points mineurs', 'section.settled': 'Réglé sans vous', 'section.rejected': 'Envisagé et rejeté',
+    'section.footprint': 'Hors du code', 'row.footprint': 'Ce que cela change au-delà du code : répondez à chacun, Accepter la recommandation les laisse ouverts.',
+    'footprint.ci': 'CI et infrastructure', 'footprint.deps': 'Dépendance ou licence', 'footprint.surface': 'Nouvelle surface du dépôt', 'footprint.removal': 'Suppression',
+    'footprint.behavior': 'Comportement visible', 'footprint.yourWork': 'Votre propre travail', 'footprint.threshold': 'Seuil inventé',
     'server.opened': '{path} ouvert dans votre éditeur.', 'server.gone': 'La page n\'est plus servie : ouvrez {path} vous-même.',
     'server.notJson': 'Pas du JSON', 'server.notAFile': 'Cette page ne cite pas ce fichier.',
     'server.noEditor': 'Aucun éditeur trouvé : indiquez sa commande (code, idea…) dans TEAM_VIEW_EDITOR, puis relancez le rendu.',
@@ -1808,7 +1814,11 @@ function makeL(lang) {
   var sections = [];
   // A section's name is its id (filters match on it); the list shows its label: a built-in section's in the page's language.
   var SECTION_LABEL = { 'Cases': L('section.cases'), 'Decisions': L('section.decisions'), 'Tensions': L('section.tensions'), 'Questions for the author': L('section.questions'),
-    'Minor items': L('section.minor'), 'Settled without you': L('section.settled'), 'Considered and rejected': L('section.rejected') };
+    'Minor items': L('section.minor'), 'Settled without you': L('section.settled'), 'Considered and rejected': L('section.rejected'),
+    'Outside the code': L('section.footprint') };
+  // A footprint card's class, as its tag reads (gate.js FOOTPRINT).
+  var FOOTPRINT_NAME = { ci: L('footprint.ci'), deps: L('footprint.deps'), surface: L('footprint.surface'), removal: L('footprint.removal'),
+    behavior: L('footprint.behavior'), 'your-work': L('footprint.yourWork'), threshold: L('footprint.threshold') };
   function sectionFor(name, folded) {
     for (var i = 0; i < sections.length; i++) if (sections[i].name === name) return sections[i];
     var label = Object.prototype.hasOwnProperty.call(SECTION_LABEL, name) ? SECTION_LABEL[name] : name;
@@ -1834,6 +1844,8 @@ function makeL(lang) {
     var storySec = sectionFor('_story', false); storySec.headless = true;
     storySec.items = storyList.filter(function (r) { return !r.context; }).map(function (r) { return byIdx[r.id]; });
   }
+  // Footprint cards (what the run changes outside the code) open right after the story: the human answers each one.
+  items.filter(function (it) { return it.footprint != null; }).forEach(function (it) { sectionFor('Outside the code', false).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'question'; }).forEach(function (it) { sectionFor('Questions for the author', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'decision' && home(it).minor && !placed[it.id]; }).forEach(function (it) { sectionFor('Minor items', true).items.push(it); });
   items.filter(function (it) { return home(it).kind === 'settled'; }).forEach(function (it) { sectionFor('Settled without you', true).items.push(it); });
@@ -2022,6 +2034,7 @@ function makeL(lang) {
     sec.gname = name; sec.count = el('span', 'count'); sh.appendChild(name); sh.appendChild(sec.count);
     sec.heading = sh; list.appendChild(sh);
     if (sec.folded && sec.items.some(function (it) { return it.default; })) { sec.hint = el('div', 'sec-hint', L('row.defaults')); list.appendChild(sec.hint); }
+    if (sec.name === 'Outside the code') { sec.hint = el('div', 'sec-hint', L('row.footprint')); list.appendChild(sec.hint); }
     // A root with cards hanging under it sits in a .block with them.
     var host = list;
     sec.rows.forEach(function (r) {
@@ -2457,6 +2470,7 @@ function makeL(lang) {
     function wholeQ() { if (whole && !whole.parentNode) evb.appendChild(whole); }
     var tg = el('div', 'tags');
     tg.appendChild(el('span', 'tag', it.minor ? L('card.minor') : KIND_NAME[it.kind] || cap(it.kind)));
+    if (it.footprint) tg.appendChild(el('span', 'tag warn', FOOTPRINT_NAME[it.footprint]));
     if (it.on) tg.appendChild(el('span', 'tag rel-kind refines', L('card.refines', { id: it.on.id })));
     (it.tags || []).forEach(function (t) {
       var cls = t === 'blocker' ? ' blocker' : /behavio|risk|money|breaking/i.test(t) ? ' warn' : '';
@@ -2759,7 +2773,7 @@ function makeL(lang) {
     var byId = {}; items.forEach(function (it) { byId[it.id] = it; });
     var ctx = {}; (data.context || []).forEach(function (c) { ctx[c.id] = true; });
     var ids = data.story || (data.context || []).map(function (c) { return c.id; }).concat(items.filter(function (it) {
-      return (it.kind === 'decision' && !it.minor) || it.kind === 'tension';
+      return (it.kind === 'decision' && !it.minor && it.footprint == null) || it.kind === 'tension';
     }).map(function (it) { return it.id; }));
     var rows = [], at = {};
     // The row a card hangs under: follow "on" to the first card already in the list.
@@ -3275,7 +3289,7 @@ function makeL(lang) {
       paintRails(); legend();
       return;
     }
-    var done = 0, asked = 0;
+    var done = 0, asked = 0, leftForAccept = 0;
     items.forEach(function (it) {
       var c = cards[it.id], v = choiceOf(it.id);
       c.buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.value === v)); });
@@ -3342,7 +3356,7 @@ function makeL(lang) {
         s.node.appendChild(document.createTextNode(lifted ? L('card.liftedBy', { label: opt.label }) : by.length ? L('card.holdsLifted', { options: by.join(L('card.or')) }) : L('card.holds')));
       });
       // The counter counts the questions asked: an item with a default (settled, rejected, minor) is already answered, until its choice is cleared.
-      if (it.default == null || (!v && !moot)) { asked++; if (v || moot) done++; }
+      if (it.default == null || (!v && !moot)) { asked++; if (v || moot) done++; else if (it.footprint == null) leftForAccept++; }
     });
     drawOutcomes();
     if (storyPage) recapPaint();
@@ -3357,7 +3371,8 @@ function makeL(lang) {
     document.getElementById('pfill').style.transform = 'scaleX(' + (asked ? done / asked : 1) + ')';
     listCount.textContent = asked - done ? L('list.toDecide', { n: asked - done }) : L('list.allDecided');
     var allDecided = asked === done;
-    document.getElementById('recAll').disabled = allDecided;
+    // Only footprint cards left: Accept recommended has nothing to take, the human answers them.
+    document.getElementById('recAll').disabled = allDecided || !leftForAccept;
     document.getElementById('recAll').title = allDecided ? L('bar.allDecided') : '';
     paintRails(); legend();
   }
@@ -3714,11 +3729,12 @@ function makeL(lang) {
     return { body: body.join('\n\n'), comments: comments };
   }
   // Accept recommended: every card without a choice takes its default, else its recommended option. Returns how many it set.
-  // render.js --accept-recommended runs this and decisionsBlock with node:vm, so its block is the one this page would send.
+  // A footprint card is skipped: the human answers it. render.js --accept-recommended runs this and decisionsBlock with
+  // node:vm, so its block is the one this page would send.
   function acceptRecommended(items, state, pick) {
     var n = 0;
     items.forEach(function (it) {
-      if ((state[it.id] || {}).choice || mootBy(it, items, state)) return;
+      if ((state[it.id] || {}).choice || it.footprint != null || mootBy(it, items, state)) return;
       // pick: a shared page takes the reviewer's picks only, never the agents' recommendation.
       var rec = pick ? pick(it) : it.default || (it.options.filter(function (o) { return o.recommended; })[0] || {}).value;
       if (rec) { state[it.id] = state[it.id] || {}; state[it.id].choice = rec; n++; }

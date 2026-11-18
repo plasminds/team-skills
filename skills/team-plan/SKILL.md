@@ -51,7 +51,7 @@ Writers type in a settled design. Before any draft, list:
 ### 2. Draft the plan
 Writers produce a step-by-step implementation plan in the project's plan format, or the conventions of the planning skill the profile's Process domain lists, or else `templates.md` § *Plan*. The plan implements the debate's chosen direction; it does not relitigate it.
 
-Writers and fixers write the plan files in the profile's *Run preferences* `Plan location` folder (`.council/plans/` when the line is missing), as `YYYY-MM-DD-<topic>.md`, sub-plans beside it, not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `reach`, `gate`, `record`.
+Writers and fixers write the plan files in the profile's *Run preferences* `Plan location` folder (`.council/plans/` when the line is missing), as `YYYY-MM-DD-<topic>.md`, sub-plans beside it, not in the run folder: that path replaces the run-folder line of `team-protocol` § *Agent contract*. Agent ids: `evidence`, `spike-<n>`, `index`, `plan-<part>`, `fix-<part>`, `review-<role>`, `reach`, `footprint`, `gate`, `record`.
 
 A plan that fits one file is drafted by one writer. A plan large enough to split into sub-plans splits along interfaces, in this order:
 1. **The index** (one writer): the sub-plans, their order, and the **cross-plan contract**: every name, signature, id and type one sub-plan exports and another uses.
@@ -67,6 +67,7 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 |-------|------|-------|-------------|
 | Evidence pass, spike | analyst | sonnet (opus for a design spike) | ~20 |
 | Reachability check | analyst | sonnet | ~20 |
+| Footprint sweep | analyst | sonnet | ~12 |
 | Keystone writer | maker | opus | ~30 |
 | Other writers | maker | sonnet | ~25 |
 | Fixers (review defects, the human's rulings) | maker | sonnet | ~20 |
@@ -78,6 +79,8 @@ Dispatch the reviewers by `templates.md` § *Review*: CTO and PO always, UX when
 Fold review feedback into a revised plan. One fixer per round takes every defect at once and writes the amendment's line under `## Plan gate` in the decision record. Its brief adds: "Add nothing unasked; list your own additions first." Before the approval pass, one consolidation pass deletes superseded rules and their references. Where a reviewer's concern conflicts with the debate's accepted trade-off, keep the decision and pass the concern to the gate writer: it goes in the `against` of the step or risk it concerns, or becomes a minor item (`templates.md` § *Gate page*).
 
 Before the gate writer, the `reach` agent (`reachability.md` § *Reachability check*) checks every `unverified` premise in the review files and, whether marked or not, every case the revised plan handles that no *Examples* row names: each *Review Focus* line, each risk, each guard, branch or test row a step adds for a case. A reviewer who cites where a case would break has not shown it occurs, and leaves no marker; so the check reads the plan, not the markers. A case it finds unreachable or only the data can tell: one fixer takes them all out of the steps, the code and its test, before the gate writer. The gate writer gets `reach.md`.
+
+Then the `footprint` agent sweeps the revised plan, sub-plans included (`footprint.md` § *Footprint sweep*): every CI job, dependency, removal, change a user meets, piece of your own work or invented threshold that neither the record nor you decided. Over ~10 items for the gate, or a plan over ~800 lines: ask whether to split the decision first (`footprint.md` § *Fewer, not folded*). One fixer takes out the extras no step needs and writes the deferred items in the plan's `## Footprint`. The gate writer gets `footprint-sweep.md` too.
 
 ### 5. Approve & write
 The revised plan sits at the plan location of step 2, with `Status: draft` and the source decision's path at the top.
@@ -103,7 +106,8 @@ Rules of this skill's own, on top of `team-protocol` § *Execution*:
 2. The executor writes a failing test first when a step changes behavior, commits each step on its own, and replies with one line per step: commit hash, `blocked — <reason>`, or `stopped — <the diff guard's hit>`.
 3. After each batch, run the *Verification* commands yourself. Red → one fresh executor gets the failure output, the batch's steps and their commits, and fixes it as a `fixup!` of the step at fault. Still red → stop and ask the human. Never resume the batch's executor.
 4. A step marked `one-way`, once its batch is green: run `team-doubt` on it before the next batch. The step's sentence is the claim, its commit's diff the artifact, the plan's *Outcome* and *Constraints* the contract. A confirmed break goes to a fresh executor as a `fixup!` of that step, and team-doubt checks the fix; a break still confirmed after its third round → stop and ask the human.
-5. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no test that fabricates its state (`team-protocol` § *Execution*), no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
+5. A plan split into sub-plans: before each sub-plan's first batch, sweep it again and ask (`footprint.md` § *During execution*).
+6. Last, the final reviewer (opus) reads the full diff against the plan: nothing smuggled in, nothing dropped, the *Outcome* reached, each *Review Focus* line pinned by a test, no test that fabricates its state (`team-protocol` § *Execution*), no check weakened (`team-protocol` § *Weakened checks*). Its `fix` findings go to fresh executors as `fixup!` commits (`team-protocol` § *Execution*).
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
 
@@ -114,6 +118,7 @@ The shared ones are in `team-protocol`. These are the planner's own.
 
 | Excuse | Reality |
 |--------|---------|
+| "The CI job (the dependency, the retired test) is part of the step: its approve covers it" | A step's approve covers its code. What it changes outside the code is a footprint card of its own (`footprint.md`); folded, a nightly scheduled job rides through on a minor default. |
 | "The debate's pick has a flaw; the plan can quietly route around it" | The plan implements the decision. Record the concern in the `against` of the option it opposes on the step it concerns, or put the minority option on the gate as `reverses debate D<n>`. Only the human amends the decision; a wholly different direction is a new debate. |
 | "The writers can start now and align on names later" | Consumers that guess the keystone's API get rewritten. Freeze the contract first. |
 | "The decision says 'without loading the aggregates', so raw SQL" | That rules out the domain aggregates, not the ORM's entities. Unless the decision names a technique, each step follows its layer's practice; a departure is settled in § 1b. |

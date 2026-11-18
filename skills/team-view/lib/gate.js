@@ -33,8 +33,10 @@ const REPO_PATH = /^(?!\.{1,2}\/)[\w.@+-]+(?:\/(?!\.{1,2}(?:\/|$))[\w.@+-]+)*$/;
 const COMMIT = /^[0-9a-f]{7,40}$/i;
 
 const STORY_KINDS = ['debate', 'council'];
-// A weighty card is a story id: a decision not marked minor, or a tension.
-const weighty = it => (it.kind === 'decision' && !it.minor) || it.kind === 'tension';
+// A weighty card is a story id: a decision not marked minor, or a tension. A footprint card is neither: it has its own section.
+const weighty = it => (it.kind === 'decision' && !it.minor && it.footprint == null) || it.kind === 'tension';
+// The classes of what a run changes outside the code it targets (contract.md § Footprint).
+const FOOTPRINT = ['ci', 'deps', 'surface', 'removal', 'behavior', 'your-work', 'threshold'];
 
 // story: the order of the page's context rows and weighty cards, as an id list. Returns that order on a deciding gate (every kind but acceptance)
 // (the given ids, then every weighty card they leave out, in default order), else undefined. `items` is linkItems' order.
@@ -70,6 +72,7 @@ function checkStory(data, items, context, errors, warnings) {
       if (typeof v !== 'string') { errors.push(`story[${i}] must be an id string`); return; }
       const it = byId.get(v);
       if (!rows.has(v) && (!it || (it.kind !== 'decision' && it.kind !== 'tension'))) errors.push(`story[${i}] "${v}" is not a context row, a decision or a tension`);
+      else if (!rows.has(v) && it.footprint != null) errors.push(`story[${i}] "${v}" is a footprint card: footprint cards stay in their own section`);
       else if (!rows.has(v) && !weighty(it)) errors.push(`story[${i}] "${v}" is a minor item: minor items stay in their own section`);
       else if (order.includes(v)) errors.push(`story[${i}] "${v}" is named twice`);
       else order.push(v);
@@ -237,11 +240,23 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     concerns(item);
     // T1: a debate card draws in its own "figures"; an outcome entry is drawn by a context row.
     if (data.kind !== 'acceptance' && item.outcome != null) errors.push(`${where} ("${item.id}").outcome is not read on a card: put its drawing in the card's "figures"`);
+    checkFootprint(item, where);
     checkKeys(item, where, item.id);
     item.options.forEach(o => (Array.isArray(o.metrics) ? o.metrics : []).forEach((m, j) => {
       if (m && m.key != null) errors.push(`${where} ("${item.id}") option "${o.value}".metrics[${j}].key is read on a card or a context row only`);
     }));
     return item;
+  }
+
+  // footprint: what the run changes outside the code (a CI job, a dependency, a removal, your own work…). The human
+  // answers each one: never minor, no default, and Accept recommended leaves it open.
+  function checkFootprint(item, where) {
+    if (item.footprint == null) return;
+    const id = item.id || where;
+    if (item.kind !== 'decision') { errors.push(`${where} ("${id}") is a ${item.kind} item: only a decision takes "footprint"`); return; }
+    if (!FOOTPRINT.includes(item.footprint)) errors.push(`${where} ("${id}").footprint must be one of ${FOOTPRINT.join(', ')}`);
+    if (item.minor) errors.push(`${id} has "footprint" and "minor": a footprint card is never minor, the human answers it`);
+    if (item.default != null) errors.push(`${id} has "footprint" and "default": a footprint card has no default, the human answers it`);
   }
 
   // key: true marks a metric the story shows large, at most 3 per card or context row.
@@ -823,9 +838,12 @@ function loadGate(src, { share: SHARE, preset: PRESET }) {
     });
     // At most ~7 weighty cards (contract.md § Triage): tensions and decisions, not minor items or the structure card.
     if (STORY_KINDS.includes(data.kind)) {
-      const weighty = items.filter(it => it.kind === 'tension' || (it.kind === 'decision' && !it.minor && !/^(confirm the structure|confirmer la structure)\b/i.test(it.title || '')));
+      const weighty = items.filter(it => it.kind === 'tension' || (it.kind === 'decision' && !it.minor && it.footprint == null && !/^(confirm the structure|confirmer la structure)\b/i.test(it.title || '')));
       if (weighty.length > 7) warnings.push(`${weighty.length} weighty cards (${weighty.map(it => it.id).join(', ')}): keep about 7; fold the rest to minor items with a default, by stakes`);
     }
+    // More than 10 footprint cards on one gate: the plan carries more than one decision (footprint.md § Fewer, not folded).
+    const fps = items.filter(it => it.footprint != null);
+    if (fps.length > 10) warnings.push(`${fps.length} footprint cards (${fps.map(it => it.id).join(', ')}): more than 10 get approved unread — drop the extras no step needs, ask the rest before their sub-plan, or split the decision`);
   }
   const story = checkStory(data, ordered, context, errors, warnings);
   return { data, items: ordered, outcome, errors, warnings, preset, story, context };
