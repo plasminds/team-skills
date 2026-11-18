@@ -30,7 +30,7 @@
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
 | `team-review` | Can this change merge as is? | Code exists; fixes change behavior |
 | `team-doubt` | Does this one claim hold? | Code exists; you or the user are about to rely on it |
-| `team-acceptance` | What does this branch do, shown case by case? | Branch pushed; the change shows in the app |
+| `team-acceptance` | What does this branch do, shown case by case? | Branch pushed; the change shows in the app or in what it sends |
 
 The fix decides the lane ([the full rule](skills/team-review/SKILL.md#lanes)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision, and the other skill takes the list in from the record: `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, and `/team-refactor <review record>` refactors what a review flagged. To review and refactor a whole branch, ask for a sweep: every zone is reviewed, and only the zones a review flags are refactored.
 

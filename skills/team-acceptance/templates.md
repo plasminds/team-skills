@@ -11,15 +11,15 @@ What each agent writes. The orchestrator copies this file and team-view's `contr
 Rule: <the business rule it falls under, in the business's words; it becomes the page section>
 Steps:
 1. <one action the reader can repeat>
-Expected: <what the screen shows after the last step>
-Shows: <what the screenshots frame, one per line, at most three: an element or screen the branch adds or changes, in the state after the last step; never a screen the steps only pass through>
+Expected: <what the screen shows, or what the app sends (an email, a text message, a file), after the last step>
+Shows: <what the screenshots frame, one per line, at most three: an element or screen the branch adds or changes, or a message or file the app sends as the outbox keeps it, in the state after the last step; never a screen the steps only pass through>
 Data: <what must exist first, and whether it exists on the env>
 Files: <repo-relative paths of the code that makes it happen>
 How: <one or two lines for a developer>
 Source: <the MR/PR line, ticket or commit the case comes from>
 ```
 
-Each row of a decision record's `## Examples` that the branch implements is a case (the record a plan the branch follows names, or one the MR/PR links): `given` becomes its Data, `when` its Steps, `then` its Expected, and its Source is the record and the row's id `E<n>` (a record with no ids: its decision id). Only what the branch changes or adds, as a user sees it. A case nobody can see in the app (a cron, a migration) is left out and named in one line at the end, under `Not visible:`.
+Each row of a decision record's `## Examples` that the branch implements is a case (the record a plan the branch follows names, or one the MR/PR links): `given` becomes its Data, `when` its Steps, `then` its Expected, and its Source is the record and the row's id `E<n>` (a record with no ids: its decision id). Only what the branch changes or adds, as a user sees it. A message the app sends is seen too: a `then` that sends one, or sends none, is a case like any other. A case nobody can see in the app or in what it sends (a migration, a recalculation) is left out and named in one line at the end, under `Not visible:`.
 
 After the cases, `## Data plan`, for the environment step 0 named:
 - **Test sets**, shared by cases wherever they can be (`P1 — <what it is>: C1, C2, C4`), and for each, the cheapest reliable way to get it: rows the env already has (the read-only query that finds them, written out), else actions in the app (the click path), else a direct write where no screen gets there (the statement, one table each, and why no screen does).

@@ -1,6 +1,6 @@
 ---
 name: team-acceptance
-description: "Use when a pushed branch whose change shows in the app needs an acceptance page (recette, cahier de recette) to present it: each case with its steps, its expected result and screenshots taken on a running environment, in one page with a business view and a technical one. Also when the user asks for a recette, an acceptance page, or screenshots of what a branch does. Not for deciding or reviewing anything: team-review."
+description: "Use when a pushed branch whose change shows in the app, or in what it sends (an email, a text message, a file), needs an acceptance page (recette, cahier de recette) to present it: each case with its steps, its expected result and screenshots taken on a running environment, in one page with a business view and a technical one. Also when the user asks for a recette, an acceptance page, or screenshots of what a branch does. Not for deciding or reviewing anything: team-review."
 ---
 
 # team-acceptance
@@ -34,6 +34,8 @@ Presents what a pushed branch does, case by case: the steps, the expected result
 ### 1. Cases
 The cases seat reads the diff against the base, the commits, the MR/PR and its linked ticket when there is one, and the project's run instructions, and writes the *Cases list*. What the code answers (where a button is, whether the app can reach a state), the seat answers from it; it asks the human only what the code cannot tell. Show it to the human in chat, one line per case (`C1 — <title>: <expected>`), each case no screen reaches marked so with what its data would need, and take their edits. It is a check in chat, not a page decision: the page has none.
 
+A case that shows a message or file the app sends needs to know where the environment keeps it: the profile's `Recette outbox` line in `## Run preferences`. Missing → ask in the same check, with a proposal drawn from the stack (a mail catcher's web view, the provider's sandbox or log, a folder the app writes to), and add `- Recette outbox: <env>: <where>; … — the user, <date>`.
+
 ### 2. Writes, agreed
 From the cases list's *Data plan*, with the cases the human dropped taken out, list in one chat message the data each case needs and on which environment (one listed in `Recette writable envs`, else stop and ask), what a write or a step sets off outside the app (an email, a text message, a webhook, a payment) and to whom, and every command that runs outside the sandbox (a browser on a remote env, an `aws ssm` tunnel, a `seed:*` script), each to be run as a single plain command. Wait for a yes. The yes covers these writes and commands only; it is never consent to a permission prompt. No to the writes → ask, in one line, whether the listed commands may still run to shoot the data already in place; step 3 then shoots only that data, and every case that needs a refused write or command gets `unshown`. A command never runs without its own yes.
 
@@ -41,6 +43,7 @@ From the cases list's *Data plan*, with the cases the human dropped taken out, l
 The maker writes a Playwright script in `.council/acceptance/<topic>/shoot/` (the project's own Playwright; team-skills ships no browser), creates the agreed data, and saves each case's screenshots in `.council/acceptance/<topic>/<topic>/` (`c1-<what>.png`).
 - **Only what the branch shows.** One screenshot per `Shows:` line of the case: what the branch adds or changes on screen, in the state after the last step. The screens the steps pass through (a menu, a form, a confirmation dialog, a page the branch does not change) and the state before are not shot: the steps say how to get there.
 - **Framed on it.** Cropped to the element with enough around it to place it; the whole screen only when where it sits is the point. Shoot at `deviceScaleFactor: 2`. A tooltip or a menu draws outside its element: frame the area, not the element. Find rows by their ids, not by a name on screen.
+- **What the app sends.** A message or file is shot in the outbox (`Recette outbox`): the message view, framed on what the branch changes (recipient, subject, the part of the body). "Nothing sent" is the outbox filtered on the recipient after the last step. With no outbox for the env, the case gets `unshown: <why>`.
 - **Looked at.** Before reporting, the maker opens every screenshot and checks that what its `Shows:` line names is there and not cut off; a miss is retaken, not reported as partly shown.
 
 A case it cannot shoot keeps its line, with `unshown: <why>`; the run goes on.
@@ -61,6 +64,7 @@ Give the human the page's path and size. To attach it to the MR/PR, ask first; a
 | "It's staging, a few rows won't hurt" | Only an env in `Recette writable envs`, and only after step 2's yes. |
 | "These screenshots only show test data" | Test data can copy a real customer. Step 4 decides, not the maker. |
 | "That case failed, I'll mark it as not conforming" | No verdict. Show what you could; say why the rest is `unshown`. |
+| "The email is not in the app, the page can't show it" | What the app sends is what the customer sees. Shoot it in the outbox, or say why it is `unshown`. |
 | "The dialog shows how we got there" | The steps say how. A screenshot shows only what the branch changes. |
 | "One more angle on the same card can't hurt" | One screenshot per `Shows:` line. Every extra one hides the one that matters and weighs on the page. |
 | "The human will want to pick cases on the page" | They pick in chat at step 1. The page decides nothing. |
