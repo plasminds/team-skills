@@ -53,6 +53,10 @@
     { "skill": "superpowers:brainstorming", "prompt": "Let's brainstorm a new onboarding feature" },
     { "skill": "superpowers:writing-plans", "prompt": "Write an implementation plan for this spec" },
     { "skill": "superpowers:systematic-debugging", "prompt": "The tests fail with a null pointer, find the bug" },
-    { "skill": "superpowers:verification-before-completion", "prompt": "I'm done, confirm everything passes before I commit" }
+    { "skill": "superpowers:verification-before-completion", "prompt": "I'm done, confirm everything passes before I commit" },
+    { "skill": "team-deck", "prompt": "Make slides to present the invoice decision to the business" },
+    { "skill": "team-deck", "prompt": "Fais un diaporama de la décision pour le métier" },
+    { "skill": "team-video", "prompt": "Make a short video of the order branch for the team" },
+    { "skill": "team-video", "prompt": "Fais une courte vidéo de la branche pour l'équipe" }
   ]
 }

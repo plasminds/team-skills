@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.0 — 2026-11-18
+
+- **Decks.** `team-deck` turns a decision, spec or plan into one self-contained HTML deck for a business meeting.
+- **Videos.** `team-video` turns a branch's acceptance page into a short mp4 for the team, with a recorded personal-data pass.
+- **Brand line.** The profile's run preferences gain a `Brand` line, asked once.
+
 ## 0.35.2 — 2026-11-18
 
 - **Centred arrows.** The ‹ › arrows of the evidence pane's option picker sit in the middle of their buttons instead of against the left edge.

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="__LANG__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<style>
+:root {
+  --bg: #e2dccf; --card: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2; --accent: #6a6256;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161514; --card: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29; --accent: #77716a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161514; --card: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29; --accent: #77716a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.4; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Reading mode: cards. The deck is the size container, so cqi means the card's width in both modes,
+   the same for every card. Every card has the same minimum height (16:9 of its width) and padding,
+   and grows when its content needs more: it never clips or scrolls inside itself. */
+.deck {
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  max-width: 1280px; margin-inline: auto; padding-inline: var(--gutter);
+  padding-block: 32px 88px; display: grid; gap: 32px; container-type: inline-size;
+}
+/* Wider than a phone, the space above the first card and below the last is what centres a card of the
+   minimum height (16:9 of the card's width; 100% is the body's width here, as padding resolves it), so a
+   walk lands the first and last cards where it lands the others. Never less than the gap above, nor less
+   than the toolbar's room below. */
+@media (min-width: 701px) {
+  .deck {
+    --centre: calc((100vh - (min(1280px, 100%) - 2 * var(--gutter)) * 9 / 16) / 2);
+    padding-block: max(32px, var(--centre)) max(88px, var(--centre));
+  }
+}
+.slide {
+  --slide-height: calc(100cqi * 9 / 16);
+  min-height: var(--slide-height); height: auto; overflow: visible;
+  padding: clamp(24px, 3.4vw, 40px) clamp(20px, 5vw, 60px); font-size: 2.2cqi;
+  border-radius: 12px; background: var(--card); border: 1px solid var(--line); scroll-snap-align: center;
+}
+.slide h2 { font-size: 4.2cqi; line-height: 1.15; margin: 0 0 2cqi; max-width: 30em; }
+.slide p, .slide li { max-width: 40em; }
+.slide svg, .slide img { max-width: 100%; height: auto; }
+.slide-head { display: flex; justify-content: space-between; align-items: center; gap: 2cqi; margin-bottom: 3cqi; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 1.2cqi; font-family: var(--mono); font-size: 1.5cqi;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.eyebrow::before { content: ""; width: 4cqi; height: .6cqi; border-radius: 1cqi; background: var(--accent); }
+.num { font-family: var(--mono); font-size: 1.5cqi; color: var(--muted); }
+.cover h2 { font-size: 6cqi; }
+.cover .eyebrow img { height: 4cqi; width: auto; background: #fff; padding: 4px 8px; border-radius: 6px; }
+
+.question {
+  margin: 2cqi 0 0; padding: 1.4cqi 2cqi; border-left: .8cqi solid var(--question, var(--accent));
+  background: var(--raised); border-radius: 0 8px 8px 0;
+}
+.q-label { display: block; font-family: var(--mono); font-size: 1.5cqi; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .6cqi; }
+.question.answered { border-left-color: var(--line); }
+.q-answer { margin: 1cqi 0 0; font-weight: 600; }
+.recap ol { padding-left: 3cqi; }
+.recap li { margin-bottom: 1.2cqi; }
+.recap a { color: var(--ink); text-underline-offset: .3em; }
+.changed { border-top: .8cqi solid var(--accent); }
+
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: inset 0 0 0 3px var(--accent); }
+.slide:focus { outline: none; }
+.slide:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+@media (max-width: 700px) {
+  .slide { font-size: 15px; }
+  .slide h2 { font-size: 22px; }
+  .cover h2 { font-size: 28px; }
+  .eyebrow, .num, .q-label { font-size: 12px; }
+  .eyebrow img { height: 28px; }
+}
+
+/* Toolbar */
+.toolbar {
+  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  display: flex; gap: 8px;
+}
+.toolbar[hidden] { display: none; }
+.toolbar button {
+  min-width: 44px; min-height: 44px; padding: 0 16px; font: inherit; color: var(--ink);
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+}
+
+@media print {
+  @page { size: 13.333in 7.5in; margin: 0 }
+  :root:root:root { --bg: #e2dccf; --card: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2; color-scheme: light; }
+  body { background: var(--card); }
+  .deck { display: block; width: auto; max-width: none; padding: 0; min-height: 0; }
+  .slide {
+    display: block; break-after: page; min-height: 7.5in; width: 13.333in; height: auto; overflow: visible;
+    aspect-ratio: auto; print-color-adjust: exact; -webkit-print-color-adjust: exact;
+    border: 0; border-radius: 0; font-size: 22px; padding: 0.6in 0.8in;
+  }
+  .slide h2 { font-size: 40px; }
+  .cover h2 { font-size: 56px; }
+  .eyebrow, .num, .q-label { font-size: 14px; }
+  .toolbar { display: none !important; }
+}
+/*BRAND*/
+</style>
+</head>
+<body>
+<main class="deck" id="deck">
+<!--SLIDES-->
+</main>
+<div class="toolbar" id="toolbar" hidden>
+  <button type="button" id="theme-btn"></button>
+</div>
+<script type="application/json" id="copy">__COPY__</script>
+<script>
+(function () {
+  var root = document.documentElement;
+  var copy = {};
+  try { copy = JSON.parse(document.getElementById('copy').textContent) || {}; } catch (e) { copy = {}; }
+  function say(k) { return copy[k] || ''; }
+  function $(id) { return document.getElementById(id); }
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = cards.length;
+  var cur = 0, lastWalk = 0;
+
+  function readTheme() {
+    try { return localStorage.getItem('team-deck-theme'); } catch (e) { return null; }
+  }
+  function writeTheme(v) {
+    try { localStorage.setItem('team-deck-theme', v); } catch (e) { return; }
+  }
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function paintTheme() { $('theme-btn').textContent = say(isDark() ? 'themeToLight' : 'themeToDark'); }
+  var stored = readTheme();
+  if (stored === 'dark' || stored === 'light') root.setAttribute('data-theme', stored);
+  $('theme-btn').addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    writeTheme(next);
+    paintTheme();
+  });
+
+  function nearest() {
+    var mid = (window.innerHeight || 0) / 2, best = 0, bestD = Infinity;
+    cards.forEach(function (c, i) {
+      var r = c.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - mid);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  }
+  function index() {
+    if (Date.now() - lastWalk < 800) return cur;
+    return nearest();
+  }
+  function go(i) {
+    if (!total) return;
+    cur = Math.max(0, Math.min(total - 1, i));
+    lastWalk = Date.now();
+    var c = cards[cur];
+    c.scrollIntoView({ block: 'center' });
+    c.focus({ preventScroll: true });
+  }
+  paintTheme();
+
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    var tag = e.target && e.target.tagName ? String(e.target.tagName).toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    var k = e.key, dir = 0, jump = null;
+    if (k === ' ' || k === 'Spacebar') { if (tag === 'button' || tag === 'a') return; dir = 1; }
+    else if (k === 'ArrowDown' || k === 'PageDown') dir = 1;
+    else if (k === 'ArrowUp' || k === 'PageUp') dir = -1;
+    else if (k === 'ArrowRight') jump = 1;
+    else if (k === 'ArrowLeft') jump = -1;
+    else if (k === 'Home') { e.preventDefault(); go(0); return; }
+    else if (k === 'End') { e.preventDefault(); go(total - 1); return; }
+    else return;
+    e.preventDefault();
+    go(index() + (jump || dir));
+  });
+
+  $('toolbar').hidden = false;
+})();
+</script>
+</body>
+</html>
