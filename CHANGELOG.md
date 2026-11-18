@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.35.2 — 2026-11-18
+
+- **Centred arrows.** The ‹ › arrows of the evidence pane's option picker sit in the middle of their buttons instead of against the left edge.
+
 ## 0.35.1 — 2026-11-18
 
 - **What the app sends.** An acceptance case can show an email, a text message or a file the app sends, or that it sends none, shot in the environment's outbox (a mail catcher, the provider's sandbox). The outbox is asked once and kept in the profile as `Recette outbox`. Without one, the case stays on the page as `unshown` instead of being dropped as not visible.

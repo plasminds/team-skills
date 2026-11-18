@@ -651,7 +651,7 @@ dialog.zoom p:empty { display: none; }
 .story-page .optpick { margin: 14px 0 6px; }
 .story-page .osec .opos { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
 .story-page .ostep { flex: 1 1 100%; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 3px; border-radius: 10px; background: var(--raised); box-shadow: inset 0 0 0 1px var(--edge); }
-.story-page .ostep button { flex: none; min-width: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; font-size: 16px; color: var(--ink-2); }
+.story-page .ostep button { flex: none; justify-content: center; min-width: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; font-size: 16px; color: var(--ink-2); }
 .story-page .ostep button:hover { color: var(--ink); background: var(--panel); }
 .story-page .oname { flex: 1 1 auto; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 .story-page .oname.mine { color: var(--green); }

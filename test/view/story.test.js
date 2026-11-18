@@ -1886,3 +1886,7 @@ test('the cover lists a tech constraint on a business page with its lens label',
   const dom = await boot(htmlOf(g), '#d-COVER');
   assert.strictEqual(q(paneOf(dom, 'COVER'), '.klens').length, 1);
 });
+
+test('the evidence pane steppers centre their arrows in the button', () => {
+  assert.match(cssText(), /\.story-page \.ostep button \{[^}]*justify-content: center/);
+});
