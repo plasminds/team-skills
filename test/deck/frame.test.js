@@ -34,16 +34,36 @@ const rule = (css, sel) => {
 };
 const token = (body, name) => (new RegExp('--' + name + ':\\s*(#[0-9a-f]{3,6})', 'i').exec(body) || [])[1];
 
-test('reading mode: every card has the same min height and padding, and grows instead of clipping', () => {
-  const card = rule(style(), '.slide');
-  assert.match(card, /--slide-height:\s*calc\(100cqi \* 9 \/ 16\)/);
-  assert.match(card, /min-height:\s*var\(--slide-height\)/);
-  assert.match(card, /overflow:\s*visible/);
-  assert.doesNotMatch(card, /overflow:\s*auto/);
-  assert.doesNotMatch(card, /aspect-ratio/);
-  assert.match(card, /padding:\s*clamp\(24px, 3\.4vw, 40px\) clamp\(20px, 5vw, 60px\)/);
-  const narrow = style().slice(style().indexOf('@media (max-width: 700px)'));
-  assert.doesNotMatch(rule(narrow, '.slide'), /padding|aspect-ratio|height/);
+test('a slide is a fixed 16:9 frame that clips instead of growing, sized in cqi', () => {
+  const css = style();
+  const card = rule(css, '.slide');
+  assert.match(card, /aspect-ratio:\s*16 \/ 9/);
+  assert.match(card, /overflow:\s*hidden/);
+  assert.doesNotMatch(card, /min-height/);
+  assert.match(card, /grid-template-rows:\s*auto minmax\(0, 1fr\)/);
+  assert.match(card, /font-size:\s*2\.1cqi/);
+  assert.match(rule(css, '.body'), /min-height:\s*0; overflow:\s*hidden/);
+  ['.bar', '.body', '.slide h2'].forEach(sel => assert.doesNotMatch(rule(css, sel), /\d(px|vw|rem)\b/, sel + ' sizes in cqi'));
+  const narrow = css.slice(css.indexOf('@media (max-width: 700px)'));
+  assert.match(rule(narrow, '.slide'), /aspect-ratio:\s*auto; overflow:\s*visible/, 'a phone reads cards that grow');
+});
+
+test('a visual takes the room the text leaves and scales its image or svg whole', () => {
+  const css = style();
+  assert.match(rule(css, '.visual'), /flex:\s*1 1 0; min-height:\s*10cqi; position:\s*relative/);
+  const fill = rule(css, '.visual > img, .visual > svg');
+  assert.match(fill, /position:\s*absolute; inset:\s*0; width:\s*100%; height:\s*100%; object-fit:\s*contain/);
+  assert.match(rule(css, '.cols'), /grid-template-columns:\s*repeat\(auto-fit, minmax\(0, 1fr\)\)/);
+  assert.match(rule(css, '.slide ul, .slide ol'), /align-content:\s*start/, 'a list never spreads over the column height');
+});
+
+test('the bar takes the brand fill, its stripe and its text colours; the cover is filled', () => {
+  const css = style();
+  assert.match(rule(css, '.bar'), /background:\s*var\(--bar\); color:\s*var\(--on\)/);
+  assert.match(rule(css, '.bar::after'), /background:\s*var\(--stripe\)/);
+  assert.match(rule(css, '.cover'), /background:\s*var\(--bar\); color:\s*var\(--on\)/);
+  assert.match(rule(css, '.slide h2'), /color:\s*var\(--title\)/);
+  assert.match(rule(css, '.question'), /border-left:\s*\.6cqi solid var\(--detail\)/);
 });
 
 test('reading mode: above a phone, the space above the first card and below the last centres a card', () => {
@@ -77,34 +97,42 @@ test('no present mode left: no html.present rule, no present bar, no key shortcu
   assert.doesNotMatch(h, /aria-pressed/);
 });
 
-test('themes: the team-view palette, light on :root, dark under both dark selectors', () => {
+test('themes: the neutral palette, light on :root, dark under both dark selectors, light in print', () => {
   const css = style();
   const light = rule(css, ':root');
   const dark = rule(css, ':root[data-theme="dark"]');
   const media = /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/.exec(css)[1];
   const want = {
-    light: { bg: '#e2dccf', card: '#eee9df', raised: '#e5dfd3', ink: '#2a251f', muted: '#4a433b', line: '#d6cfc2', accent: '#6a6256' },
-    dark: { bg: '#161514', card: '#201e1c', raised: '#2a2825', ink: '#eeeae4', muted: '#c6c0b7', line: '#2f2c29', accent: '#77716a' }
+    light: { bg: '#e2dccf', page: '#eee9df', raised: '#e5dfd3', ink: '#2a251f', muted: '#4a433b', line: '#d6cfc2', bar: '#4a433b', on: '#fafafa', title: '#2a251f', detail: '#6a6256' },
+    dark: { bg: '#161514', page: '#201e1c', raised: '#2a2825', ink: '#eeeae4', muted: '#c6c0b7', line: '#2f2c29', bar: '#2f2c29', on: '#eeeae4', title: '#eeeae4', detail: '#77716a' }
   };
   Object.entries(want.light).forEach(([k, v]) => assert.strictEqual(token(light, k), v, 'light --' + k));
   [dark, media].forEach(body => Object.entries(want.dark).forEach(([k, v]) => assert.strictEqual(token(body, k), v, 'dark --' + k)));
+  assert.match(light, /--stripe:\s*transparent/);
   assert.match(light, /color-scheme:\s*light/);
   assert.match(dark, /color-scheme:\s*dark/);
   assert.match(media, /color-scheme:\s*dark/);
   const print = css.slice(css.indexOf('@media print'));
-  ['bg', 'card', 'ink'].forEach(k => assert.strictEqual(token(rule(print, ':root:root:root'), k), want.light[k], 'print --' + k));
+  Object.entries(want.light).forEach(([k, v]) => assert.strictEqual(token(rule(print, ':root:root:root'), k), v, 'print --' + k));
 });
 
-test('print rules keep an overflowing card whole (Review Focus 5)', () => {
+test('print: one 13.333 × 7.5 in page per slide, the deck the page wide so cqi keeps the screen layout', () => {
   const css = style();
   const print = css.slice(css.indexOf('@media print'));
   assert.ok(print.startsWith('@media print'));
   assert.match(print, /@page\s*\{[^}]*size:\s*13\.333in 7\.5in/);
-  assert.match(print, /height:\s*auto/);
-  assert.match(print, /overflow:\s*visible/);
-  assert.match(print, /print-color-adjust:\s*exact/);
-  assert.match(print, /min-height:\s*7\.5in/);
-  assert.match(print, /width:\s*13\.333in/);
+  assert.match(rule(print, '.deck'), /width:\s*13\.333in/);
+  const slide = rule(print, '.slide');
+  assert.match(slide, /width:\s*13\.333in; height:\s*7\.5in/);
+  assert.match(slide, /break-after:\s*page/);
+  assert.match(slide, /print-color-adjust:\s*exact/);
+  assert.doesNotMatch(print, /font-size/, 'no print font sizes: the cqi ones hold');
+});
+
+test('the brand marker appears once, after the theme blocks', () => {
+  const h = html();
+  assert.strictEqual(h.split('/*BRAND*/').length - 1, 1);
+  assert.ok(h.indexOf('/*BRAND*/') > h.indexOf('@media print'));
 });
 
 test('every localStorage call sits inside a try block', () => {

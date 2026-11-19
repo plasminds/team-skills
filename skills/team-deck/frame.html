@@ -5,38 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>__TITLE__</title>
 <style>
+/* The neutral set; deck.js writes a brand's tokens after these blocks (the marker at the end), from the same names.
+   --bar fills the top bar and the cover, --on and --on-muted are text on it, --stripe the line under the bar,
+   --page the slide, --title the h2, --detail the marks (question border, bullets). */
 :root {
-  --bg: #e2dccf; --card: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2; --accent: #6a6256;
+  --bg: #e2dccf; --page: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2;
+  --bar: #4a433b; --on: #fafafa; --on-muted: #e2dccf; --stripe: transparent; --title: #2a251f; --detail: #6a6256;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #161514; --card: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29; --accent: #77716a;
+    --bg: #161514; --page: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29;
+    --bar: #2f2c29; --on: #eeeae4; --on-muted: #c6c0b7; --stripe: transparent; --title: #eeeae4; --detail: #77716a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #161514; --card: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29; --accent: #77716a;
+  --bg: #161514; --page: #201e1c; --raised: #2a2825; --ink: #eeeae4; --muted: #c6c0b7; --line: #2f2c29;
+  --bar: #2f2c29; --on: #eeeae4; --on-muted: #c6c0b7; --stripe: transparent; --title: #eeeae4; --detail: #77716a;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.4; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.35; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 
-/* Reading mode: cards. The deck is the size container, so cqi means the card's width in both modes,
-   the same for every card. Every card has the same minimum height (16:9 of its width) and padding,
-   and grows when its content needs more: it never clips or scrolls inside itself. */
+/* A slide is a fixed 16:9 frame: every size inside is in cqi (1% of the slide's width), so its content takes the
+   same share of the slide at any width, on a projector as in print. Nothing grows: deck.js measures each slide in
+   a browser and fails the build on one whose content does not fit, so the clip below never cuts anything. */
 .deck {
   --gutter: max(16px, env(safe-area-inset-left, 0px));
   max-width: 1280px; margin-inline: auto; padding-inline: var(--gutter);
   padding-block: 32px 88px; display: grid; gap: 32px; container-type: inline-size;
 }
-/* Wider than a phone, the space above the first card and below the last is what centres a card of the
-   minimum height (16:9 of the card's width; 100% is the body's width here, as padding resolves it), so a
-   walk lands the first and last cards where it lands the others. Never less than the gap above, nor less
-   than the toolbar's room below. */
 @media (min-width: 701px) {
   .deck {
     --centre: calc((100vh - (min(1280px, 100%) - 2 * var(--gutter)) * 9 / 16) / 2);
@@ -44,46 +46,81 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--s
   }
 }
 .slide {
-  --slide-height: calc(100cqi * 9 / 16);
-  min-height: var(--slide-height); height: auto; overflow: visible;
-  padding: clamp(24px, 3.4vw, 40px) clamp(20px, 5vw, 60px); font-size: 2.2cqi;
-  border-radius: 12px; background: var(--card); border: 1px solid var(--line); scroll-snap-align: center;
+  aspect-ratio: 16 / 9; overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr);
+  font-size: 2.1cqi; background: var(--page); border-radius: 12px; scroll-snap-align: center;
+  box-shadow: 0 1px 3px rgb(0 0 0 / .12);
 }
-.slide h2 { font-size: 4.2cqi; line-height: 1.15; margin: 0 0 2cqi; max-width: 30em; }
-.slide p, .slide li { max-width: 40em; }
-.slide svg, .slide img { max-width: 100%; height: auto; }
-.slide-head { display: flex; justify-content: space-between; align-items: center; gap: 2cqi; margin-bottom: 3cqi; }
+.bar {
+  position: relative; display: flex; align-items: center; gap: 2.4cqi; height: 6.4cqi; padding-inline: 4.5cqi;
+  background: var(--bar); color: var(--on);
+}
+.bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: .5cqi; background: var(--stripe); }
+.logo { height: 2.6cqi; width: auto; max-width: 22cqi; object-fit: contain; flex: none; }
+span.logo { display: block; background: var(--logo) left center / contain no-repeat; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+.name { font-size: 1.9cqi; font-weight: 700; flex: none; }
 .eyebrow {
-  display: inline-flex; align-items: center; gap: 1.2cqi; font-family: var(--mono); font-size: 1.5cqi;
-  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  min-width: 0; padding-left: 2.4cqi; border-left: 1px solid var(--on-muted); color: var(--on-muted);
+  font-size: 1.6cqi; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.eyebrow::before { content: ""; width: 4cqi; height: .6cqi; border-radius: 1cqi; background: var(--accent); }
-.num { font-family: var(--mono); font-size: 1.5cqi; color: var(--muted); }
-.cover h2 { font-size: 6cqi; }
-.cover .eyebrow img { height: 4cqi; width: auto; background: #fff; padding: 4px 8px; border-radius: 6px; }
+.eyebrow:empty { display: none; }
+.num { margin-left: auto; font-family: var(--mono); font-size: 1.4cqi; color: var(--on-muted); flex: none; }
+.body { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 1.6cqi; padding: 3cqi 4.5cqi 3.2cqi; }
+.body > * { margin: 0; }
+.slide h2 { font-size: 3.5cqi; line-height: 1.15; color: var(--title); max-width: 34em; text-wrap: balance; }
+.slide p, .slide li { max-width: 46em; }
+.slide ul, .slide ol { padding-left: 2.6cqi; display: grid; align-content: start; gap: .8cqi; }
+.slide li::marker { color: var(--detail); }
+.slide strong { color: var(--title); }
+
+/* A diagram or image takes the room the text leaves, scaled to fit it whole. */
+.visual { flex: 1 1 0; min-height: 10cqi; position: relative; margin: 0; }
+.visual > img, .visual > svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.visual figcaption { position: absolute; left: 0; right: 0; bottom: 0; font-size: 1.5cqi; color: var(--muted); }
+/* Side by side: text on one side, a diagram or questions on the other. */
+.cols { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 3cqi; }
+.cols > * { min-height: 0; display: flex; flex-direction: column; gap: 1.4cqi; margin: 0; }
+.ticket { font-family: var(--mono); font-size: .85em; color: var(--muted); white-space: nowrap; }
 
 .question {
-  margin: 2cqi 0 0; padding: 1.4cqi 2cqi; border-left: .8cqi solid var(--question, var(--accent));
-  background: var(--raised); border-radius: 0 8px 8px 0;
+  padding: 1.1cqi 1.8cqi; border-left: .6cqi solid var(--detail); background: var(--raised); border-radius: 0 8px 8px 0;
 }
-.q-label { display: block; font-family: var(--mono); font-size: 1.5cqi; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .6cqi; }
+.question p { margin: 0; }
+.q-label { display: block; font-size: 1.3cqi; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: .4cqi; }
 .question.answered { border-left-color: var(--line); }
-.q-answer { margin: 1cqi 0 0; font-weight: 600; }
-.recap ol { padding-left: 3cqi; }
-.recap li { margin-bottom: 1.2cqi; }
-.recap a { color: var(--ink); text-underline-offset: .3em; }
-.changed { border-top: .8cqi solid var(--accent); }
+.q-answer { margin: .8cqi 0 0; font-weight: 600; }
 
-:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; box-shadow: inset 0 0 0 3px var(--accent); }
+.cover { background: var(--bar); color: var(--on); }
+.cover .bar { height: 11cqi; }
+.cover .logo { height: 4.4cqi; max-width: 40cqi; }
+.cover .name { font-size: 3cqi; }
+.cover .body { justify-content: center; gap: 2.2cqi; padding-bottom: 6cqi; }
+.cover h2 { font-size: 5cqi; color: var(--on); }
+.cover p { color: var(--on-muted); font-size: 2.3cqi; }
+.cover strong { color: var(--on); }
+
+.recap ol { gap: 1.4cqi; }
+.recap li > div > p { margin: 0; }
+.recap .from { margin: .3cqi 0 0; font-size: 1.5cqi; color: var(--muted); }
+.recap a { color: inherit; text-underline-offset: .25em; }
+
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .slide:focus { outline: none; }
 .slide:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
+/* A phone reads the deck as cards that grow; the fit is measured, and kept, above this width. */
 @media (max-width: 700px) {
-  .slide { font-size: 15px; }
+  .slide { aspect-ratio: auto; overflow: visible; font-size: 15px; }
+  .bar { height: auto; min-height: 44px; padding: 8px 16px; gap: 12px; }
+  .logo { height: 20px; }
+  .name, .eyebrow { font-size: 13px; }
+  .num { font-size: 12px; }
+  .body { padding: 16px; gap: 12px; }
   .slide h2 { font-size: 22px; }
   .cover h2 { font-size: 28px; }
-  .eyebrow, .num, .q-label { font-size: 12px; }
-  .eyebrow img { height: 28px; }
+  .cover p { font-size: 16px; }
+  .visual { flex: none; aspect-ratio: 16 / 10; }
+  .cols { grid-template-columns: 1fr; }
+  .q-label, .recap .from { font-size: 12px; }
 }
 
 /* Toolbar */
@@ -94,22 +131,24 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--s
 .toolbar[hidden] { display: none; }
 .toolbar button {
   min-width: 44px; min-height: 44px; padding: 0 16px; font: inherit; color: var(--ink);
-  background: var(--card); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  background: var(--page); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
 }
 
+/* Print: one slide per 13.333 × 7.5 in page, the same layout as on screen (the deck is the page's width, so cqi
+   keeps every share), in the light theme. */
 @media print {
   @page { size: 13.333in 7.5in; margin: 0 }
-  :root:root:root { --bg: #e2dccf; --card: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2; color-scheme: light; }
-  body { background: var(--card); }
-  .deck { display: block; width: auto; max-width: none; padding: 0; min-height: 0; }
-  .slide {
-    display: block; break-after: page; min-height: 7.5in; width: 13.333in; height: auto; overflow: visible;
-    aspect-ratio: auto; print-color-adjust: exact; -webkit-print-color-adjust: exact;
-    border: 0; border-radius: 0; font-size: 22px; padding: 0.6in 0.8in;
+  :root:root:root {
+    --bg: #e2dccf; --page: #eee9df; --raised: #e5dfd3; --ink: #2a251f; --muted: #4a433b; --line: #d6cfc2;
+    --bar: #4a433b; --on: #fafafa; --on-muted: #e2dccf; --stripe: transparent; --title: #2a251f; --detail: #6a6256;
+    color-scheme: light;
   }
-  .slide h2 { font-size: 40px; }
-  .cover h2 { font-size: 56px; }
-  .eyebrow, .num, .q-label { font-size: 14px; }
+  body { background: var(--page); }
+  .deck { display: block; width: 13.333in; max-width: none; padding: 0; }
+  .slide {
+    width: 13.333in; height: 7.5in; aspect-ratio: auto; break-after: page; border-radius: 0; box-shadow: none;
+    print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  }
   .toolbar { display: none !important; }
 }
 /*BRAND*/

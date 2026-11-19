@@ -2,6 +2,12 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.1 — 2026-11-19
+
+- **Slides that fit.** A deck slide is a fixed 16:9 frame. The build measures every slide in the project's Playwright, writes a shot of each, and fails on a slide that overflows or whose image or diagram text is too small to read. The recap is split across slides of four questions.
+- **The brand on every slide.** The primary colour fills a top bar and the cover, with the logo on it; the secondary draws the stripe under the bar; the surface is the slide.
+- **The source's own material.** The deck reuses the source's diagrams, with their branches, and names tickets with their number. Local images are inlined.
+
 ## 0.36.0 — 2026-11-18
 
 - **Decks.** `team-deck` turns a decision, spec or plan into one self-contained HTML deck for a business meeting.
