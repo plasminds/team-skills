@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.2 — 2026-11-19
+
+- **A balanced recap.** The recap of a deck's open questions takes the fewest slides of at most five questions, spread evenly, the first slides taking one more: seven questions make two slides of four and three, eleven make three of four, four and three.
+
 ## 0.36.1 — 2026-11-19
 
 - **Slides that fit.** A deck slide is a fixed 16:9 frame. The build measures every slide in the project's Playwright, writes a shot of each, and fails on a slide that overflows or whose image or diagram text is too small to read. The recap is split across slides of four questions.

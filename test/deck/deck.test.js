@@ -9,7 +9,7 @@ const { tmpDir } = require('../view/helpers');
 const DECK_DIR = path.join(__dirname, '..', '..', 'skills', 'team-deck');
 const DECK_JS = path.join(DECK_DIR, 'deck.js');
 const FRAME = fs.readFileSync(path.join(DECK_DIR, 'frame.html'), 'utf8');
-const { build, brandTokens, contrast, fitErrors, checkFit } = require(DECK_JS);
+const { build, brandTokens, contrast, fitErrors, checkFit, recapSizes } = require(DECK_JS);
 
 const brand = (over = {}) => ({ name: 'Acme Invoicing', logo: null, colors: 'neutral', lang: 'en', ...over });
 const deckOf = (over = {}) => ({ title: 'Invoice decision', brand: brand(), slides: 'x.slides.html', ...over });
@@ -189,15 +189,20 @@ test('a local image is inlined as a data URI; a missing one names the slide and 
   assert.deepStrictEqual(built('<section class="slide"><h2>A</h2><img src="data:image/png;base64,AQID" alt=""></section>').errors, []);
 });
 
-test('the recap holds four questions per slide, numbered on, and the counts include every recap slide', () => {
+test('the recap takes the fewest slides of at most five questions, spread evenly, the first slides taking one more', () => {
+  const sizes = { 1: [1], 5: [5], 6: [3, 3], 7: [4, 3], 8: [4, 4], 9: [5, 4], 10: [5, 5], 11: [4, 4, 3], 12: [4, 4, 4], 16: [4, 4, 4, 4] };
+  Object.entries(sizes).forEach(([n, expected]) => assert.deepStrictEqual(recapSizes(Number(n)), expected, n + ' questions'));
+});
+
+test('the recap is numbered on across its slides, and the counts include every recap slide', () => {
   const q = i => '<aside class="question">Q' + i + '?</aside>';
-  const fragment = [1, 2, 3].map(i => '<section class="slide"><h2>Claim ' + i + '</h2>' + q(2 * i - 1) + q(2 * i) + '</section>').join('\n');
+  const fragment = [1, 2, 3, 4].map(i => '<section class="slide"><h2>Claim ' + i + '</h2>' + q(2 * i - 1) + q(2 * i) + '</section>').join('\n').replace(q(8), '');
   const { html } = built(fragment);
-  assert.match(section(html, 4), /<h2 id="s4-h">Open questions \(1\/2\)<\/h2>\n<ol start="1">/);
-  assert.strictEqual(count(section(html, 4), '<li>'), 4);
-  assert.match(section(html, 5), /<h2 id="s5-h">Open questions \(2\/2\)<\/h2>\n<ol start="5">/);
-  assert.strictEqual(count(section(html, 5), '<li>'), 2);
-  assert.match(section(html, 1), /<span class="num">1 \/ 5<\/span>/);
+  assert.match(section(html, 5), /<h2 id="s5-h">Open questions \(1\/2\)<\/h2>\n<ol start="1">/);
+  assert.strictEqual(count(section(html, 5), '<li>'), 4);
+  assert.match(section(html, 6), /<h2 id="s6-h">Open questions \(2\/2\)<\/h2>\n<ol start="5">/);
+  assert.strictEqual(count(section(html, 6), '<li>'), 3);
+  assert.match(section(html, 1), /<span class="num">1 \/ 6<\/span>/);
   assert.match(built(PLAIN.replace('</section>', q(1) + '</section>')).html, /<h2 id="s4-h">Open questions<\/h2>/, 'one recap slide keeps the plain title');
 });
 

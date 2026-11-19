@@ -29,8 +29,13 @@ const LOGO_EXT = /\.(png|jpg|svg)$/i;
 const IMG_EXT = /\.(png|jpe?g|svg|webp|gif)$/i;
 const HEX = /^#[0-9a-f]{6}$/i;
 const COLOR_KEYS = ['primary', 'secondary', 'surface'];
-// The recap holds this many questions per slide, so it fits like any other slide.
-const RECAP_PER = 4;
+// A recap slide holds at most this many questions, so it fits like any other slide.
+const RECAP_MAX = 5;
+// The fewest recap slides, the questions spread evenly across them, the first slides taking one more: 7 -> [4, 3].
+const recapSizes = count => {
+  const pages = Math.ceil(count / RECAP_MAX);
+  return Array.from({ length: pages }, (_, p) => Math.floor(count / pages) + (p < count % pages ? 1 : 0));
+};
 
 // ---------- brand colours (WCAG 2 contrast), the same rules as team-video's slides ----------
 const rgb = hex => [1, 3, 5].map(k => parseInt(hex.slice(k, k + 2), 16));
@@ -219,7 +224,9 @@ function build(deckJson, fragment, frame, readFile) {
   const rest = cover.length ? slides.slice(1) : slides;
   const isChanged = s => classesOf(s.attrs).includes('changed');
   const ordered = [...cover, ...rest.filter(isChanged), ...rest.filter(s => !isChanged(s))];
-  const recapPages = ordered.some(hasQuestion) ? Math.ceil(countQuestions(ordered) / RECAP_PER) : 0;
+  const sizes = ordered.some(hasQuestion) ? recapSizes(countQuestions(ordered)) : [];
+  const starts = sizes.map((_, p) => sizes.slice(0, p).reduce((sum, size) => sum + size, 0));
+  const recapPages = sizes.length;
   const total = ordered.length + recapPages;
 
   // A logo whose size reads is written once, as --logo, and each bar shows it as a background (one copy for the whole
@@ -268,11 +275,11 @@ function build(deckJson, fragment, frame, readFile) {
   for (let p = 0; p < recapPages; p++) {
     const n = ordered.length + p + 1;
     const title = esc(t.recap) + (recapPages > 1 ? ' (' + (p + 1) + '/' + recapPages + ')' : '');
-    const items = questions.slice(p * RECAP_PER, (p + 1) * RECAP_PER).map(q =>
+    const items = questions.slice(starts[p], starts[p] + sizes[p]).map(q =>
       '<li><div>' + q.body + '</div><p class="from"><a href="#s' + q.n + '">' + esc(t.slide) + ' ' + q.n + ' · ' + q.h2.replace(/<\/?a\b[^>]*>/gi, '') + '</a></p>' +
       (q.answer !== null ? '<p class="q-answer">' + esc(t.answered) + keepEntities(q.answer) + '</p>' : '') + '</li>');
     sections.push('<section class="slide recap" id="s' + n + '" tabindex="-1" aria-labelledby="s' + n + '-h">\n' + bar(n, '') +
-      '\n<div class="body">\n<h2 id="s' + n + '-h">' + title + '</h2>\n<ol start="' + (p * RECAP_PER + 1) + '">\n' + items.join('\n') + '\n</ol>\n</div>\n</section>');
+      '\n<div class="body">\n<h2 id="s' + n + '-h">' + title + '</h2>\n<ol start="' + (starts[p] + 1) + '">\n' + items.join('\n') + '\n</ol>\n</div>\n</section>');
   }
 
   const copy = {};
@@ -352,7 +359,7 @@ function resolvePlaywright(dir) {
   return testPkg ? tryResolve('playwright', path.dirname(fs.realpathSync(testPkg))) : null;
 }
 
-module.exports = { build, brandTokens, contrast, fitErrors, checkFit, MEASURE, USAGE };
+module.exports = { build, brandTokens, contrast, fitErrors, checkFit, recapSizes, MEASURE, USAGE };
 
 async function main() {
   const args = process.argv.slice(2);
