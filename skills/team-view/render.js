@@ -10,8 +10,6 @@
 // block (with a "mode: auto-accept" line) is saved to <gate>.decisions.txt and printed after the page path.
 // --channels=<json> (with --serve): availability of the Share dialog's choices, detected by Claude:
 // { review?: true | { label } | 'why not and how to fix' }.
-// TEAM_SESSION (env, with --serve): the name of the background session serving the page, set by a team-protocol
-// launch. After Send, the page names that session and stays open instead of closing its tab.
 // --share: any gate as a page to send as a file (no record path, no key legend, a cover line with the ask).
 // A review gate (kind "review") keeps its work order: it needs "preamble" and briefs (contract.md, Share fields).
 // --preset=<file> (review only): a GATE SHARE block whose choices and notes the share page starts from.
@@ -75,8 +73,7 @@ if (data.kind === 'acceptance' && (flags.has('--serve') || ACCEPT)) errors.push(
 if (errors.length) { console.error('invalid gate JSON:\n- ' + errors.join('\n- ')); process.exit(1); }
 warnings.forEach(w => console.error('warning: ' + w));
 
-const session = (flags.has('--serve') && process.env.TEAM_SESSION) || null;
-const page = buildPage({ data, items, outcome, preset, channels, session, share: SHARE, story, context });
+const page = buildPage({ data, items, outcome, preset, channels, share: SHARE, story, context });
 // After _rev, like channels: pushing the branch must not reset saved choices.
 const repo = repoOf(path.dirname(path.resolve(src)));
 const files = repo ? projectFiles(page, repo.root) : [];

@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.6 — 2026-11-20
+
+- **A launched session reports to the chat you are in.** Each time it waits for you, and when it ends, it sends one line to the session that started the chain (`SendMessage`): what waits, in which session. The gate page closes after **Send to Claude** again; `TEAM_SESSION` is gone.
+
 ## 0.36.5 — 2026-11-20
 
 - **Launch on macOS.** The handoff launches with `setsid -f` on Linux, `nohup … & disown` elsewhere. A denied or failed launch is not retried in another spelling: the handoff block ends the message.

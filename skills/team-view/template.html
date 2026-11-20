@@ -2282,17 +2282,15 @@ var viewTheme = (function () {
     share.hidden = data.kind !== 'review';
     copy.classList.remove('primary');
     copy.classList.add('wide');
-    var post = function (body, sent, failed, btn, keep) {
+    var post = function (body, sent, failed, btn) {
       var toast = document.getElementById('toast');
       btn.disabled = true;
       fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body }).then(function (r) {
         if (!r.ok) return r.text().then(function (t) { btn.disabled = false; toast.textContent = serverText(t, failed); });
         toast.textContent = sent;
-        if (keep) toast.classList.add('away');
         // Browsers let a script close a tab that has a single page in its history, as one opened by render.js has.
-        // Elsewhere close() does nothing and the toast stays. A page served from a background session keeps its tab:
-        // its toast is the only place that says where the session goes on.
-        if (!keep) window.close();
+        // Elsewhere close() does nothing and the toast stays.
+        window.close();
       }).catch(function () {
         btn.disabled = false;
         toast.textContent = failed;
@@ -2301,7 +2299,7 @@ var viewTheme = (function () {
     send.addEventListener('click', function () {
       var undecided = items.filter(function (it) { return !choiceOf(it.id); }).length;
       if (undecided && !confirm(Lp('send.confirm', undecided))) return;
-      post(output(), data.session ? L('send.sentAway', { name: data.session }) : L('send.sent'), L('send.failed'), send, !!data.session);
+      post(output(), L('send.sent'), L('send.failed'), send);
     });
     share.addEventListener('click', function () {
       // A finding left as is reaches its reader: it goes with the reason, or it doesn't go.

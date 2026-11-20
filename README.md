@@ -91,7 +91,7 @@ Use one method or the other, not both, or every skill will show up twice.
 
 **Sandbox and `.bare/` worktrees:** add the whole git directory to the sandbox's write paths. With only `worktrees/`, `objects/`, `refs/` and `logs/`, executors can commit, but rebase and cherry-pick fail on `packed-refs.lock`.
 
-**Launching the next phase:** with `Next step: launch` in the profile's *Run preferences*, a handoff starts the next session itself, detached (`setsid -f claude -p …` on Linux, `nohup claude -p … &` elsewhere). `claude` writes under `~/.claude`, so the command runs outside the sandbox and asks for permission each time unless your settings allow it. The new session runs until it needs you, then waits in the session history (VS Code) or `/resume`. A gate it reaches opens in your browser; after **Send to Claude** the page names the session to open for the next step. A launch that is refused or fails is not retried: the session ends with the prompt to paste.
+**Launching the next phase:** with `Next step: launch` in the profile's *Run preferences*, a handoff starts the next session itself, detached (`setsid -f claude -p …` on Linux, `nohup claude -p … &` elsewhere). `claude` writes under `~/.claude`, so the command runs outside the sandbox and asks for permission each time unless your settings allow it. The new session runs until it needs you, then waits in the session history (VS Code) or `/resume`. A gate it reaches opens in your browser. Each time it waits for you, and when it ends, it sends one line to the session you launched the chain from (Claude Code's cross-session messages): what waits, and in which session. A launch that is refused or fails is not retried: the session ends with the prompt to paste.
 
 ## Usage
 

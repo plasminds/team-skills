@@ -111,13 +111,13 @@ execute the review fixes in .council/reviews/2026-10-28-checkout.exec.md
 
 The next phase starts from that file, not from a context that holds the whole debate.
 
-**Launch.** Per the profile's `Next step` line (`launch` | `paste`; none: ask in the commit question, record it), the next phase starts itself in a new session. Outside the sandbox, detached, on Linux:
+**Launch.** Per the profile's `Next step` (`launch` | `paste`; none: ask in the commit question, record it), the next phase starts itself, outside the sandbox, detached. On Linux:
 
 ```bash
-TEAM_SESSION="<topic>" setsid -f claude -p --name "<topic>" --append-system-prompt "Launched team-* session: no AskUserQuestion. Serve a gate's page, write other questions; end your turn at either." "<the prompt>" > /dev/null 2>&1
+setsid -f claude -p --name "<topic>" --append-system-prompt "Launched team-* session, launcher <L>: no AskUserQuestion. Serve a gate's page, write other questions; end your turn at either. Then, and at the end, SendMessage <L> a line: what waits, where." "<the prompt>" > /dev/null 2>&1
 ```
 
-Without `setsid` (macOS): `nohup` in its place, `& disown` at the end. Denied or failed: say so, never retry. Else say it runs alone (session history, `/resume`). The handoff block ends the message.
+`<L>`: your launcher, else your ListAgents name. Without `setsid` (macOS): `nohup` in its place, `& disown` at the end. Denied or failed: say so, never retry; else that it runs alone. The handoff block ends the message.
 
 ## Execution
 
