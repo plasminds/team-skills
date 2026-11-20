@@ -2,7 +2,7 @@
 const crypto = require('crypto');
 
 // Both pages keep the briefs: the evidence pane shows how each option gets done, which weighs on the choice.
-function buildPage({ data, items, outcome, preset, channels, share: SHARE, story, context }) {
+function buildPage({ data, items, outcome, preset, channels, session, share: SHARE, story, context }) {
   // lang drives every page's chrome and prompt text, local gates too.
   const page = { kind: data.kind === 'council' ? 'debate' : data.kind, title: data.title, date: data.date, source: data.source, outcome, figures: data.figures || [], items, lang: data.lang || 'en' };
   // An acceptance page names what it presents: the branch and its head.
@@ -16,6 +16,7 @@ function buildPage({ data, items, outcome, preset, channels, share: SHARE, story
   // Content hash: saved browser state is keyed by it, so an edited gate starts with fresh decisions.
   page._rev = crypto.createHash('sha1').update(JSON.stringify(page)).digest('hex').slice(0, 12);
   if (channels) page.channels = channels; // after _rev: channel detection must not reset saved choices
+  if (session) page.session = session; // after _rev too: the background session that goes on after Send
   return page;
 }
 

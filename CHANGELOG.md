@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.5 — 2026-11-20
+
+- **Launch on macOS.** The handoff launches with `setsid -f` on Linux, `nohup … & disown` elsewhere. A denied or failed launch is not retried in another spelling: the handoff block ends the message.
+- **The gate names its background session.** A page served from a launched session (`TEAM_SESSION`) stays open after **Send to Claude** and names the session to open for the next step.
+
 ## 0.36.4 — 2026-11-20
 
 - **One architecture section in the README.** Each skill's question, when to call it and what it does sit in one table, the three support skills in a second, the diagram under them. The lane paragraph is gone.

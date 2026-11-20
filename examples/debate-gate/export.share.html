@@ -471,6 +471,7 @@ figcaption, .ocap { font-size: 13.5px; color: var(--ink-3); margin-top: 4px; }
 .legend kbd { height: 19px; min-width: 19px; font-size: 11px; }
 .toast { font-size: 13.5px; color: var(--ink-2); flex: none; max-width: 46%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .toast:empty { display: none; }
+.toast.away { white-space: normal; } /* the Sent line that names a background session: read in full, not cut */
 #out { display: none; position: fixed; right: 20px; bottom: 54px; z-index: 8; width: min(560px, calc(100vw - 32px)); height: 220px; resize: none;
   font: 12.5px/1.55 var(--mono); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--raised); color: var(--ink);
   }
@@ -931,6 +932,7 @@ const CHROME_TEXT = {
     'copy.copiedAgent': 'Copied. Paste it into your coding agent, on your checkout of the branch.',
     'send.confirm': { one: '{n} item undecided. Send anyway? Claude will ask about it.', other: '{n} items undecided. Send anyway? Claude will ask about them.' },
     'send.sent': 'Sent. Claude has your decisions; you can close this tab.',
+    'send.sentAway': 'Sent. Claude goes on in the background session "{name}": open it from the session history or /resume for the next step.',
     'send.failed': 'Could not reach Claude. Use Copy decisions and paste instead.',
     'share.needNote': 'Say why you leave {ids} as is: its reader will see it. Write a note, then share.',
     'share.title': 'Share this page', 'share.submit': 'Share', 'share.cancel': 'Cancel', 'share.to': 'To (optional)',
@@ -1193,6 +1195,7 @@ const CHROME_TEXT = {
     'copy.copiedAgent': 'Copié. Collez-le dans votre agent de code, sur votre copie de la branche.',
     'send.confirm': { one: '{n} élément non décidé. Envoyer quand même ? Claude vous posera la question.', other: '{n} éléments non décidés. Envoyer quand même ? Claude vous posera la question.' },
     'send.sent': 'Envoyé. Claude a vos décisions ; vous pouvez fermer cet onglet.',
+    'send.sentAway': 'Envoyé. Claude continue dans la session en arrière-plan « {name} » : ouvrez-la depuis l’historique des sessions ou /resume pour l’étape suivante.',
     'send.failed': 'Claude est injoignable. Utilisez plutôt Copier les décisions, puis collez.',
     'share.needNote': 'Dites pourquoi vous laissez {ids} tel quel : son lecteur le verra. Écrivez une note, puis partagez.',
     'share.title': 'Partager cette page', 'share.submit': 'Partager', 'share.cancel': 'Annuler', 'share.to': 'Destinataire (facultatif)',
@@ -3869,15 +3872,17 @@ function makeL(lang) {
     share.hidden = data.kind !== 'review';
     copy.classList.remove('primary');
     copy.classList.add('wide');
-    var post = function (body, sent, failed, btn) {
+    var post = function (body, sent, failed, btn, keep) {
       var toast = document.getElementById('toast');
       btn.disabled = true;
       fetch('decisions', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: body }).then(function (r) {
         if (!r.ok) return r.text().then(function (t) { btn.disabled = false; toast.textContent = serverText(t, failed); });
         toast.textContent = sent;
+        if (keep) toast.classList.add('away');
         // Browsers let a script close a tab that has a single page in its history, as one opened by render.js has.
-        // Elsewhere close() does nothing and the toast stays.
-        window.close();
+        // Elsewhere close() does nothing and the toast stays. A page served from a background session keeps its tab:
+        // its toast is the only place that says where the session goes on.
+        if (!keep) window.close();
       }).catch(function () {
         btn.disabled = false;
         toast.textContent = failed;
@@ -3886,7 +3891,7 @@ function makeL(lang) {
     send.addEventListener('click', function () {
       var undecided = items.filter(function (it) { return !choiceOf(it.id); }).length;
       if (undecided && !confirm(Lp('send.confirm', undecided))) return;
-      post(output(), L('send.sent'), L('send.failed'), send);
+      post(output(), data.session ? L('send.sentAway', { name: data.session }) : L('send.sent'), L('send.failed'), send, !!data.session);
     });
     share.addEventListener('click', function () {
       // A finding left as is reaches its reader: it goes with the reason, or it doesn't go.

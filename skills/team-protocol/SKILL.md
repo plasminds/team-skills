@@ -111,13 +111,13 @@ execute the review fixes in .council/reviews/2026-10-28-checkout.exec.md
 
 The next phase starts from that file, not from a context that holds the whole debate.
 
-**Launch.** The next phase can start itself in a new session, per the profile's `Next step` line (`launch` | `paste`); with none, ask in the commit question's AskUserQuestion call and record the answer. On `launch`, run outside the sandbox, detached:
+**Launch.** Per the profile's `Next step` line (`launch` | `paste`; none: ask in the commit question, record it), the next phase starts itself in a new session. Outside the sandbox, detached, on Linux:
 
 ```bash
-setsid -f claude -p --name "<topic>" --append-system-prompt "Headless team-* handoff: no AskUserQuestion. At the first point needing the human (a question, a gate page to serve), write it as text and end your turn; they resume this session." "<the prompt>" > /dev/null 2>&1
+TEAM_SESSION="<topic>" setsid -f claude -p --name "<topic>" --append-system-prompt "Launched team-* session: no AskUserQuestion. Serve a gate's page, write other questions; end your turn at either." "<the prompt>" > /dev/null 2>&1
 ```
 
-Say it runs alone, to open from the session history or `/resume`. The handoff block still ends the message.
+Without `setsid` (macOS): `nohup` in its place, `& disown` at the end. Denied or failed: say so, never retry. Else say it runs alone (session history, `/resume`). The handoff block ends the message.
 
 ## Execution
 

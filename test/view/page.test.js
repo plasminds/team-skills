@@ -98,6 +98,35 @@ test('--channels reaches the served page without changing its _rev', async t => 
   assert.strictEqual(plain.channels, undefined);
 });
 
+test('TEAM_SESSION names the served page\'s background session without changing its _rev; a plain render ignores it', async t => {
+  const file = writeGate(shareGate());
+  const env = { ...process.env, TEAM_SESSION: 'checkout review' };
+  const plainOut = require('node:child_process').spawnSync(process.execPath, [RENDER, file], { encoding: 'utf8', env }).stdout;
+  const plain = pageData(fs.readFileSync(plainOut.trim().split('\n')[0], 'utf8'));
+  const child = spawn(process.execPath, [RENDER, file, '--serve', '--no-open'], { stdio: ['ignore', 'pipe', 'pipe'], env });
+  t.after(() => { if (child.exitCode === null) child.kill(); });
+  let out = '';
+  const url = await new Promise((resolve, reject) => {
+    child.stdout.on('data', c => { out += c; const m = out.match(/serving (http:\/\/\S+)/); if (m) resolve(m[1]); });
+    child.on('close', code => reject(new Error('server exited early: ' + code)));
+  });
+  const body = await new Promise((resolve, reject) => {
+    http.get(url, res => { let b = ''; res.on('data', c => { b += c; }); res.on('end', () => resolve(b)); }).on('error', reject);
+  });
+  const served = pageData(body);
+  assert.strictEqual(served.session, 'checkout review');
+  assert.strictEqual(served._rev, plain._rev);
+  assert.strictEqual(plain.session, undefined);
+});
+
+test('Send from a background session names it and keeps the tab open', () => {
+  const html = composedTemplate();
+  assert.match(html, /data\.session \? L\('send\.sentAway', \{ name: data\.session \}\) : L\('send\.sent'\)/);
+  assert.match(html, /if \(!keep\) window\.close\(\);/);
+  assert.match(html, /Claude goes on in the background session/);
+  assert.match(html, /Claude continue dans la session en arrière-plan/);
+});
+
 test('the template links after both ways and flags a chosen item whose after ids are not chosen', () => {
   const html = composedTemplate();
   assert.match(html, /missingAfter\(it, items, state\)/);
