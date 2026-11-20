@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.4 — 2026-11-20
+
+- **One architecture section in the README.** Each skill's question, when to call it and what it does sit in one table, the three support skills in a second, the diagram under them. The lane paragraph is gone.
+
 ## 0.36.3 — 2026-11-20
 
 - **Docs caught up.** Skill descriptions, the plugin manifests, the README, `PRODUCT.md` and `DESIGN.md` name the acceptance, doubt, deck and video skills and describe the page as it is: every kind on the story layout, a 52px list rail, no summary. The profile template lists the two recette lines; stale line references and migration notes are gone.

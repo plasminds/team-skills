@@ -4,44 +4,33 @@
 
 ![The gate page on a refactoring backlog, in three panes: the list in story order (the cover and context rows, then the cards: S1 to S4 hang under S0 by dashed elbows, as they come after it, and S5 under S1 by a solid one, as it refines it; settled and rejected items below, the recap last), card S1 in the centre with its before/after code and its option rows, and the evidence pane on Approve: its For and, unfolded under How it gets done, its Step Card](docs/view.png)
 
-## The skills
+## Architecture
+
+The skills you call, in the order a project meets them:
+
+| Skill | Question | When | What it does |
+|-------|----------|------|--------------|
+| [`team-kickoff`](skills/team-kickoff/SKILL.md) | What are we building, and on what? | A new project or an empty directory, before any code | Vision → scan → debate → brief, profile, `CLAUDE.md`. |
+| [`team-debate`](skills/team-debate/SKILL.md) | Which way do we go? | Before the code exists | **PO, CTO, UX, Philosopher, Wildcard** debate; PO synthesis; decision recorded. |
+| [`team-plan`](skills/team-plan/SKILL.md) | How do we carry out the decision? | After a debate decision, before the code | Decision → implementation plan, reviewed by CTO, PO, UX, then executed from a fresh session. |
+| [`team-refactor`](skills/team-refactor/SKILL.md) | Is this code shaped for the next change? | Code exists; fixes preserve behavior | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
+| [`team-review`](skills/team-review/SKILL.md) | Can this change merge as is? | Code exists; fixes change behavior | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
+| [`team-doubt`](skills/team-doubt/SKILL.md) | Does this one claim hold? | Code exists; you or the user are about to rely on it | One fresh agent gets the code and the contract, not the reasoning, and tries to break the claim. Answer in chat; no page, no record. |
+| [`team-acceptance`](skills/team-acceptance/SKILL.md) | What does this branch do, shown case by case? | Branch pushed; the change shows in the app or in what it sends | Acceptance page (recette): each case with its steps, expected result and screenshots taken on a running env, a business view and a technical one. Nothing to decide. |
+| [`team-deck`](skills/team-deck/SKILL.md) | Can the business validate this decision in one meeting? | A decision, spec or plan is written; before or after the meeting | One self-contained HTML deck (présentation) in the project's brand: one claim per 16:9 slide, the source's diagrams and tickets reused, open questions and a recap, a what-changed slide after. |
+| [`team-video`](skills/team-video/SKILL.md) | What does this branch do, in a short video for the team? | After team-acceptance; ffmpeg installed | A short mp4 (vidéo): its own shoot behind agreed writes, a recorded personal-data pass, chapters, optional CC0 or CC BY music. |
+
+And the three they run on:
 
 | Skill | What it does |
 |-------|--------------|
-| [`team-scan`](skills/team-scan/SKILL.md) | Project → `.council/project-profile.md` (stack, conventions, tools, expected load, limits). Read by every skill. |
-| [`team-debate`](skills/team-debate/SKILL.md) | Decision before code. **PO, CTO, UX, Philosopher, Wildcard** debate; PO synthesis; decision recorded. |
-| [`team-plan`](skills/team-plan/SKILL.md) | Decision → implementation plan, reviewed by CTO, PO, UX. |
-| [`team-kickoff`](skills/team-kickoff/SKILL.md) | New project: vision → scan → debate → brief, profile, `CLAUDE.md`. |
-| [`team-refactor`](skills/team-refactor/SKILL.md) | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
-| [`team-review`](skills/team-review/SKILL.md) | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
-| [`team-doubt`](skills/team-doubt/SKILL.md) | One claim about existing code ("this is idempotent") → one fresh agent that gets the code and the contract, not the reasoning, and tries to break it. Answer in chat; no page, no record. |
-| [`team-acceptance`](skills/team-acceptance/SKILL.md) | Acceptance page (recette) of a pushed branch: each case with its steps, expected result and screenshots taken on a running env, a business view and a technical one. Nothing to decide. |
-| [`team-deck`](skills/team-deck/SKILL.md) | Decision, spec or plan → one self-contained HTML deck (présentation) for the business meeting, in the project's brand: one claim per 16:9 slide, the source's diagrams and tickets reused, open questions on their slides and a recap, a what-changed slide after. |
-| [`team-video`](skills/team-video/SKILL.md) | Acceptance page → a short mp4 (vidéo) for the team: its own shoot behind agreed writes, a recorded personal-data pass, chapters, optional CC0 or CC BY music. Needs ffmpeg. |
-| [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page in three panes, the same for every skill: the list in story order (a cover, context rows, the cards, a recap), the current card (what's at stake, key numbers, one drawing, your choice as one row per option), and the evidence pane that follows the option shown (its for and against, trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); cards that build on another hang under it, a dashed rail for needs-it-first and a solid one for refines; what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner; `--share` writes any gate as a standalone file. |
+| [`team-scan`](skills/team-scan/SKILL.md) | Project → `.council/project-profile.md` (stack, conventions, tools, expected load, limits), read by every other skill. |
+| [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page in three panes, the same for every skill: the list in story order, the current card with your choice as one row per option, and the evidence pane that follows the option shown. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner; `--share` writes any gate as a standalone file. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill that dispatches agents loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
-## Which skill?
-
-![A review gate of the refund route: the cover row and the findings in the list, the security blocker SE-1 current with Fix and Leave as option rows, and in the evidence pane, on Fix, the instructions for the coding agent and its file linked to GitHub](docs/review-gate.png)
-
-| Skill | Question | When |
-|-------|----------|------|
-| `team-kickoff` | What are we building, and on what? | A new project or an empty directory, before any code |
-| `team-debate` | Which way do we go? | Before the code exists |
-| `team-plan` | How do we carry out the decision? | After a debate decision, before the code |
-| `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
-| `team-review` | Can this change merge as is? | Code exists; fixes change behavior |
-| `team-doubt` | Does this one claim hold? | Code exists; you or the user are about to rely on it |
-| `team-acceptance` | What does this branch do, shown case by case? | Branch pushed; the change shows in the app or in what it sends |
-| `team-deck` | Can the business validate this decision in one meeting? | A decision, spec or plan is written; before or after the meeting |
-| `team-video` | What does this branch do, in a short video for the team? | After team-acceptance; ffmpeg installed |
-
-The fix decides the lane ([the full rule](skills/team-protocol/lane-handoffs.md)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision, and the other skill takes the list in from the record: `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, and `/team-refactor <review record>` refactors what a review flagged. To review and refactor a whole branch, ask for a sweep: every zone is reviewed, and only the zones a review flags are refactored.
-
-## How they fit together
-
 ![team-scan writes the project profile that team-debate, team-refactor and team-review read. team-kickoff runs team-scan, then team-debate, and team-debate's decision feeds team-plan. team-refactor and team-review hand each other work in both directions, and each takes the other's list in from the record: suspected bugs go to a review intake, structure to a refactor intake. A sweep runs them in order: review, refactor where a review asks, then one intake review. team-plan offers team-review after its plan is executed, and runs team-doubt on each one-way step; team-doubt answers in chat, with no gate. These skills run under team-protocol's shared rules, and the others end at a gate rendered by team-view, where you decide; team-acceptance also reads the profile and renders its page through team-view, with nothing to decide; only team-review's gate has Share, to the branch owner. team-deck reads a written decision or plan and produces one HTML deck for the business meeting, and team-video reads team-acceptance's page and produces an mp4 for the team; both read the profile's Brand line, which team-scan never writes (the first of the two to run asks for it), ship their own frame or engine instead of rendering through team-view, and have no gate.](docs/how-they-fit.svg)
+
+## What a run leaves
 
 Everything a run produces is plain Markdown in your project, under `.council/` except the plan, so it can be committed and diffed:
 
@@ -136,6 +125,8 @@ node skills/team-view/render.js examples/refactor-gate/invoice.gate.json --accep
 [`examples/debate-gate/`](examples/debate-gate) holds a debate gate told as a story (`story` puts D3 before D1): two context rows (the cover with its key numbers, and the invoices page before and after), then the questions. Each option carries its own for and against; each question has a No option worded for it; constraints sit on cards, and an option that breaks one shows a Breaks badge. The evidence pane follows the option you pick, else the recommended one; `[` `]` show another without picking it, and `e` folds the pane.
 
 ![A debate gate: card D1 current with its key number and three option rows (Build in-house recommended, Third-party service with a Breaks K2 badge, Neither: keep the manual export), and in the evidence pane, naming Build in-house with previous and next arrows, its For and Against by role, constraint K2 holding, and the whole question's comparison table](docs/debate-gate.png)
+
+![A review gate of the refund route: the cover row and the findings in the list, the security blocker SE-1 current with Fix and Leave as option rows, and in the evidence pane, on Fix, the instructions for the coding agent and its file linked to GitHub](docs/review-gate.png)
 
 [`examples/review-gate/`](examples/review-gate) holds a review gate: `refund.gate.json`, its page, and what Share makes from it. Share renders it as a standalone file with **Copy prompt** in place of Send. Any other kind goes as a file with `render.js <gate.json> --share`: no record path, no key legend, and a cover line saying what the reader is asked.
 
