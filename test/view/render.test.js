@@ -243,23 +243,34 @@ test('needs rejects unknown ids, itself and non-arrays', () => {
   assert.match(r.stderr, /"S1"\.after must be an array of ids/);
 });
 
+// The channels JSON beside the gate, as the skill has Claude write it.
+function channelsFile(gate, json) {
+  const f = gate.replace(/\.gate\.json$/, '.channels.json');
+  fs.writeFileSync(f, json);
+  return f;
+}
+
 test('--channels needs --serve', () => {
-  const r = render(writeGate(shareGate()), '--channels={}');
+  const file = writeGate(shareGate());
+  const r = render(file, '--channels=' + channelsFile(file, '{}'));
   assert.strictEqual(r.code, 2);
   assert.match(r.stderr, /--channels needs --serve/);
 });
 
-test('--channels rejects bad JSON, unknown ids and bad values before anything is written', () => {
+test('--channels rejects a missing file, bad JSON, unknown ids and bad values before anything is written', () => {
   const cases = [
     ['{nope', /not valid JSON/], ['[]', /object/], ['null', /object/], ['{"slack":true}', /slack/],
-    ['{"link":true}', /unknown channel "link"/], ['{"review":{}}', /review/], ['{"review":""}', /review/]
+    ['{"link":true}', /unknown channel "link"/], ['{"review":{}}', /review/], ['{"review":""}', /review/],
+    // The inline JSON that 0.36 took, and the escaped quotes a shell keeps inside single quotes: read as a path.
+    [null, /--channels: file not found: \{"review":true\}/], [null, /--channels: file not found: \{\\"review\\":true\}/]
   ];
-  cases.forEach(([json, re]) => {
+  cases.forEach(([json, re], i) => {
     const file = writeGate(shareGate());
-    const r = spawnSync(process.execPath, [RENDER, file, '--serve', '--no-open', '--channels=' + json], { encoding: 'utf8', timeout: 5000 });
-    assert.strictEqual(r.status, 2, json);
-    assert.match(r.stderr, re, json);
-    assert.strictEqual(fs.existsSync(localOf(file)), false, json);
+    const arg = json !== null ? channelsFile(file, json) : i === 7 ? '{"review":true}' : '{\\"review\\":true}';
+    const r = spawnSync(process.execPath, [RENDER, file, '--serve', '--no-open', '--channels=' + arg], { encoding: 'utf8', timeout: 5000 });
+    assert.strictEqual(r.status, 2, arg);
+    assert.match(r.stderr, re, arg);
+    assert.strictEqual(fs.existsSync(localOf(file)), false, arg);
   });
 });
 
@@ -273,13 +284,13 @@ test('--preset ignores the as, via and to lines of a GATE SHARE block', () => {
   assert.deepStrictEqual(pageData(fs.readFileSync(shareOf(file), 'utf8')).preset, plain);
 });
 
-test('a bare --channels is rejected and its JSON is not taken for the output path', () => {
+test('a bare --channels is rejected and its file is not taken for the output path', () => {
   const file = writeGate(shareGate());
   const cwd = tmpDir('gate-channels-');
-  const r = spawnSync(process.execPath, [RENDER, file, '--serve', '--channels', '{}'], { encoding: 'utf8', timeout: 5000, cwd });
+  const r = spawnSync(process.execPath, [RENDER, file, '--serve', '--channels', 'x.channels.json'], { encoding: 'utf8', timeout: 5000, cwd });
   assert.strictEqual(r.status, 2);
-  assert.match(r.stderr, /--channels takes JSON: --channels='<json>'/);
-  assert.ok(!fs.existsSync(path.join(cwd, '{}')));
+  assert.match(r.stderr, /--channels takes a file: --channels=<file\.json>/);
+  assert.ok(!fs.existsSync(path.join(cwd, 'x.channels.json')));
 });
 
 // --- at and --review ---

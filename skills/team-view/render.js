@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --accept-recommended | --share [--preset=<block.txt>]]
+// Usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<file.json>] | --accept-recommended | --share [--preset=<block.txt>]]
 // Validates a gate JSON, normalizes decisions, tensions and rejected items into one list of
 // decidable items, embeds images, and injects the result into template.html.
 // Output defaults to <gate>.html next to the JSON, <gate>.share.html with --share.
@@ -8,7 +8,7 @@
 // to <gate>.share.txt instead. --no-open skips opening the browser.
 // --accept-recommended: an auto-accept run. No server: every card takes its default, else its recommended option, and the
 // block (with a "mode: auto-accept" line) is saved to <gate>.decisions.txt and printed after the page path.
-// --channels=<json> (with --serve): availability of the Share dialog's choices, detected by Claude:
+// --channels=<file.json> (with --serve): availability of the Share dialog's choices, detected by Claude, who writes the file:
 // { review?: true | { label } | 'why not and how to fix' }.
 // --share: any gate as a page to send as a file (no record path, no key legend, a cover line with the ask).
 // A review gate (kind "review") keeps its work order: it needs "preamble" and briefs (contract.md, Share fields).
@@ -33,9 +33,9 @@ const { repoOf, projectFiles, trackedFiles } = require('./lib/files');
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
 const [src, outArg] = args.filter(a => !a.startsWith('--'));
-const USAGE = 'usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<json>] | --accept-recommended | --share [--preset=<block.txt>] [--review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head>] [--diff=<file>] [--page-url=<link>]]';
+const USAGE = 'usage: node render.js <gate.json> [out.html] [--serve [--no-open] [--channels=<file.json>] | --accept-recommended | --share [--preset=<block.txt>] [--review=github --head=<sha> | --review=gitlab --refs=<base>,<start>,<head>] [--diff=<file>] [--page-url=<link>]]';
 if (args.includes('--preset')) { console.error('--preset takes a file: --preset=<block.txt>\n' + USAGE); process.exit(2); }
-if (args.includes('--channels')) { console.error("--channels takes JSON: --channels='<json>'\n" + USAGE); process.exit(2); }
+if (args.includes('--channels')) { console.error('--channels takes a file: --channels=<file.json>\n' + USAGE); process.exit(2); }
 ['--review', '--head', '--refs', '--diff', '--page-url'].forEach(f => {
   if (args.includes(f)) { console.error(`${f} takes a value: ${f}=<...>\n` + USAGE); process.exit(2); }
 });

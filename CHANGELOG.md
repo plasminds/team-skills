@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.7 — 2026-11-20
+
+- **`--channels` takes a file.** Claude writes `<gate>.channels.json` with its file tool and passes its path; inline JSON in single quotes kept `\"` literal and failed.
+
 ## 0.36.6 — 2026-11-20
 
 - **A launched session reports to the chat you are in.** Each time it waits for you, and when it ends, it sends one line to the session that started the chain (`SendMessage`): what waits, in which session. The gate page closes after **Send to Claude** again; `TEAM_SESSION` is gone.

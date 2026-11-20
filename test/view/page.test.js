@@ -82,7 +82,9 @@ test('--channels reaches the served page without changing its _rev', async t => 
   const channels = { review: { label: 'MR !12 (GitLab)' } };
   const file = writeGate(shareGate());
   const plain = pageData(fs.readFileSync(render(file).stdout.trim().split('\n')[0], 'utf8'));
-  const child = spawn(process.execPath, [RENDER, file, '--serve', '--no-open', '--channels=' + JSON.stringify(channels)], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const channelsFile = file.replace(/\.gate\.json$/, '.channels.json');
+  fs.writeFileSync(channelsFile, JSON.stringify(channels));
+  const child = spawn(process.execPath, [RENDER, file, '--serve', '--no-open', '--channels=' + channelsFile], { stdio: ['ignore', 'pipe', 'pipe'] });
   t.after(() => { if (child.exitCode === null) child.kill(); });
   let out = '';
   const url = await new Promise((resolve, reject) => {

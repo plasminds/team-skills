@@ -3,11 +3,13 @@ const fs = require('fs');
 
 const CHANNEL_IDS = ['review'];
 
+// file: a JSON file Claude writes with its file tool, so no shell quoting stands between it and JSON.parse.
 // usage: the CLI usage text, appended to the argument error.
-function parseChannels(text, USAGE) {
+function parseChannels(file, USAGE) {
   const bad = msg => { console.error('--channels: ' + msg + '\n' + USAGE); process.exit(2); };
+  if (!fs.existsSync(file)) return bad('file not found: ' + file);
   let c;
-  try { c = JSON.parse(text); } catch (e) { return bad('not valid JSON (' + e.message + ')'); }
+  try { c = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return bad('not valid JSON (' + e.message + ')'); }
   if (!c || typeof c !== 'object' || Array.isArray(c)) return bad('must be a JSON object');
   Object.keys(c).forEach(id => {
     if (!CHANNEL_IDS.includes(id)) bad(`unknown channel "${id}" (known: ${CHANNEL_IDS.join(', ')})`);
