@@ -5,7 +5,7 @@ description: 'Use before the code exists, to debate a decision point that deserv
 
 # team-debate
 
-A project-agnostic dispatcher that runs a structured, evidence-backed debate before the human (client) makes the final call. Complements brainstorming/planning/review — it does not replace them.
+A project-agnostic dispatcher that runs a structured, evidence-backed debate before the human makes the final call. Complements brainstorming/planning/review — it does not replace them.
 
 **REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, the run folder, the agent contract, counting positions, the bridge, structural choices and the handoff.
 
@@ -60,7 +60,7 @@ PO, CTO and Philosopher always sit. Add:
 - **Wildcard** when the question is open: the user hasn't named the options, or asks "how should we…". Skip it when the choice is between options already on the table.
 - **Specialists** as above.
 
-Tell the user the roster in one line before dispatching, with the reason for each role left out ("UX out: no user-facing change"); they can add one back. The page's *Decision* bullet names who sat.
+Tell the user the roster in one line before dispatching, with the reason for each role left out ("UX out: no user-facing change"); they can add one back. The synthesis's *Decision* line names who sat.
 
 **Off-model seat**: the Philosopher, whose job is to test what everyone else assumed. When the profile lists a model CLI, follow *Off-model seat* in `team-protocol` and add its offer to the roster line. The seat stays off-model in both rounds.
 

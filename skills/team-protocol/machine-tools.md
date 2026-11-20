@@ -24,7 +24,7 @@ One exact line per state, in the brief's Environment limits:
 - `- osv-scanner — api.osv.dev unreachable or lockfile unreadable (exit 127); dependency leads skipped`
 - `- osv-scanner — no lockfile found; dependency leads skipped`
 
-For a machine tool this line wins over `Ungated: <gate> (tool missing)` (`scope.md:10`), which stays for quality gates.
+For a machine tool this line wins over `Ungated: <gate> (tool missing)` (`scope.md`, *Gates cover the scope*), which stays for quality gates.
 
 ## Read-only runs
 
@@ -71,4 +71,4 @@ A run with no hits says `…; 0 leads`; a tool that did not run gets its one lin
 
 ## Leads, not findings
 
-A hit is a lead; a seat verifies each by hand before citing it (same rule as `skills/team-review/templates.md:19`). gitleaks hits are mostly false positives, and its leads cite file, line and rule id only, never the matched text.
+A hit is a lead; a seat verifies each by hand before citing it (same rule as team-review's `templates.md` § *Review Brief*, its leads line). gitleaks hits are mostly false positives, and its leads cite file, line and rule id only, never the matched text.

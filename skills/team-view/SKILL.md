@@ -1,6 +1,6 @@
 ---
 name: team-view
-description: Use when a team-* skill (team-refactor, team-debate, team-plan, team-kickoff, team-review) reaches a gate and the human must approve, decline, or choose between options. Also when the user asks for a visual, HTML, or browser view of a decision, backlog, or plan, or wants to share a team-review gate with the owner of the branch it reviewed.
+description: Use when a team-* skill (team-refactor, team-debate, team-plan, team-kickoff, team-review) reaches a gate and the human must approve, decline, or choose between options. Also when the user asks for a visual, HTML, or browser view of a decision, backlog, or plan, or wants to share a team-review gate with the owner of the branch it reviewed. Also when team-acceptance renders its page, which decides nothing.
 ---
 
 # team-view

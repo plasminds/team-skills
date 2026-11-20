@@ -2,6 +2,11 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.3 — 2026-11-20
+
+- **Docs caught up.** Skill descriptions, the plugin manifests, the README, `PRODUCT.md` and `DESIGN.md` name the acceptance, doubt, deck and video skills and describe the page as it is: every kind on the story layout, a 52px list rail, no summary. The profile template lists the two recette lines; stale line references and migration notes are gone.
+- **The lane rule in team-protocol.** "The fix decides the lane" moves from team-review to `lane-handoffs.md`, which team-review and team-refactor both load; team-review's copy of the skills table is gone. The README's *Which skill?* table gains team-kickoff.
+
 ## 0.36.2 — 2026-11-19
 
 - **A balanced recap.** The recap of a deck's open questions takes the fewest slides of at most five questions, spread evenly, the first slides taking one more: seven questions make two slides of four and three, eleven make three of four, four and three.

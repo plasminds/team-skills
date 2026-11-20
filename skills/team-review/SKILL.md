@@ -11,19 +11,6 @@ A panel of seats (Security among them where the change crosses a trust boundary)
 
 **REQUIRED BACKGROUND:** follow `team-protocol` for dispatch, writers, the run folder, the agent contract, counting positions, code scope, lane hand-offs, the handoff, execution, weakened checks, the sweep and auto-accept.
 
-## Lanes
-
-| Skill | Question | When |
-|-------|----------|------|
-| `team-debate` | Which way do we go? | Before the code exists |
-| `team-plan` | How do we carry out the decision? | After a debate decision, before the code |
-| `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
-| **`team-review`** | Can this change merge as is? | Code exists; fixes change behavior |
-
-**The fix decides the lane, not the topic.** A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is review's; a characterization test of unchanged behavior is refactor's (its Step 0). A named, behavior-preserving refactoring is refactor's. A misleading name the diff introduces is review's (a one-click rename); moving or extracting code to fix it is refactor's.
-
-**Hunting vs stumbling.** The seats hunt only in this lane. Structural trouble they stumble on goes to one *For team-refactor* list (≤ ~5 lines, in the format of `team-protocol` § *Lane hand-offs*: unverified, no decision, no extra agent), which `team-refactor <review record>` takes in. A refactor's *For team-review* list comes back the other way, through § *Intake*.
-
 ## Iron Laws
 
 1. **A finding names a scenario, or it is not a finding.** The concrete input, state or call where it breaks, and what happens then.

@@ -19,7 +19,7 @@
 | [`team-deck`](skills/team-deck/SKILL.md) | Decision, spec or plan → one self-contained HTML deck (présentation) for the business meeting, in the project's brand: one claim per 16:9 slide, the source's diagrams and tickets reused, open questions on their slides and a recap, a what-changed slide after. |
 | [`team-video`](skills/team-video/SKILL.md) | Acceptance page → a short mp4 (vidéo) for the team: its own shoot behind agreed writes, a recorded personal-data pass, chapters, optional CC0 or CC BY music. Needs ffmpeg. |
 | [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page in three panes, the same for every skill: the list in story order (a cover, context rows, the cards, a recap), the current card (what's at stake, key numbers, one drawing, your choice as one row per option), and the evidence pane that follows the option shown (its for and against, trade-offs, numbers, diff, how each fix gets done, figures after [diagram-design](https://github.com/cathrynlavery/diagram-design)); cards that build on another hang under it, a dashed rail for needs-it-first and a solid one for refines; what agents settled alone, reopenable. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner; `--share` writes any gate as a standalone file. |
-| [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill loads: dispatch, agent contract, bridge, scope, handoff, execution. |
+| [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill that dispatches agents loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
 ## Which skill?
 
@@ -27,6 +27,7 @@
 
 | Skill | Question | When |
 |-------|----------|------|
+| `team-kickoff` | What are we building, and on what? | A new project or an empty directory, before any code |
 | `team-debate` | Which way do we go? | Before the code exists |
 | `team-plan` | How do we carry out the decision? | After a debate decision, before the code |
 | `team-refactor` | Is this code shaped for the next change? | Code exists; fixes preserve behavior |
@@ -36,7 +37,7 @@
 | `team-deck` | Can the business validate this decision in one meeting? | A decision, spec or plan is written; before or after the meeting |
 | `team-video` | What does this branch do, in a short video for the team? | After team-acceptance; ffmpeg installed |
 
-The fix decides the lane ([the full rule](skills/team-review/SKILL.md#lanes)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision, and the other skill takes the list in from the record: `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, and `/team-refactor <review record>` refactors what a review flagged. To review and refactor a whole branch, ask for a sweep: every zone is reviewed, and only the zones a review flags are refactored.
+The fix decides the lane ([the full rule](skills/team-protocol/lane-handoffs.md)). A fix that changes behavior (a bug, a hole, a swallowed error, a missing test for new or changed behavior, a gap with the request, a slow path) is `team-review`'s; a named, behavior-preserving refactoring, and the characterization tests that pin unchanged behavior before it, are `team-refactor`'s. Each skill hunts only in its lane; what an agent stumbles on in the other one goes to a short hand-off list (*For team-review*, *For team-refactor*), unverified and without a decision, and the other skill takes the list in from the record: `/team-review <refactor record>` sends a refactor's suspected bugs straight to the verifier, and `/team-refactor <review record>` refactors what a review flagged. To review and refactor a whole branch, ask for a sweep: every zone is reviewed, and only the zones a review flags are refactored.
 
 ## How they fit together
 
@@ -48,10 +49,12 @@ Everything a run produces is plain Markdown in your project, under `.council/` e
 .council/
 ├── project-profile.md          # team-scan
 ├── decisions/YYYY-MM-DD-*.md   # team-debate; team-kickoff's project brief
+│   └── *-sources/              # evidence and sketches kept from the run
 ├── refactors/YYYY-MM-DD-*.md   # team-refactor: the record
 │   └── *.exec.md               # the executors' brief, deleted after execution
 ├── reviews/YYYY-MM-DD-*.md     # team-review: the record
 │   └── *.exec.md               # the executors' brief, own branch or audit; deleted after execution
+├── author-notes/<branch>.md    # team-review: what the session that wrote the code tells the panel; deleted after the review
 ├── acceptance/<topic>/         # team-acceptance: its capture script, screenshots and page
 ├── decks/<topic>.html          # team-deck: the deck, beside its slides and build file
 ├── video/<topic>/              # team-video: its shoot, slides file, personal-data record and the mp4

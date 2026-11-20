@@ -8,7 +8,7 @@ web
 
 ## Users
 
-- **The human**: the developer who ran a team-* skill (debate, plan, refactor, review) and must now decide on what the agent team recommends. They open the gate page in a browser, alone, between terminal sessions. Reviews and refactors are quick triage (2–5 minutes: skim, take the recommendations, fix a few, send); debates and plans get a deep read (15+ minutes over arguments, trade-offs and code).
+- **The human**: the developer who ran a team-* skill (debate, plan, kickoff, refactor, review) and must now decide on what the agent team recommends. They open the gate page in a browser, alone, between terminal sessions. Reviews and refactors are quick triage (2–5 minutes: skim, take the recommendations, fix a few, send); debates and plans get a deep read (15+ minutes over arguments, trade-offs and code).
 - **The branch owner**: a colleague who receives a shared review gate (a standalone file) and decides on the findings alone, then copies a prompt to their own agent. Any gate can go as a file: a debate, plan, kickoff or refactor page sent with `--share`; an acceptance page has nothing to send back.
 - **The acceptance reader**: a business person (PO, customer) or a developer who receives an acceptance page and reads what a branch does, case by case, in the Business view or the Technical one. They decide nothing on it.
 - **The business decider**: a PO, a manager or a customer who decides a debate's business questions, alone on a page sent to them or in a meeting where the developer projects the page. They follow the story to the recap, pick on the page and send Copy decisions back by Slack or mail; nothing leaves the page by itself.
@@ -24,7 +24,7 @@ Not a dashboard of agent output: a decision instrument. Agents recommend, the hu
 ## Operating Context
 
 - Rendered by `skills/team-view/render.js` from a gate JSON (`contract.md`) into one self-contained HTML page; served locally (`--serve`, Send to Claude posts the decisions back), or rendered standalone for sharing.
-- Gate kinds: debate, plan, refactor, review. Sections: decisions, tensions, minor items, settled without you, considered and rejected; linked cards (`on`, refines) render as one block; `after` orders the work.
+- Gate kinds: debate, plan, kickoff, refactor, review, and acceptance, a page that decides nothing. Sections: decisions, tensions, minor items, settled without you, considered and rejected; linked cards (`on`, refines) render as one block; `after` orders the work.
 - 5 to ~15 cards per gate; a sweep can hold more.
 
 ## Capabilities and Constraints
@@ -40,7 +40,7 @@ None beyond the names: team-skills, the gate, the gate page.
 
 ## Evidence on Hand
 
-Example gates with real-shaped content in `examples/refactor-gate/`, `examples/debate-gate/`, `examples/review-gate/`; README screenshots in `docs/`.
+Example gates with real-shaped content in `examples/refactor-gate/`, `examples/debate-gate/`, `examples/review-gate/`, and an acceptance page in `examples/acceptance/`; README screenshots in `docs/`.
 
 ## Product Principles
 

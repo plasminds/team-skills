@@ -1,6 +1,6 @@
 ---
 name: team-scan
-description: Use before the first team-debate, team-plan, team-kickoff, team-refactor or team-review run in a project, when `.council/project-profile.md` is missing, or when the stack, conventions, installed skills or agents have changed since the profile was written.
+description: Use before the first run of any other team-* skill in a project (team-debate, team-plan, team-kickoff, team-refactor, team-review, team-acceptance, team-deck, team-video), when `.council/project-profile.md` is missing, or when the stack, conventions, installed skills or agents have changed since the profile was written.
 ---
 
 # team-scan
@@ -115,6 +115,8 @@ Standing answers to questions a run would otherwise ask every time; a run follow
 - Next step: launch | paste — <source>
 - Dependency scan (osv-scanner, sends the package list to api.osv.dev): yes | no — the user, <date>
 - Data evidence envs: <envs, read-only>; <how to reach each: a client, a tunnel> — the user, <date>
+- Recette writable envs (team-acceptance, team-video): <envs>; third-party services <isolated|not isolated> — the user, <date>
+- Recette outbox (team-acceptance): <env>: <where it keeps what the app sends>; … — the user, <date>
 - Brand (team-deck, team-video; default: <repo name>; none; neutral; the source's lang): <name>; <logo path from the root | none>; <#primary> [<#secondary>] [<#surface>] | neutral; <lang | source> — the user, <date>[, default taken]
 ```
 
