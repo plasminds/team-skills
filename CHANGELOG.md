@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.36.8 — 2026-11-23
+
+- **Recon trusts a green pipeline.** A gate that CI passed on the reviewed commit is not rerun: the brief cites the pipeline, and a failed job's log is read instead of rerun. On a run with execution, those gates run once on the unchanged branch before the first batch.
+
 ## 0.36.7 — 2026-11-20
 
 - **`--channels` takes a file.** Claude writes `<gate>.channels.json` with its file tool and passes its path; inline JSON in single quotes kept `\"` literal and failed.
