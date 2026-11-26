@@ -2,6 +2,15 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.37.0 — 2026-11-26
+
+- **A final rerun on the squashed tree.** After a squash, the gates run once more; green writes a `Final rerun:` line, red halts the run. With no squash there is no rerun.
+- **What code enforces and what a prompt does.** The README gains a table of ten mechanisms, each marked as enforced by code or by prompt.
+- **`Implemented by:` on an executed decision.** A plan that reaches `executed` writes its path on its decision record; team-plan's decision pick and team-debate's earlier-decision lookup read it.
+- **`Revisit when:` on accepted trade-offs.** Each accepted trade-off ends with the condition that reopens it, or `none named`.
+- **`team-lessons`.** A new on-request skill that finds defect kinds recurring across review and refactor records and, after your picks and one confirmation, writes them as `.claude/rules/<topic>.md`.
+- **How they fit.** The diagram shows team-lessons, with no gate.
+
 ## 0.36.8 — 2026-11-23
 
 - **Recon trusts a green pipeline.** A gate that CI passed on the reviewed commit is not rerun: the brief cites the pipeline, and a failed job's log is read instead of rerun. On a run with execution, those gates run once on the unchanged branch before the first batch.

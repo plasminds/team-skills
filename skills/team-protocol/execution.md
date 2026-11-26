@@ -23,7 +23,21 @@ For a caller whose approved work is carried out by executor agents, in the fresh
   - keep: keep the commits as they stand; go on to autosquash, squash and record.
   - drop: revert the item's step and its fixups; record it under *Reverted or blocked*.
   ```
-- **Squash** after the autosquash, before the record is completed, as the profile's *Run preferences* `Squash after execution` line says (`team-scan`): `branch` folds every commit since the merge-base with the target branch into one, `run` folds this run's commits into one, `none` leaves them. With no line, ask once (AskUserQuestion, those three options) and record the answer as that line. A commit already pushed is rewritten only on a yes asked then, whatever the line says. The message follows the project's commit convention and lists the run's items; the record's *Commits* lines then name the squash commit.
+- **Squash** after the autosquash, before the record is completed, as the profile's *Run preferences* `Squash after execution` line says (`team-scan`): `branch` folds every commit since the merge-base with the target branch into one, `run` folds this run's commits into one, `none` leaves them. With no line, ask once (AskUserQuestion, those three options) and record the answer as that line. A commit already pushed is rewritten only on a yes asked then, whatever the line says. The message follows the project's commit convention and lists the run's items; the record's *Commits* lines then name the squash commit. With branch or run, rerun the header's gates once on the squashed tree before the record is completed (**Final rerun**); with none, no rerun.
+- **Final rerun.** After the squash, run the header's gates on the squashed tree.
+  - The line `Final rerun: <command(s)> green|red <squashed sha>` is written in the record's `## Execution` section; a team-plan run keeps no such section, so the orchestrator appends an `## Execution` section holding that line to the plan file.
+  - Every header gate is rerun; when the header names a gate that read `green in <pipeline URL>`, it is rerun too (*Gates CI ran*, above); when the brief's header lists known flakes, a red that passes on an isolated rerun counts as green only under *Known flakes* above, the same rule as a batch gate.
+  - On red: flip `Status:` to `stopped — final rerun red` at once, with no *Execution* section yet, print the block below and halt every parallel run, until the human answers.
+  - Retry, keep, drop as in the block; after `keep` the closing message opens `Executed, final rerun red (kept): <gate and first failing line>.`, never a plain success; after `drop` the `Status:` line stays `stopped — final rerun red`, and the `## Execution` section holds the `red` line and `dropped — final rerun red, branch left unmerged` under *Reverted or blocked*; no `Implemented by:` follows a drop.
+
+  ```
+  stopped — final rerun red: <the gate and its first failing line, one line>
+  Branch: squashed (<branch|run>), record not completed, nothing pushed.
+  Answer with one of:
+  - retry: one more fixup, with your guidance; then autosquash, squash and rerun again.
+  - keep: keep the squashed commit as it stands; complete the record, its line reading red.
+  - drop: nothing is reverted (the step commits are squashed); the branch is left unmerged and the record says so.
+  ```
 - **Never patch code yourself.** Don't fix or dismiss a finding, and don't edit a file between batches: your context is the most expensive one in the run.
 
 ## Sweep

@@ -11,7 +11,7 @@ The second half of the debate workflow. `team-debate` decides **what**; `team-pl
 
 ## Preconditions
 
-- **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, no debate has run — stop and point the user to `team-debate` first.
+- **A resolved decision**: read the most recent (or user-specified) file in `.council/decisions/YYYY-MM-DD-<topic>.md`. If none exists, no debate has run — stop and point the user to `team-debate` first. A decision carrying `Implemented by:`, picked by recency or named by the user, gets this line: `<decision file> already carries Implemented by: <plan path> (read from its header, not checked against the code).` then one question, AskUserQuestion: `Plan this decision again?` with options `Plan it again`, `Pick another decision` (omitted when no other record exists) and `Stop`; the answer never refuses.
 - **Project profile**: read `.council/project-profile.md`. If it is missing, run `team-scan` at once, announced in one line.
 
 ## Flow
@@ -111,7 +111,7 @@ Rules of this skill's own, on top of `team-protocol` § *Execution*:
 
 Whichever path ran, offer, never impose, `team-review` on the executed diff, as a review of your own branch: the final reviewer checks conformance to the plan, not correctness or security. Its Recon takes this plan and the decision record as the intent.
 
-Set `Status: executed` on the plan when done.
+Set `Status: executed` on the plan when done, and whenever it becomes `executed` (a final rerun kept red included), put `Implemented by: <plan path>` under the `Status:` line of the decision record named at the plan's top; when the header already holds the key, replace its value, never add a second line; a plan that stopped, a drop after a red final rerun included, gets none.
 ## Rationalizations
 
 The shared ones are in `team-protocol`. These are the planner's own.

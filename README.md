@@ -16,6 +16,7 @@ The skills you call, in the order a project meets them:
 | [`team-refactor`](skills/team-refactor/SKILL.md) | Is this code shaped for the next change? | Code exists; fixes preserve behavior | Structure review by 5 blind lenses, **Minimalist** gate. One behavior-preserving step per commit, behind characterization tests. |
 | [`team-review`](skills/team-review/SKILL.md) | Can this change merge as is? | Code exists; fixes change behavior | Diff or module review by 4 blind lenses; a **Verifier** refutes each finding. Output: a forge review or test-first fixes. |
 | [`team-doubt`](skills/team-doubt/SKILL.md) | Does this one claim hold? | Code exists; you or the user are about to rely on it | One fresh agent gets the code and the contract, not the reasoning, and tries to break the claim. Answer in chat; no page, no record. |
+| [`team-lessons`](skills/team-lessons/SKILL.md) | Which mistakes keep coming back in our reviews and refactors? | Review or refactor records exist; on request | Which mistakes keep coming back in your reviews and refactors, turned into path-scoped rules |
 | [`team-acceptance`](skills/team-acceptance/SKILL.md) | What does this branch do, shown case by case? | Branch pushed; the change shows in the app or in what it sends | Acceptance page (recette): each case with its steps, expected result and screenshots taken on a running env, a business view and a technical one. Nothing to decide. |
 | [`team-deck`](skills/team-deck/SKILL.md) | Can the business validate this decision in one meeting? | A decision, spec or plan is written; before or after the meeting | One self-contained HTML deck (présentation) in the project's brand: one claim per 16:9 slide, the source's diagrams and tickets reused, open questions and a recap, a what-changed slide after. |
 | [`team-video`](skills/team-video/SKILL.md) | What does this branch do, in a short video for the team? | After team-acceptance; ffmpeg installed | A short mp4 (vidéo): its own shoot behind agreed writes, a recorded personal-data pass, chapters, optional CC0 or CC BY music. |
@@ -28,7 +29,7 @@ And the three they run on:
 | [`team-view`](skills/team-view/SKILL.md) | Gate → one HTML page in three panes, the same for every skill: the list in story order, the current card with your choice as one row per option, and the evidence pane that follows the option shown. **Send to Claude** returns your answers; **Share** (reviews) hands the gate to the branch owner; `--share` writes any gate as a standalone file. |
 | [`team-protocol`](skills/team-protocol/SKILL.md) | Shared rules every skill that dispatches agents loads: dispatch, agent contract, bridge, scope, handoff, execution. |
 
-![team-scan writes the project profile that team-debate, team-refactor and team-review read. team-kickoff runs team-scan, then team-debate, and team-debate's decision feeds team-plan. team-refactor and team-review hand each other work in both directions, and each takes the other's list in from the record: suspected bugs go to a review intake, structure to a refactor intake. A sweep runs them in order: review, refactor where a review asks, then one intake review. team-plan offers team-review after its plan is executed, and runs team-doubt on each one-way step; team-doubt answers in chat, with no gate. These skills run under team-protocol's shared rules, and the others end at a gate rendered by team-view, where you decide; team-acceptance also reads the profile and renders its page through team-view, with nothing to decide; only team-review's gate has Share, to the branch owner. team-deck reads a written decision or plan and produces one HTML deck for the business meeting, and team-video reads team-acceptance's page and produces an mp4 for the team; both read the profile's Brand line, which team-scan never writes (the first of the two to run asks for it), ship their own frame or engine instead of rendering through team-view, and have no gate.](docs/how-they-fit.svg)
+![team-scan writes the project profile that team-debate, team-refactor and team-review read. team-kickoff runs team-scan, then team-debate, and team-debate's decision feeds team-plan. team-refactor and team-review hand each other work in both directions, and each takes the other's list in from the record: suspected bugs go to a review intake, structure to a refactor intake. A sweep runs them in order: review, refactor where a review asks, then one intake review. team-plan offers team-review after its plan is executed, and runs team-doubt on each one-way step; team-doubt answers in chat, with no gate. These skills run under team-protocol's shared rules, and the others end at a gate rendered by team-view, where you decide; team-acceptance also reads the profile and renders its page through team-view, with nothing to decide; only team-review's gate has Share, to the branch owner. team-deck reads a written decision or plan and produces one HTML deck for the business meeting, and team-video reads team-acceptance's page and produces an mp4 for the team; both read the profile's Brand line, which team-scan never writes (the first of the two to run asks for it), ship their own frame or engine instead of rendering through team-view, and have no gate. team-lessons reads past review and refactor records and, after your picks in chat, writes path-scoped rules files, with no gate.](docs/how-they-fit.svg)
 
 ## What a run leaves
 
@@ -60,9 +61,26 @@ Everything a run produces is plain Markdown in your project, under `.council/` e
 - **Tensions surfaced, not smoothed.** A majority goes in the backlog with its dissent; a conflict with no majority goes to you.
 - **The human decides.** Agents recommend; the gate decides, structure included (a new package, layer or dependency rule is never a writer's call); Markdown stays the source of truth.
 - **Business and tech on one decision.** Every argument says which lens it belongs to. Each weighty card shows the constraints that bind it and what each option costs on each side, and the recommendation says what it accepts. Constraints and accepted trade-offs travel from the framing to the record, the plan and the profile; only you lift a constraint.
-- **Refuted before raised.** A finding reaches you only after an agent other than its author tried to prove it wrong. A review that cries wolf gets ignored.
+- **Refuted before raised.** A finding reaches you only after an agent other than its author tried to prove it wrong (table below).
 - **KISS/YAGNI has teeth.** An abstraction needs a second use case that exists today. The Minimalist's KILL is a gate, not a vote.
 - **Token economy.** Cost is context size × turns. Agents run on Sonnet by default, and each skill's table names the few on Opus (e.g. the synthesis of a two-round debate, the verifier, final reviews). Each agent has a tool budget and writes to files; writer agents build pages, records and plans; each gate hands off to a fresh session through a short file.
+
+### Enforced by code or by prompt
+
+What the repo enforces with a test or script, and what only a prompt asks for. Find a test with grep -rn "<title>" test/.
+
+| Mechanism | Enforced by | File | Test title |
+|---|---|---|---|
+| SKILL.md stays under 20,000 bytes | code | `test/skills/skill-size.test.js` | `every SKILL.md stays under the size Claude Code re-attaches whole after a compaction` |
+| team-protocol stays under 16,000 bytes | code | `test/agents/agents.test.js` | `team-protocol: the seat agent rule, under 16,000 bytes` |
+| Every `§ *Section*` reference in skills resolves | code | `test/skills/refs.test.js` | ``every `file` § *Section* reference in skills/ names an existing heading`` |
+| Each skill description routes its own cases | code | `test/skills/routing.test.js` | `routing: every case ranks its skill first, against ours and the companions` |
+| A review card with no Fix is reported, a low card dropped | code | `skills/team-review/cards.sh` | `reports a card with no Fix`; `drops low cards` |
+| Diff guard before each commit | prompt | `skills/team-protocol/execution.md` | |
+| Fences on an exec brief's files | prompt | `skills/team-protocol/scope.md` | |
+| Fixup loop bound of two, then halt (the test pins the wording, not the behavior) | prompt | `skills/team-protocol/execution.md` | |
+| Final rerun on the squashed tree | prompt | `skills/team-protocol/execution.md` | |
+| A finding is refuted before it is raised | prompt | `skills/team-review/SKILL.md` | |
 
 ## Install
 

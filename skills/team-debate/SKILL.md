@@ -25,7 +25,7 @@ A project-agnostic dispatcher that runs a structured, evidence-backed debate bef
   - your confidence in that read (a percentage).
 
   Every *unchecked* fact or constraint and every expected answer you can't fill is a question. Below ~70%, or with any such question left, ask the user one question at a time, each with your guess attached, until you could predict their next answers. Then restate the framing and get an explicit yes. "Sounds good" and "whatever you think" are not a yes: ask which line they would change, or offer two framings to pick from.
-- **Earlier decisions**: look in `.council/decisions/`, and in the project's decision records the profile lists, for one on the same question. If there is one, every role gets it as context, and the new record supersedes it.
+- **Earlier decisions**: look in `.council/decisions/`, and in the project's decision records the profile lists, for one on the same question. If there is one, every role gets it as context, and the new record supersedes it. A record carrying `Implemented by:` reaches every role with that line, since superseding it then changes code that exists.
 
 ## Roles
 

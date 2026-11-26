@@ -105,6 +105,33 @@ test('execution.md bounds the fixup loop at two attempts, halts and offers retry
   assert.match(text, /- retry: .*\n.*- keep: .*\n.*- drop: .*under \*Reverted or blocked\*/);
 });
 
+test("E1: execution.md reruns the header's gates once on the squashed tree after a squash, writes the Final rerun line and runs none with a squash line of none", () => {
+  const text = read(SKILLS, 'team-protocol', 'execution.md');
+  assert.match(text, /With branch or run, rerun the header's gates once on the squashed tree before the record is completed \(\*\*Final rerun\*\*\); with none, no rerun\./);
+  assert.match(text, /\*\*Final rerun\.\*\*/);
+  assert.match(text, /`Final rerun: <command\(s\)> green\|red <squashed sha>`/);
+  assert.match(text, /`## Execution` section/);
+  assert.match(text, /a team-plan run keeps no such section, so the orchestrator appends an `## Execution` section holding that line to the plan file/);
+});
+
+test('E2: execution.md halts a red final rerun with its own stop line, the squash mode used, the known-flake rule and retry, keep, drop (drop reverts nothing)', () => {
+  const text = read(SKILLS, 'team-protocol', 'execution.md');
+  assert.match(text, /`Status:` to `stopped — final rerun red` at once, with no \*Execution\* section yet/);
+  assert.match(text, /halt every parallel run/);
+  assert.match(text, /stopped — final rerun red: <the gate and its first failing line, one line>/);
+  assert.match(text, /Branch: squashed \(<branch\|run>\), record not completed, nothing pushed\./);
+  assert.match(text, /a red that passes on an isolated rerun counts as green only under \*Known flakes\* above/);
+  assert.match(text, /- retry: one more fixup, with your guidance; then autosquash, squash and rerun again\.\n.*- keep: keep the squashed commit as it stands; complete the record, its line reading red\.\n.*- drop: nothing is reverted \(the step commits are squashed\); the branch is left unmerged and the record says so\./);
+  assert.match(text, /Executed, final rerun red \(kept\): <gate and first failing line>\./);
+  assert.match(text, /dropped — final rerun red, branch left unmerged/);
+  assert.match(text, /no `Implemented by:` follows a drop/);
+});
+
+test('E3: execution.md reruns a gate CI ran like the others', () => {
+  const text = read(SKILLS, 'team-protocol', 'execution.md');
+  assert.match(text, /a gate that read `green in <pipeline URL>`, it is rerun too/);
+});
+
 test('Recon is dispatched as team-analyst; team-scan leaves the agents out', () => {
   assert.match(read(SKILLS, 'team-protocol', 'scope.md'), /Dispatch it as `team-analyst`/);
   assert.match(read(SKILLS, 'team-scan', 'SKILL.md'), /The `team-\*` skills and agents are not specialists\./);

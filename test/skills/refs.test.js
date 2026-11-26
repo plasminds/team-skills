@@ -67,3 +67,13 @@ test('README: the skills table lists every skill', () => {
   const missing = fs.readdirSync(SKILLS).filter(d => !readme.includes(`(skills/${d}/SKILL.md)`));
   assert.deepStrictEqual(missing, []);
 });
+
+test('README: every file path cited in the enforced-by table exists', () => {
+  const readme = read(path.join(ROOT, 'README.md'));
+  const start = readme.indexOf('### Enforced by code or by prompt');
+  assert.ok(start >= 0, 'the subsection "Enforced by code or by prompt" is missing');
+  const section = readme.slice(start).split(/\n## /)[0];
+  const paths = [...section.matchAll(/`([^`\s*]+\.(?:md|js|sh))`/g)].map(m => m[1]);
+  assert.ok(paths.length >= 8, `only ${paths.length} paths found in the table`);
+  assert.deepStrictEqual(paths.filter(p => !fs.existsSync(path.join(ROOT, p))), []);
+});
