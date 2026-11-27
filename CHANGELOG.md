@@ -2,6 +2,10 @@
 
 What each version of team-skills changed, newest first.
 
+## 0.37.1 — 2026-11-27
+
+- **README screenshots show Send to Claude.** They are taken on the served page, as it is used, not opened as a file; retaken on the current layout.
+
 ## 0.37.0 — 2026-11-26
 
 - **A final rerun on the squashed tree.** After a squash, the gates run once more; green writes a `Final rerun:` line, red halts the run. With no squash there is no rerun.
